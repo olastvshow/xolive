@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Shell } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
 import { getMyProfile } from "@/lib/xo.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { AvatarPicker, Avatar } from "@/components/AvatarPicker";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "XO Live — Profile" }] }),
@@ -17,6 +19,7 @@ function ProfilePage() {
   const { data: p } = useQuery({ queryKey: ["profile"], queryFn: () => fn() });
   const total = (p?.wins ?? 0) + (p?.losses ?? 0) + (p?.draws ?? 0);
   const winRate = total ? Math.round(((p?.wins ?? 0) / total) * 100) : 0;
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -27,17 +30,21 @@ function ProfilePage() {
     <Shell>
       <div className="space-y-6">
         <header className="flex flex-col items-center text-center py-8 bg-surface-container-low rounded-3xl border border-white shadow-sm">
-          <div className="w-24 h-24 rounded-full border-4 border-secondary p-1 mb-3">
-            <div className="w-full h-full rounded-full bg-primary-container flex items-center justify-center text-4xl font-bold text-on-primary-container">
-              {p?.username?.[0]?.toUpperCase() ?? "?"}
-            </div>
-          </div>
+          <button onClick={() => setPickerOpen(true)} className="relative w-24 h-24 rounded-full border-4 border-secondary p-1 mb-3 active:scale-95 transition" aria-label="Change avatar">
+            <Avatar url={p?.avatar_url ?? null} name={p?.username} className="w-full h-full text-4xl" />
+            <span className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md">
+              <Icon name="edit" className="text-[18px]" filled />
+            </span>
+          </button>
           <h1 className="text-3xl font-bold text-primary">{p?.username ?? "—"}</h1>
           <p className="text-base font-medium text-on-surface-variant mb-4">Tactical XO Strategist ♟️</p>
           <button onClick={signOut} className="flex items-center gap-1 px-5 py-2 bg-error text-on-error rounded-full text-sm font-semibold tracking-wider hover:opacity-90 active:scale-95 shadow-md">
             <Icon name="logout" className="text-[18px]" /> Sign out
           </button>
         </header>
+        {p?.id && (
+          <AvatarPicker open={pickerOpen} onClose={() => setPickerOpen(false)} currentUrl={p.avatar_url ?? null} userId={p.id} />
+        )}
 
         <section className="grid grid-cols-2 gap-3">
           <Card label="Wins" value={p?.wins ?? 0} cls="bg-primary-container text-on-primary-container" />
