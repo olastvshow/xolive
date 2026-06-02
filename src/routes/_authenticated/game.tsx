@@ -124,7 +124,7 @@ function GameView(props: {
   winnerId: string | null; isDraw: boolean; hostId: string; guestId: string | null;
   messages: MsgRow[];
   onCell: (i: number) => void; onSend: (text: string, kind: "chat" | "reaction") => void;
-  onRematch: () => void; onHome: () => void;
+  onRematch: () => void; onHome: () => void; autoRematch: boolean;
 }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [muted, setMuted] = useState(false);
