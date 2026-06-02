@@ -249,6 +249,21 @@ function GameView(props: {
 
   const unread = props.messages.filter((m) => m.kind === "chat").length;
 
+  // Auto-rematch when multiplayer game finishes (host triggers to avoid double-fire)
+  const [rematchIn, setRematchIn] = useState<number | null>(null);
+  useEffect(() => {
+    if (!props.finished || !props.autoRematch) { setRematchIn(null); return; }
+    setRematchIn(4);
+    const tick = setInterval(() => {
+      setRematchIn((n) => {
+        if (n === null) return null;
+        if (n <= 1) { clearInterval(tick); props.onRematch(); return null; }
+        return n - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [props.finished, props.autoRematch, props.roomId, props.onRematch]);
+
   const sendReaction = (r: string) => props.onSend(r, "reaction");
   const sendChat = (e: React.FormEvent) => {
     e.preventDefault();
