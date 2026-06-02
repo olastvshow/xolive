@@ -248,3 +248,20 @@ export const getRecentMatches = createServerFn({ method: "GET" })
       };
     });
   });
+
+export const updateProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    username: z.string().trim().min(3).max(24).regex(/^[a-zA-Z0-9_]+$/).optional(),
+    avatar_url: z.string().url().max(1000).nullable().optional(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const updates: Record<string, unknown> = {};
+    if (data.username !== undefined) updates.username = data.username;
+    if (data.avatar_url !== undefined) updates.avatar_url = data.avatar_url;
+    if (Object.keys(updates).length === 0) return { ok: true };
+    const { error } = await supabase.from("profiles").update(updates).eq("id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
