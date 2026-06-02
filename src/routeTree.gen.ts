@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as JoinRoomRouteImport } from './routes/join-room'
 import { Route as GameRouteImport } from './routes/game'
+import { Route as CreateRoomRouteImport } from './routes/create-room'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ProfileRoute = ProfileRouteImport.update({
@@ -24,9 +26,19 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
   path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinRoomRoute = JoinRoomRouteImport.update({
+  id: '/join-room',
+  path: '/join-room',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GameRoute = GameRouteImport.update({
   id: '/game',
   path: '/game',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateRoomRoute = CreateRoomRouteImport.update({
+  id: '/create-room',
+  path: '/create-room',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,34 +49,61 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/create-room': typeof CreateRoomRoute
   '/game': typeof GameRoute
+  '/join-room': typeof JoinRoomRoute
   '/leaderboard': typeof LeaderboardRoute
   '/profile': typeof ProfileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/create-room': typeof CreateRoomRoute
   '/game': typeof GameRoute
+  '/join-room': typeof JoinRoomRoute
   '/leaderboard': typeof LeaderboardRoute
   '/profile': typeof ProfileRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/create-room': typeof CreateRoomRoute
   '/game': typeof GameRoute
+  '/join-room': typeof JoinRoomRoute
   '/leaderboard': typeof LeaderboardRoute
   '/profile': typeof ProfileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/game' | '/leaderboard' | '/profile'
+  fullPaths:
+    | '/'
+    | '/create-room'
+    | '/game'
+    | '/join-room'
+    | '/leaderboard'
+    | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/game' | '/leaderboard' | '/profile'
-  id: '__root__' | '/' | '/game' | '/leaderboard' | '/profile'
+  to:
+    | '/'
+    | '/create-room'
+    | '/game'
+    | '/join-room'
+    | '/leaderboard'
+    | '/profile'
+  id:
+    | '__root__'
+    | '/'
+    | '/create-room'
+    | '/game'
+    | '/join-room'
+    | '/leaderboard'
+    | '/profile'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CreateRoomRoute: typeof CreateRoomRoute
   GameRoute: typeof GameRoute
+  JoinRoomRoute: typeof JoinRoomRoute
   LeaderboardRoute: typeof LeaderboardRoute
   ProfileRoute: typeof ProfileRoute
 }
@@ -85,11 +124,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join-room': {
+      id: '/join-room'
+      path: '/join-room'
+      fullPath: '/join-room'
+      preLoaderRoute: typeof JoinRoomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/game': {
       id: '/game'
       path: '/game'
       fullPath: '/game'
       preLoaderRoute: typeof GameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create-room': {
+      id: '/create-room'
+      path: '/create-room'
+      fullPath: '/create-room'
+      preLoaderRoute: typeof CreateRoomRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,10 +157,22 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CreateRoomRoute: CreateRoomRoute,
   GameRoute: GameRoute,
+  JoinRoomRoute: JoinRoomRoute,
   LeaderboardRoute: LeaderboardRoute,
   ProfileRoute: ProfileRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
