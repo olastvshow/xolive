@@ -14,7 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      messages: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          room_id: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          room_id: string
+          text: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          room_id?: string
+          text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          coins: number
+          created_at: string
+          draws: number
+          id: string
+          losses: number
+          username: string
+          wins: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          coins?: number
+          created_at?: string
+          draws?: number
+          id: string
+          losses?: number
+          username: string
+          wins?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          coins?: number
+          created_at?: string
+          draws?: number
+          id?: string
+          losses?: number
+          username?: string
+          wins?: number
+        }
+        Relationships: []
+      }
+      rooms: {
+        Row: {
+          bet: number
+          board: Json
+          code: string
+          created_at: string
+          guest_id: string | null
+          guest_score: number
+          host_id: string
+          host_score: number
+          id: string
+          is_draw: boolean
+          is_quick: boolean
+          mode: string
+          round: number
+          status: string
+          turn: string
+          updated_at: string
+          winner_id: string | null
+          winning_line: Json | null
+        }
+        Insert: {
+          bet?: number
+          board?: Json
+          code: string
+          created_at?: string
+          guest_id?: string | null
+          guest_score?: number
+          host_id: string
+          host_score?: number
+          id?: string
+          is_draw?: boolean
+          is_quick?: boolean
+          mode?: string
+          round?: number
+          status?: string
+          turn?: string
+          updated_at?: string
+          winner_id?: string | null
+          winning_line?: Json | null
+        }
+        Update: {
+          bet?: number
+          board?: Json
+          code?: string
+          created_at?: string
+          guest_id?: string | null
+          guest_score?: number
+          host_id?: string
+          host_score?: number
+          id?: string
+          is_draw?: boolean
+          is_quick?: boolean
+          mode?: string
+          round?: number
+          status?: string
+          turn?: string
+          updated_at?: string
+          winner_id?: string | null
+          winning_line?: Json | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
