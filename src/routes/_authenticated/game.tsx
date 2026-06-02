@@ -100,6 +100,7 @@ function GamePage() {
       onSend={(text, kind) => sendFn({ data: { roomId: room.id, text, kind } }).catch(() => {})}
       onRematch={() => rematchFn({ data: { roomId: room.id } }).catch(() => {})}
       onHome={() => navigate({ to: "/" })}
+      autoRematch={!!room.guest_id && room.youAreHost}
     />
   );
 }
@@ -123,7 +124,7 @@ function GameView(props: {
   winnerId: string | null; isDraw: boolean; hostId: string; guestId: string | null;
   messages: MsgRow[];
   onCell: (i: number) => void; onSend: (text: string, kind: "chat" | "reaction") => void;
-  onRematch: () => void; onHome: () => void;
+  onRematch: () => void; onHome: () => void; autoRematch: boolean;
 }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -248,6 +249,21 @@ function GameView(props: {
 
   const unread = props.messages.filter((m) => m.kind === "chat").length;
 
+  // Auto-rematch when multiplayer game finishes (host triggers to avoid double-fire)
+  const [rematchIn, setRematchIn] = useState<number | null>(null);
+  useEffect(() => {
+    if (!props.finished || !props.autoRematch) { setRematchIn(null); return; }
+    setRematchIn(4);
+    const tick = setInterval(() => {
+      setRematchIn((n) => {
+        if (n === null) return null;
+        if (n <= 1) { clearInterval(tick); props.onRematch(); return null; }
+        return n - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [props.finished, props.autoRematch, props.roomId, props.onRematch]);
+
   const sendReaction = (r: string) => props.onSend(r, "reaction");
   const sendChat = (e: React.FormEvent) => {
     e.preventDefault();
@@ -340,7 +356,8 @@ function GameView(props: {
         {props.finished ? (
           <div className="flex gap-2">
             <button onClick={props.onRematch} className="bubbly flex-1 bg-primary text-on-primary py-3 rounded-2xl flex items-center justify-center gap-2 shadow-[0_5px_0_#394086] font-bold">
-              <Icon name="replay" filled /> Rematch
+              <Icon name="replay" filled />
+              {rematchIn !== null ? `Rematch in ${rematchIn}…` : "Rematch"}
             </button>
             <button onClick={props.onHome} className="bubbly flex-1 bg-surface-container text-on-surface py-3 rounded-2xl flex items-center justify-center gap-2 shadow-[0_5px_0_#c7c5d2] font-bold">
               <Icon name="home" filled /> Home
