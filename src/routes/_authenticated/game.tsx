@@ -100,6 +100,7 @@ function GamePage() {
       onSend={(text, kind) => sendFn({ data: { roomId: room.id, text, kind } }).catch(() => {})}
       onRematch={() => rematchFn({ data: { roomId: room.id } }).catch(() => {})}
       onHome={() => navigate({ to: "/" })}
+      autoRematch={!!room.guest_id && room.youAreHost}
     />
   );
 }
