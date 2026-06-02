@@ -257,7 +257,7 @@ export const updateProfile = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const updates: Record<string, unknown> = {};
+    const updates: { username?: string; avatar_url?: string | null } = {};
     if (data.username !== undefined) updates.username = data.username;
     if (data.avatar_url !== undefined) updates.avatar_url = data.avatar_url;
     if (Object.keys(updates).length === 0) return { ok: true };
