@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Shell } from "@/components/Shell";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
+import { TopBar } from "@/components/TopBar";
 import { cn } from "@/lib/utils";
 
 type Search = { code?: string; quick?: boolean; mode?: string; bet?: number };
@@ -48,6 +48,8 @@ function checkWinner(b: Cell[]): { winner: "X" | "O" | null; line: number[] | nu
   return { winner: null, line: null, draw: b.every((c) => c !== null) };
 }
 
+type FloatReaction = { id: number; emoji: string; left: number };
+
 function GamePage() {
   const navigate = useNavigate();
   const { code, quick } = Route.useSearch();
@@ -62,23 +64,42 @@ function GamePage() {
   ]);
   const [round, setRound] = useState(1);
   const [score, setScore] = useState({ me: 0, them: 0 });
+  const [chatOpen, setChatOpen] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [speakerOn, setSpeakerOn] = useState(true);
+  const [voiceConnected, setVoiceConnected] = useState(false);
+  const [floats, setFloats] = useState<FloatReaction[]>([]);
+  const floatId = useRef(0);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   const { winner, line, draw } = useMemo(() => checkWinner(board), [board]);
   const finished = !!winner || draw;
+  const unread = chat.length;
 
-  // Simulate opponent joining after a moment when waiting
   useEffect(() => {
     if (!waiting) return;
-    const t = setTimeout(() => setWaiting(false), 2200);
+    const t = setTimeout(() => {
+      setWaiting(false);
+      setVoiceConnected(true);
+    }, 2000);
     return () => clearTimeout(t);
   }, [waiting]);
 
-  // Award score when game ends
+  useEffect(() => {
+    if (!waiting) setVoiceConnected(true);
+  }, [waiting]);
+
   useEffect(() => {
     if (!finished || waiting) return;
     if (winner === "X") setScore((s) => ({ ...s, me: s.me + 1 }));
     else if (winner === "O") setScore((s) => ({ ...s, them: s.them + 1 }));
   }, [finished, winner, waiting]);
+
+  useEffect(() => {
+    if (chatOpen && chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chat, chatOpen]);
 
   const handleCell = (i: number) => {
     if (waiting || finished || board[i]) return;
@@ -94,8 +115,17 @@ function GamePage() {
     setRound((r) => r + 1);
   };
 
-  const sendReaction = (r: string) =>
+  const spawnFloat = (emoji: string) => {
+    const id = ++floatId.current;
+    const left = 20 + Math.random() * 60;
+    setFloats((f) => [...f, { id, emoji, left }]);
+    setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 2200);
+  };
+
+  const sendReaction = (r: string) => {
+    spawnFloat(r);
     setChat((c) => [...c, { from: "me", text: r, avatar: SARAH }]);
+  };
 
   const send = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,8 +136,9 @@ function GamePage() {
 
   if (waiting) {
     return (
-      <Shell>
-        <div className="flex flex-col items-center justify-center text-center gap-6 py-10">
+      <div className="min-h-screen bg-surface flex flex-col">
+        <TopBar />
+        <main className="flex-1 flex flex-col items-center justify-center text-center gap-6 px-6 pt-20 pb-10">
           <div className="w-24 h-24 rounded-full bg-primary-container flex items-center justify-center float-y">
             <Icon name="hourglass_top" filled className="text-primary text-5xl" />
           </div>
@@ -125,77 +156,85 @@ function GamePage() {
           >
             Cancel and go home
           </button>
-        </div>
-      </Shell>
+        </main>
+      </div>
     );
   }
 
   return (
-    <Shell>
-      <div className="flex flex-col items-center gap-8">
-        {/* Scoreboard */}
-        <section className="w-full flex justify-between items-stretch gap-3">
-          <div
-            className={cn(
-              "flex-1 flex flex-col items-center p-5 rounded-2xl border-4 relative transition",
-              turn === "X" && !finished
-                ? "bg-secondary text-on-secondary border-[#FFD700] scale-[1.03]"
-                : "bg-surface-container text-on-surface border-transparent"
-            )}
-          >
-            {turn === "X" && !finished && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#FFD700] text-on-primary-fixed text-[10px] tracking-widest font-bold px-2 py-1 rounded-full shadow whitespace-nowrap">
-                YOUR TURN
-              </div>
-            )}
-            <div className="w-14 h-14 rounded-full overflow-hidden mb-2">
-              <img src={SARAH} alt="Sarah" className="w-full h-full object-cover" />
-            </div>
-            <span className="text-lg font-semibold">Sarah</span>
-            <span className="text-2xl font-bold mt-1">{score.me}</span>
-          </div>
+    <div className="h-[100dvh] bg-surface text-on-surface flex flex-col overflow-hidden relative">
+      {/* Compact in-game top bar */}
+      <header className="flex items-center justify-between px-3 pt-3 pb-2 shrink-0">
+        <Link
+          to="/"
+          className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center"
+          aria-label="Leave game"
+        >
+          <Icon name="arrow_back" />
+        </Link>
+        <div className="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-full">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-[11px] font-bold tracking-wider text-on-surface-variant">
+            LIVE · ROUND {round}
+          </span>
+        </div>
+        <button
+          onClick={() => setChatOpen(true)}
+          className="relative w-10 h-10 rounded-full bg-surface-container flex items-center justify-center"
+          aria-label="Open chat"
+        >
+          <Icon name="chat_bubble" filled />
+          {unread > 0 && (
+            <span className="absolute -top-1 -right-1 bg-error text-on-error text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+              {unread}
+            </span>
+          )}
+        </button>
+      </header>
 
-          <div className="flex flex-col items-center justify-center gap-2 px-2">
-            <span className="text-4xl font-bold text-primary opacity-30 tracking-tight">VS</span>
-            <div className="bg-surface-container px-3 py-1 rounded-full text-[10px] tracking-widest font-bold text-on-surface-variant">
-              ROUND {round}
-            </div>
-          </div>
+      {/* Scoreboard – horizontal compact */}
+      <section className="flex items-center justify-between gap-2 px-3 shrink-0">
+        <PlayerCard
+          name="Sarah"
+          avatar={SARAH}
+          score={score.me}
+          active={turn === "X" && !finished}
+          mark="X"
+          side="left"
+        />
+        <span className="text-xs font-bold text-on-surface-variant opacity-50">VS</span>
+        <PlayerCard
+          name="David"
+          avatar={DAVID}
+          score={score.them}
+          active={turn === "O" && !finished}
+          mark="O"
+          side="right"
+        />
+      </section>
 
-          <div
-            className={cn(
-              "flex-1 flex flex-col items-center p-5 rounded-2xl border-4 transition",
-              turn === "O" && !finished
-                ? "bg-secondary text-on-secondary border-[#FFD700] scale-[1.03]"
-                : "bg-inverse-surface text-inverse-on-surface border-transparent opacity-80"
-            )}
-          >
-            <div className="w-14 h-14 rounded-full overflow-hidden mb-2 grayscale">
-              <img src={DAVID} alt="David" className="w-full h-full object-cover" />
-            </div>
-            <span className="text-lg font-semibold">David</span>
-            <span className="text-2xl font-bold mt-1">{score.them}</span>
-          </div>
-        </section>
+      {/* Status banner — overlays board so layout doesn't shift */}
+      {finished && (
+        <div
+          className={cn(
+            "mx-3 mt-2 text-center py-2 rounded-xl font-bold text-sm shadow shrink-0 animate-fade-in",
+            winner === "X" && "bg-primary text-on-primary",
+            winner === "O" && "bg-error text-on-error",
+            draw && "bg-surface-container-high text-on-surface"
+          )}
+        >
+          {winner === "X" && "🏆 You won this round!"}
+          {winner === "O" && "💀 David takes the round"}
+          {draw && "🤝 Draw — nobody wins"}
+        </div>
+      )}
 
-        {/* Status banner */}
-        {finished && (
-          <div
-            className={cn(
-              "w-full text-center py-3 rounded-2xl font-bold text-lg shadow",
-              winner === "X" && "bg-primary text-on-primary",
-              winner === "O" && "bg-error text-on-error",
-              draw && "bg-surface-container-high text-on-surface"
-            )}
-          >
-            {winner === "X" && "🏆 You won this round!"}
-            {winner === "O" && "💀 David takes the round"}
-            {draw && "🤝 Draw — nobody wins"}
-          </div>
-        )}
-
-        {/* Board */}
-        <section className="aspect-square w-full max-w-[400px] bg-inverse-surface p-4 rounded-2xl shadow-xl">
+      {/* Board – flexes to fill remaining space, sized to fit */}
+      <section className="flex-1 min-h-0 flex items-center justify-center px-4 py-2">
+        <div
+          className="bg-inverse-surface p-3 rounded-2xl shadow-xl aspect-square"
+          style={{ width: "min(100%, calc(100dvh - 360px), 360px)" }}
+        >
           <div className="grid grid-cols-3 grid-rows-3 gap-2 w-full h-full">
             {board.map((c, i) => {
               const winning = line?.includes(i);
@@ -209,93 +248,212 @@ function GamePage() {
                   )}
                 >
                   {c === "X" && (
-                    <Icon name="close" className="text-mint-blue glow-x" style={{ fontSize: 64 }} />
+                    <Icon name="close" className="text-mint-blue glow-x" style={{ fontSize: "min(13vw, 56px)" }} />
                   )}
                   {c === "O" && (
                     <Icon
                       name="radio_button_unchecked"
                       className="text-pastel-pink glow-o"
-                      style={{ fontSize: 64 }}
+                      style={{ fontSize: "min(12vw, 52px)" }}
                     />
                   )}
                 </button>
               );
             })}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Action row */}
+      {/* Bottom dock: voice + reactions OR rematch */}
+      <div className="shrink-0 px-3 pb-3 pt-1 space-y-2">
         {finished ? (
-          <div className="w-full flex gap-3">
+          <div className="flex gap-2">
             <button
               onClick={rematch}
-              className="bubbly flex-1 bg-primary text-on-primary py-4 rounded-2xl flex items-center justify-center gap-2 shadow-[0_6px_0_#394086] font-bold"
+              className="bubbly flex-1 bg-primary text-on-primary py-3 rounded-2xl flex items-center justify-center gap-2 shadow-[0_5px_0_#394086] font-bold"
             >
               <Icon name="replay" filled />
               Rematch
             </button>
             <Link
               to="/"
-              className="bubbly flex-1 bg-surface-container text-on-surface py-4 rounded-2xl flex items-center justify-center gap-2 shadow-[0_6px_0_#c7c5d2] font-bold"
+              className="bubbly flex-1 bg-surface-container text-on-surface py-3 rounded-2xl flex items-center justify-center gap-2 shadow-[0_5px_0_#c7c5d2] font-bold"
             >
               <Icon name="home" filled />
               Home
             </Link>
           </div>
         ) : (
-          <div className="flex flex-wrap justify-center gap-2 bg-surface-container/80 backdrop-blur-md p-2 rounded-full shadow-md mx-auto border border-outline-variant/30">
-            {REACTIONS.map((r) => (
-              <button
-                key={r}
-                onClick={() => sendReaction(r)}
-                className="hover:scale-125 transition-transform duration-200 text-2xl p-1"
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Chat */}
-        <div className="w-full bg-inverse-surface rounded-2xl p-5 shadow-lg flex flex-col gap-3">
-          <div className="flex-1 overflow-y-auto space-y-3 max-h-48 pr-1">
-            {chat.map((m, i) => (
-              <div
-                key={i}
-                className={cn("flex items-end gap-1", m.from === "me" ? "flex-row-reverse" : "")}
-              >
-                <div className="w-6 h-6 rounded-full overflow-hidden mb-1 shrink-0">
-                  <img src={m.avatar} alt="" className="w-full h-full object-cover" />
-                </div>
-                <div
-                  className={cn(
-                    "px-4 py-2 rounded-2xl text-sm font-medium max-w-[80%]",
-                    m.from === "me"
-                      ? "bg-secondary text-on-secondary rounded-br-none"
-                      : "bg-surface-variant text-on-surface-variant rounded-bl-none"
-                  )}
-                >
-                  {m.text}
-                </div>
+          <>
+            {/* Voice bar */}
+            <div className="flex items-center gap-2 bg-inverse-surface rounded-full px-3 py-2">
+              <div className="flex items-center gap-1.5 pl-1">
+                <span className={cn("w-2 h-2 rounded-full", voiceConnected ? "bg-green-400 animate-pulse" : "bg-gray-500")} />
+                <span className="text-[11px] font-bold text-white/80 tracking-wider">
+                  {voiceConnected ? "LIVE VOICE" : "OFFLINE"}
+                </span>
               </div>
-            ))}
+              <div className="flex-1" />
+              <button
+                onClick={() => setMuted((m) => !m)}
+                aria-label={muted ? "Unmute" : "Mute"}
+                className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center transition",
+                  muted ? "bg-error text-on-error" : "bg-white/15 text-white"
+                )}
+              >
+                <Icon name={muted ? "mic_off" : "mic"} filled className="text-xl" />
+              </button>
+              <button
+                onClick={() => setSpeakerOn((s) => !s)}
+                aria-label={speakerOn ? "Mute speaker" : "Enable speaker"}
+                className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center transition",
+                  speakerOn ? "bg-white/15 text-white" : "bg-error text-on-error"
+                )}
+              >
+                <Icon name={speakerOn ? "volume_up" : "volume_off"} filled className="text-xl" />
+              </button>
+            </div>
+
+            {/* Reactions strip */}
+            <div className="flex items-center justify-between gap-1 bg-surface-container/80 backdrop-blur-md p-1.5 rounded-full shadow border border-outline-variant/30">
+              {REACTIONS.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => sendReaction(r)}
+                  className="hover:scale-125 active:scale-110 transition-transform duration-200 text-xl w-8 h-8 flex items-center justify-center"
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Floating reaction overlay */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {floats.map((f) => (
+          <span
+            key={f.id}
+            className="absolute bottom-32 text-4xl float-up"
+            style={{ left: `${f.left}%` }}
+          >
+            {f.emoji}
+          </span>
+        ))}
+      </div>
+
+      {/* Chat drawer */}
+      {chatOpen && (
+        <>
+          <button
+            className="absolute inset-0 bg-black/50 animate-fade-in z-10"
+            onClick={() => setChatOpen(false)}
+            aria-label="Close chat"
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-inverse-surface rounded-t-3xl shadow-2xl z-20 max-h-[70dvh] flex flex-col animate-slide-up">
+            <div className="flex items-center justify-between p-4 pb-2 shrink-0">
+              <h3 className="font-bold text-white">Chat</h3>
+              <button
+                onClick={() => setChatOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center"
+                aria-label="Close"
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+            <div ref={chatScrollRef} className="flex-1 overflow-y-auto space-y-3 px-4 pb-2">
+              {chat.map((m, i) => (
+                <div
+                  key={i}
+                  className={cn("flex items-end gap-1", m.from === "me" ? "flex-row-reverse" : "")}
+                >
+                  <div className="w-6 h-6 rounded-full overflow-hidden mb-1 shrink-0">
+                    <img src={m.avatar} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div
+                    className={cn(
+                      "px-4 py-2 rounded-2xl text-sm font-medium max-w-[80%]",
+                      m.from === "me"
+                        ? "bg-secondary text-on-secondary rounded-br-none"
+                        : "bg-surface-variant text-on-surface-variant rounded-bl-none"
+                    )}
+                  >
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <form onSubmit={send} className="flex items-center gap-2 p-3 pt-2 border-t border-white/10 shrink-0">
+              <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type a message..."
+                autoFocus
+                className="flex-1 bg-white/10 text-white rounded-full px-4 py-3 text-sm font-semibold placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-secondary"
+              />
+              <button
+                type="submit"
+                className="w-11 h-11 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-[0_4px_0_#363a9c] active:translate-y-0.5 active:shadow-[0_2px_0_#363a9c] transition-all shrink-0"
+                aria-label="Send"
+              >
+                <Icon name="send" />
+              </button>
+            </form>
           </div>
-          <form onSubmit={send} className="flex items-center gap-3">
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type a message..."
-              className="flex-1 bg-white/10 text-surface rounded-full px-4 py-3 text-sm font-semibold placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-secondary"
-            />
-            <button
-              type="submit"
-              className="w-11 h-11 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-[0_4px_0_#363a9c] active:translate-y-0.5 active:shadow-[0_2px_0_#363a9c] transition-all"
-            >
-              <Icon name="send" />
-            </button>
-          </form>
+        </>
+      )}
+    </div>
+  );
+}
+
+function PlayerCard({
+  name,
+  avatar,
+  score,
+  active,
+  mark,
+  side,
+}: {
+  name: string;
+  avatar: string;
+  score: number;
+  active: boolean;
+  mark: "X" | "O";
+  side: "left" | "right";
+}) {
+  return (
+    <div
+      className={cn(
+        "flex-1 flex items-center gap-2 p-2 rounded-2xl border-2 transition relative min-w-0",
+        side === "right" && "flex-row-reverse",
+        active
+          ? "bg-secondary text-on-secondary border-[#FFD700] scale-[1.02]"
+          : "bg-surface-container text-on-surface border-transparent"
+      )}
+    >
+      {active && (
+        <div
+          className={cn(
+            "absolute -top-2 bg-[#FFD700] text-on-primary-fixed text-[9px] tracking-widest font-bold px-2 py-0.5 rounded-full shadow whitespace-nowrap",
+            side === "left" ? "left-2" : "right-2"
+          )}
+        >
+          TURN
+        </div>
+      )}
+      <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+        <img src={avatar} alt={name} className="w-full h-full object-cover" />
+      </div>
+      <div className={cn("min-w-0 flex-1", side === "right" && "text-right")}>
+        <div className="text-xs font-semibold truncate">{name}</div>
+        <div className="text-lg font-bold leading-none flex items-baseline gap-1.5" style={{ justifyContent: side === "right" ? "flex-end" : "flex-start" }}>
+          <span>{score}</span>
+          <span className={cn("text-xs opacity-60", mark === "X" ? "text-mint-blue" : "text-pastel-pink")}>{mark}</span>
         </div>
       </div>
-    </Shell>
+    </div>
   );
 }
