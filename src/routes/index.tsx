@@ -48,7 +48,7 @@ function Home() {
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link
-            to="/game"
+            to="/create-room"
             className="bubbly relative overflow-hidden h-48 rounded-2xl bg-primary text-on-primary p-6 flex flex-col justify-end shadow-[0_8px_0_0_#394086] text-left group"
           >
             <div className="absolute -top-4 -right-4 opacity-20 group-hover:scale-110 transition-transform duration-500">
@@ -64,7 +64,7 @@ function Home() {
           </Link>
 
           <Link
-            to="/game"
+            to="/join-room"
             className="bubbly relative overflow-hidden h-48 rounded-2xl bg-secondary text-on-secondary p-6 flex flex-col justify-end shadow-[0_8px_0_0_#26288c] text-left group"
           >
             <div className="absolute -top-4 -right-4 opacity-20 group-hover:scale-110 transition-transform duration-500">
@@ -83,6 +83,7 @@ function Home() {
         <section>
           <Link
             to="/game"
+            search={{ quick: true } as never}
             className="w-full bubbly bg-tertiary-container text-on-tertiary-container py-6 rounded-2xl flex items-center justify-center gap-3 shadow-[0_6px_0_0_#56589b] text-2xl font-semibold"
           >
             <Icon name="bolt" filled />
