@@ -9,73 +9,90 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as LeaderboardRouteImport } from './routes/leaderboard'
-import { Route as JoinRoomRouteImport } from './routes/join-room'
-import { Route as GameRouteImport } from './routes/game'
-import { Route as CreateRoomRouteImport } from './routes/create-room'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
+import { Route as AuthenticatedJoinRoomRouteImport } from './routes/_authenticated/join-room'
+import { Route as AuthenticatedGameRouteImport } from './routes/_authenticated/game'
+import { Route as AuthenticatedCreateRoomRouteImport } from './routes/_authenticated/create-room'
 
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LeaderboardRoute = LeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const JoinRoomRoute = JoinRoomRouteImport.update({
-  id: '/join-room',
-  path: '/join-room',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GameRoute = GameRouteImport.update({
-  id: '/game',
-  path: '/game',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CreateRoomRoute = CreateRoomRouteImport.update({
-  id: '/create-room',
-  path: '/create-room',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLeaderboardRoute =
+  AuthenticatedLeaderboardRouteImport.update({
+    id: '/leaderboard',
+    path: '/leaderboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedJoinRoomRoute = AuthenticatedJoinRoomRouteImport.update({
+  id: '/join-room',
+  path: '/join-room',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGameRoute = AuthenticatedGameRouteImport.update({
+  id: '/game',
+  path: '/game',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCreateRoomRoute = AuthenticatedCreateRoomRouteImport.update({
+  id: '/create-room',
+  path: '/create-room',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/create-room': typeof CreateRoomRoute
-  '/game': typeof GameRoute
-  '/join-room': typeof JoinRoomRoute
-  '/leaderboard': typeof LeaderboardRoute
-  '/profile': typeof ProfileRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
+  '/create-room': typeof AuthenticatedCreateRoomRoute
+  '/game': typeof AuthenticatedGameRoute
+  '/join-room': typeof AuthenticatedJoinRoomRoute
+  '/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/profile': typeof AuthenticatedProfileRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/create-room': typeof CreateRoomRoute
-  '/game': typeof GameRoute
-  '/join-room': typeof JoinRoomRoute
-  '/leaderboard': typeof LeaderboardRoute
-  '/profile': typeof ProfileRoute
+  '/auth': typeof AuthRoute
+  '/create-room': typeof AuthenticatedCreateRoomRoute
+  '/game': typeof AuthenticatedGameRoute
+  '/join-room': typeof AuthenticatedJoinRoomRoute
+  '/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/create-room': typeof CreateRoomRoute
-  '/game': typeof GameRoute
-  '/join-room': typeof JoinRoomRoute
-  '/leaderboard': typeof LeaderboardRoute
-  '/profile': typeof ProfileRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/create-room': typeof AuthenticatedCreateRoomRoute
+  '/_authenticated/game': typeof AuthenticatedGameRoute
+  '/_authenticated/join-room': typeof AuthenticatedJoinRoomRoute
+  '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/create-room'
     | '/game'
     | '/join-room'
@@ -83,86 +100,126 @@ export interface FileRouteTypes {
     | '/profile'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
+    | '/auth'
     | '/create-room'
     | '/game'
     | '/join-room'
     | '/leaderboard'
     | '/profile'
+    | '/'
   id:
     | '__root__'
-    | '/'
-    | '/create-room'
-    | '/game'
-    | '/join-room'
-    | '/leaderboard'
-    | '/profile'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/create-room'
+    | '/_authenticated/game'
+    | '/_authenticated/join-room'
+    | '/_authenticated/leaderboard'
+    | '/_authenticated/profile'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  CreateRoomRoute: typeof CreateRoomRoute
-  GameRoute: typeof GameRoute
-  JoinRoomRoute: typeof JoinRoomRoute
-  LeaderboardRoute: typeof LeaderboardRoute
-  ProfileRoute: typeof ProfileRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/leaderboard': {
-      id: '/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof LeaderboardRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/join-room': {
-      id: '/join-room'
-      path: '/join-room'
-      fullPath: '/join-room'
-      preLoaderRoute: typeof JoinRoomRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/game': {
-      id: '/game'
-      path: '/game'
-      fullPath: '/game'
-      preLoaderRoute: typeof GameRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/create-room': {
-      id: '/create-room'
-      path: '/create-room'
-      fullPath: '/create-room'
-      preLoaderRoute: typeof CreateRoomRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/leaderboard': {
+      id: '/_authenticated/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/join-room': {
+      id: '/_authenticated/join-room'
+      path: '/join-room'
+      fullPath: '/join-room'
+      preLoaderRoute: typeof AuthenticatedJoinRoomRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/game': {
+      id: '/_authenticated/game'
+      path: '/game'
+      fullPath: '/game'
+      preLoaderRoute: typeof AuthenticatedGameRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/create-room': {
+      id: '/_authenticated/create-room'
+      path: '/create-room'
+      fullPath: '/create-room'
+      preLoaderRoute: typeof AuthenticatedCreateRoomRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCreateRoomRoute: typeof AuthenticatedCreateRoomRoute
+  AuthenticatedGameRoute: typeof AuthenticatedGameRoute
+  AuthenticatedJoinRoomRoute: typeof AuthenticatedJoinRoomRoute
+  AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCreateRoomRoute: AuthenticatedCreateRoomRoute,
+  AuthenticatedGameRoute: AuthenticatedGameRoute,
+  AuthenticatedJoinRoomRoute: AuthenticatedJoinRoomRoute,
+  AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  CreateRoomRoute: CreateRoomRoute,
-  GameRoute: GameRoute,
-  JoinRoomRoute: JoinRoomRoute,
-  LeaderboardRoute: LeaderboardRoute,
-  ProfileRoute: ProfileRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
