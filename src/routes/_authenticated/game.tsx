@@ -356,7 +356,8 @@ function GameView(props: {
         {props.finished ? (
           <div className="flex gap-2">
             <button onClick={props.onRematch} className="bubbly flex-1 bg-primary text-on-primary py-3 rounded-2xl flex items-center justify-center gap-2 shadow-[0_5px_0_#394086] font-bold">
-              <Icon name="replay" filled /> Rematch
+              <Icon name="replay" filled />
+              {rematchIn !== null ? `Rematch in ${rematchIn}…` : "Rematch"}
             </button>
             <button onClick={props.onHome} className="bubbly flex-1 bg-surface-container text-on-surface py-3 rounded-2xl flex items-center justify-center gap-2 shadow-[0_5px_0_#c7c5d2] font-bold">
               <Icon name="home" filled /> Home
