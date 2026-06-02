@@ -147,7 +147,7 @@ export const makeMove = createServerFn({ method: "POST" })
       if (winner === "X") updates.host_score = room.host_score + 1;
       if (winner === "O") updates.guest_score = room.guest_score + 1;
     }
-    const { error: uerr } = await supabaseAdmin.from("rooms").update(updates).eq("id", room.id);
+    const { error: uerr } = await supabaseAdmin.from("rooms").update(updates as never).eq("id", room.id);
     if (uerr) throw new Error(uerr.message);
     if (winner || draw) {
       // update profile stats
@@ -163,7 +163,7 @@ export const makeMove = createServerFn({ method: "POST" })
           patch.losses = p.losses + 1;
           patch.coins = Math.max(0, p.coins - room.bet);
         }
-        await supabaseAdmin.from("profiles").update(patch).eq("id", p.id);
+        await supabaseAdmin.from("profiles").update(patch as never).eq("id", p.id);
       }
     }
     return { ok: true };
