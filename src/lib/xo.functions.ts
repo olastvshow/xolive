@@ -293,18 +293,23 @@ export const inviteAnotherPlayer = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin
+      .from("rooms").select("host_id").eq("id", data.roomId).single();
+    if (!room || room.host_id !== context.userId) throw new Error("Not your room");
     const target = await pickOnlineTarget(supabaseAdmin as unknown as DbClient, context.userId, data.exclude);
     if (!target) {
       await supabaseAdmin
         .from("rooms")
         .update({ pending_guest_id: null, updated_at: new Date().toISOString() })
-        .eq("id", data.roomId);
+        .eq("id", data.roomId)
+        .eq("host_id", context.userId);
       return { targetId: null };
     }
     await supabaseAdmin
       .from("rooms")
       .update({ pending_guest_id: target.id, updated_at: new Date().toISOString() })
-      .eq("id", data.roomId);
+      .eq("id", data.roomId)
+      .eq("host_id", context.userId);
     return { targetId: target.id };
   });
 
