@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { heartbeat } from "@/lib/xo.functions";
 import { useNativeShell } from "@/hooks/useNativeShell";
+import { IncomingInviteModal } from "@/components/IncomingInviteModal";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -31,5 +32,5 @@ function AuthedLayout() {
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [beat]);
-  return <Outlet />;
+  return (<><Outlet /><IncomingInviteModal /></>);
 }
