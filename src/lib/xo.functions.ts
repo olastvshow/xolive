@@ -232,15 +232,29 @@ export const invitePlayer = createServerFn({ method: "POST" })
     if (room.status !== "waiting") throw new Error("Room not waiting");
     if (data.targetId === context.userId) throw new Error("Cannot invite yourself");
 
-    // Check target isn't already busy
-    const { data: busy } = await supabaseAdmin
+    // Check target isn't already busy. "waiting as host" is the normal state of
+    // anyone in the matchmaking list, so it doesn't count. Stale 'playing' rooms
+    // (>90s without an update) are treated as abandoned and ignored.
+    const busySince = new Date(Date.now() - 90 * 1000).toISOString();
+    const { data: playingBusy } = await supabaseAdmin
       .from("rooms")
-      .select("id, status")
-      .or(`host_id.eq.${data.targetId},guest_id.eq.${data.targetId},pending_guest_id.eq.${data.targetId}`)
-      .in("status", ["waiting", "playing"])
+      .select("id")
+      .or(`host_id.eq.${data.targetId},guest_id.eq.${data.targetId}`)
+      .eq("status", "playing")
+      .gte("updated_at", busySince)
       .neq("id", data.roomId)
       .limit(1);
-    if (busy && busy.length) throw new Error("Player is busy");
+    const { data: pendingBusy } = await supabaseAdmin
+      .from("rooms")
+      .select("id")
+      .eq("pending_guest_id", data.targetId)
+      .eq("status", "waiting")
+      .neq("id", data.roomId)
+      .limit(1);
+    if ((playingBusy && playingBusy.length) || (pendingBusy && pendingBusy.length)) {
+      throw new Error("Player is busy");
+    }
+
 
     const { data: updated, error } = await supabaseAdmin
       .from("rooms")
