@@ -185,6 +185,7 @@ function GameView(props: {
       const myId = props.youMark === "X" ? props.hostId : props.youMark === "O" ? props.guestId : null;
       if (myId && last.user_id !== myId) {
         toast.success("🏆 Opponent forfeited — you win!");
+        setTimeout(() => props.onHome(), 1500);
       }
     }
     if (chatOpen && chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
