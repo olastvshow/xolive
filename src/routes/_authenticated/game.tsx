@@ -466,9 +466,13 @@ function GameView(props: {
         </button>
       </header>
 
-      <section className="flex items-center justify-between gap-2 px-3 shrink-0">
+      <section className="flex items-stretch justify-between gap-1.5 px-3 shrink-0">
         <PlayerCard name={props.hostName} score={props.hostScore} active={props.turn === "X" && !props.finished} mark="X" side="left" you={props.youMark === "X"} />
-        <span className="text-xs font-bold text-on-surface-variant opacity-50">VS</span>
+        <ScoreCenter
+          hostScore={props.hostScore}
+          guestScore={props.guestScore}
+          draws={Math.max(0, props.round - 1 - props.hostScore - props.guestScore)}
+        />
         <PlayerCard name={props.guestName} score={props.guestScore} active={props.turn === "O" && !props.finished} mark="O" side="right" you={props.youMark === "O"} />
       </section>
 
