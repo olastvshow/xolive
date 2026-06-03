@@ -734,28 +734,12 @@ export const purchaseCosmetic = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ cosmeticId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: cosmetic, error: cerr } = await supabaseAdmin.from("cosmetics").select("*").eq("id", data.cosmeticId).eq("active", true).maybeSingle();
-    if (cerr) throw new Error(cerr.message);
-    if (!cosmetic) throw new Error("Cosmetic not found");
-    const { data: existing } = await supabaseAdmin.from("user_cosmetics").select("id").eq("user_id", context.userId).eq("cosmetic_id", cosmetic.id).maybeSingle();
-    if (existing) return { ok: true, alreadyOwned: true };
-    const { data: me } = await supabaseAdmin.from("profiles").select("coins, coins_spent_total").eq("id", context.userId).single();
-    if (!me) throw new Error("Profile not found");
-    if (me.coins < cosmetic.price_coins) throw new Error("Not enough coins");
-    const newBalance = me.coins - cosmetic.price_coins;
-    const { error: uerr } = await supabaseAdmin.from("profiles").update({
-      coins: newBalance,
-      coins_spent_total: me.coins_spent_total + cosmetic.price_coins,
-    } as never).eq("id", context.userId);
-    if (uerr) throw new Error(uerr.message);
-    await supabaseAdmin.from("user_cosmetics").insert({ user_id: context.userId, cosmetic_id: cosmetic.id } as never);
-    if (cosmetic.price_coins > 0) {
-      await supabaseAdmin.from("coin_transactions").insert({
-        user_id: context.userId, delta: -cosmetic.price_coins, balance_after: newBalance,
-        source: "cosmetic_spend", ref: cosmetic.id,
-      } as never);
-    }
-    return { ok: true };
+    const { data: result, error } = await supabaseAdmin.rpc("purchase_cosmetic", {
+      _user_id: context.userId,
+      _cosmetic_id: data.cosmeticId,
+    });
+    if (error) throw new Error(error.message);
+    return result as { ok: boolean; already_owned?: boolean; balance?: number };
   });
 
 export const equipCosmetic = createServerFn({ method: "POST" })
