@@ -711,7 +711,7 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
               style={{ animationDelay: "0.3s" }}>
             VICTORY!
           </h2>
-          <p className="text-on-surface-variant font-bold tracking-widest text-xs animate-result-pop" style={{ animationDelay: "0.5s" }}>
+          <p className="text-yellow-100/90 font-bold tracking-widest text-xs animate-result-pop drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]" style={{ animationDelay: "0.5s" }}>
             ROUND {round} · +COINS EARNED
           </p>
         </div>
