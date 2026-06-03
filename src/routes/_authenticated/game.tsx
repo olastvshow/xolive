@@ -131,21 +131,27 @@ function GameView(props: {
   const [speakerOn, setSpeakerOn] = useState(true);
   const [message, setMessage] = useState("");
   const [floats, setFloats] = useState<{ id: number; emoji: string; left: number }[]>([]);
+  const [chatPops, setChatPops] = useState<{ id: string; user_id: string; text: string }[]>([]);
   const floatId = useRef(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const [voiceState, setVoiceState] = useState<"off" | "connecting" | "live">("off");
+  const [voiceAttempt, setVoiceAttempt] = useState(0);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Spawn reaction emoji floats from message stream
+  // Spawn reaction emoji floats + chat pop-ups from message stream
   useEffect(() => {
     const last = props.messages[props.messages.length - 1];
-    if (last && last.kind === "reaction") {
+    if (!last) return;
+    if (last.kind === "reaction") {
       const id = ++floatId.current;
       const left = 20 + Math.random() * 60;
       setFloats((f) => [...f, { id, emoji: last.text, left }]);
       setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 2200);
+    } else if (last.kind === "chat" && !chatOpen) {
+      setChatPops((p) => [...p.slice(-2), { id: last.id, user_id: last.user_id, text: last.text }]);
+      setTimeout(() => setChatPops((p) => p.filter((x) => x.id !== last.id)), 4000);
     }
     if (chatOpen && chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
   }, [props.messages, chatOpen]);
