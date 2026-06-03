@@ -113,7 +113,7 @@ function LeaderboardPage() {
         <div className="flex items-center px-5 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/60">
           <span className="w-10">Rank</span>
           <span className="flex-grow pl-3">Player</span>
-          <span>Points</span>
+          <span>W / L / D</span>
         </div>
 
         {/* Search */}
