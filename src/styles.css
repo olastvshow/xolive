@@ -257,3 +257,13 @@
 }
 .animate-intro-out { animation: intro-out 0.35s ease-in forwards; }
 
+
+/* ===== Quick Match radar ===== */
+@keyframes radar-sweep {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes blip-pulse {
+  0%, 100% { opacity: 0.2; transform-origin: 0 0; }
+  50%      { opacity: 1; }
+}
