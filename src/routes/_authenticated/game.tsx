@@ -631,7 +631,30 @@ function GameView(props: {
           </div>
         </>
       )}
+
+      <AlertDialog open={forfeitOpen} onOpenChange={setForfeitOpen}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-error/15 text-error flex items-center justify-center mb-2 animate-pulse">
+              <Icon name="flag" filled className="text-3xl" />
+            </div>
+            <AlertDialogTitle className="text-center text-2xl">Forfeit the match?</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              You'll lose this round and your opponent wins. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center gap-2">
+            <AlertDialogCancel className="rounded-2xl font-bold">Keep playing</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { setForfeitOpen(false); props.onForfeit(); }}
+              className="rounded-2xl font-bold bg-error text-on-error hover:bg-error/90">
+              <Icon name="flag" filled className="mr-1" /> Forfeit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 }
 
