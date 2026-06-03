@@ -682,7 +682,8 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
   if (outcome === "win") {
     return (
       <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-yellow-300/30 via-amber-400/20 to-transparent animate-flash-bg" />
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
+        <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/40 via-amber-500/25 to-transparent animate-flash-bg" />
         {/* Confetti */}
         {confetti.map((p) => (
           <span key={p.id} className="confetti-piece"
