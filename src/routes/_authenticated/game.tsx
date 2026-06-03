@@ -131,21 +131,27 @@ function GameView(props: {
   const [speakerOn, setSpeakerOn] = useState(true);
   const [message, setMessage] = useState("");
   const [floats, setFloats] = useState<{ id: number; emoji: string; left: number }[]>([]);
+  const [chatPops, setChatPops] = useState<{ id: string; user_id: string; text: string }[]>([]);
   const floatId = useRef(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const [voiceState, setVoiceState] = useState<"off" | "connecting" | "live">("off");
+  const [voiceAttempt, setVoiceAttempt] = useState(0);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Spawn reaction emoji floats from message stream
+  // Spawn reaction emoji floats + chat pop-ups from message stream
   useEffect(() => {
     const last = props.messages[props.messages.length - 1];
-    if (last && last.kind === "reaction") {
+    if (!last) return;
+    if (last.kind === "reaction") {
       const id = ++floatId.current;
       const left = 20 + Math.random() * 60;
       setFloats((f) => [...f, { id, emoji: last.text, left }]);
       setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 2200);
+    } else if (last.kind === "chat" && !chatOpen) {
+      setChatPops((p) => [...p.slice(-2), { id: last.id, user_id: last.user_id, text: last.text }]);
+      setTimeout(() => setChatPops((p) => p.filter((x) => x.id !== last.id)), 4000);
     }
     if (chatOpen && chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
   }, [props.messages, chatOpen]);
@@ -164,13 +170,40 @@ function GameView(props: {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
         localStreamRef.current = stream;
-        pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+        pc = new RTCPeerConnection({
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+          ],
+        });
         pcRef.current = pc;
         stream.getTracks().forEach((t) => pc!.addTrack(t, stream));
         pc.ontrack = (e) => {
           if (audioRef.current) {
             audioRef.current.srcObject = e.streams[0];
             audioRef.current.play().catch(() => {});
+            setVoiceState("live");
+          }
+        };
+        pc.oniceconnectionstatechange = () => {
+          const st = pc?.iceConnectionState;
+          if (st === "failed" || st === "disconnected") {
+            // try ICE restart (host re-offers); if still bad, schedule full reconnect
+            if (isHost && pc) {
+              pc.createOffer({ iceRestart: true })
+                .then((o) => pc!.setLocalDescription(o).then(() => o))
+                .then((o) => channel?.send({ type: "broadcast", event: "offer", payload: { sdp: o } }))
+                .catch(() => {});
+            }
+            setTimeout(() => {
+              if (cancelled) return;
+              const s = pcRef.current?.iceConnectionState;
+              if (s === "failed" || s === "disconnected" || s === "closed") {
+                setVoiceState("connecting");
+                setVoiceAttempt((n) => n + 1);
+              }
+            }, 4000);
+          } else if (st === "connected" || st === "completed") {
             setVoiceState("live");
           }
         };
@@ -230,7 +263,23 @@ function GameView(props: {
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
     };
-  }, [props.roomId, props.guestId, props.youMark]);
+  }, [props.roomId, props.guestId, props.youMark, voiceAttempt]);
+
+  // Keep remote audio playing if the browser pauses it (tab focus, autoplay policy, etc.)
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    const resume = () => { el.play().catch(() => {}); };
+    el.addEventListener("pause", resume);
+    el.addEventListener("ended", resume);
+    const onVis = () => { if (document.visibilityState === "visible") resume(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      el.removeEventListener("pause", resume);
+      el.removeEventListener("ended", resume);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
 
   const toggleMute = () => {
     setMuted((m) => {
@@ -396,6 +445,24 @@ function GameView(props: {
           <span key={f.id} className="absolute bottom-32 text-4xl float-up" style={{ left: `${f.left}%` }}>{f.emoji}</span>
         ))}
       </div>
+
+      {/* Floating chat pop-ups (auto-dismiss) */}
+      {chatPops.length > 0 && (
+        <div className="absolute top-28 left-0 right-0 z-10 px-4 flex flex-col items-center gap-1.5 pointer-events-none">
+          {chatPops.map((m) => {
+            const mine = (props.youMark === "X" && m.user_id === props.hostId) || (props.youMark === "O" && m.user_id === props.guestId);
+            const name = m.user_id === props.hostId ? props.hostName : props.guestName;
+            return (
+              <button key={m.id} onClick={() => setChatOpen(true)}
+                className={cn("pointer-events-auto max-w-[85%] px-4 py-2 rounded-2xl text-sm font-medium shadow-lg animate-slide-up text-left",
+                  mine ? "bg-secondary text-on-secondary" : "bg-inverse-surface text-white")}>
+                <span className="block text-[10px] font-bold opacity-70 uppercase tracking-wide">{name}</span>
+                <span className="block">{m.text}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {chatOpen && (
         <>
