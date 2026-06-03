@@ -30,7 +30,7 @@ function PodiumCard({
   rank,
   highlight,
 }: {
-  player: { username: string; wins: number; avatar_url?: string | null };
+  player: { username: string; wins: number; losses: number; draws: number; avatar_url?: string | null };
   rank: 1 | 2 | 3;
   highlight?: boolean;
 }) {
@@ -51,7 +51,7 @@ function PodiumCard({
         </div>
       </div>
       <p className="mt-4 font-bold text-sm text-on-surface text-center max-w-[100px] truncate">{player.username}</p>
-      <p className="text-xs text-on-surface-variant mt-0.5">🏆 {player.wins * 100} pts</p>
+      <p className="text-xs text-on-surface-variant mt-0.5">{player.wins}W / {player.losses}L / {player.draws}D</p>
     </div>
   );
 }
