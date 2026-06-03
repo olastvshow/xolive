@@ -115,6 +115,24 @@ export const quickPlay = createServerFn({ method: "POST" })
     throw new Error("Could not start quick play");
   });
 
+export const cancelQuickMatch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ roomId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Only delete if still waiting and owned by caller (no opponent yet).
+    const { error } = await supabaseAdmin
+      .from("rooms")
+      .delete()
+      .eq("id", data.roomId)
+      .eq("host_id", context.userId)
+      .eq("status", "waiting")
+      .is("guest_id", null);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
 
 export const getRoomByCode = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

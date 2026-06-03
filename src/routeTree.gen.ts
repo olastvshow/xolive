@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedQuickMatchRouteImport } from './routes/_authenticated/quick-match'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedJoinRoomRouteImport } from './routes/_authenticated/join-room'
@@ -30,6 +31,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedQuickMatchRoute = AuthenticatedQuickMatchRouteImport.update({
+  id: '/quick-match',
+  path: '/quick-match',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/join-room': typeof AuthenticatedJoinRoomRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/quick-match': typeof AuthenticatedQuickMatchRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/join-room': typeof AuthenticatedJoinRoomRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/quick-match': typeof AuthenticatedQuickMatchRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_authenticated/join-room': typeof AuthenticatedJoinRoomRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/quick-match': typeof AuthenticatedQuickMatchRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/join-room'
     | '/leaderboard'
     | '/profile'
+    | '/quick-match'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/join-room'
     | '/leaderboard'
     | '/profile'
+    | '/quick-match'
     | '/'
   id:
     | '__root__'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/_authenticated/join-room'
     | '/_authenticated/leaderboard'
     | '/_authenticated/profile'
+    | '/_authenticated/quick-match'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -145,6 +157,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/quick-match': {
+      id: '/_authenticated/quick-match'
+      path: '/quick-match'
+      fullPath: '/quick-match'
+      preLoaderRoute: typeof AuthenticatedQuickMatchRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -191,6 +210,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJoinRoomRoute: typeof AuthenticatedJoinRoomRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedQuickMatchRoute: typeof AuthenticatedQuickMatchRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -200,6 +220,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJoinRoomRoute: AuthenticatedJoinRoomRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedQuickMatchRoute: AuthenticatedQuickMatchRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
