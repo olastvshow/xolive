@@ -465,8 +465,8 @@ function GameView(props: {
         </div>
         <button onClick={() => setChatOpen(true)} className="relative w-10 h-10 rounded-full bg-surface-container flex items-center justify-center" aria-label="Open chat">
           <Icon name="chat_bubble" filled />
-          {unread > 0 && (
-            <span className="absolute -top-1 -right-1 bg-error text-on-error text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">{unread}</span>
+          {hasUnread && (
+            <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-error ring-2 ring-surface" />
           )}
         </button>
       </header>
