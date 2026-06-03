@@ -19,7 +19,12 @@ function ProfilePage() {
   const qc = useQueryClient();
   const fn = useServerFn(getMyProfile);
   const updateFn = useServerFn(updateProfile);
+  const deleteFn = useServerFn(deleteMyAccount);
   const { data: p } = useQuery({ queryKey: ["profile"], queryFn: () => fn() });
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteText, setDeleteText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteErr, setDeleteErr] = useState<string | null>(null);
   const total = (p?.wins ?? 0) + (p?.losses ?? 0) + (p?.draws ?? 0);
   const winRate = total ? Math.round(((p?.wins ?? 0) / total) * 100) : 0;
   const [pickerOpen, setPickerOpen] = useState(false);
