@@ -13,14 +13,14 @@ export const Route = createFileRoute("/_authenticated/leaderboard")({
 
 const TABS = ["Daily", "Monthly", "All time"] as const;
 
-function Avatar({ name, size = 56, ring }: { name: string; size?: number; ring?: string }) {
+function Avatar({ name, url, size = 56, ring }: { name: string; url?: string | null; size?: number; ring?: string }) {
   const initial = name[0]?.toUpperCase() ?? "?";
   return (
     <div
-      className={`rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center font-extrabold text-on-primary-container shadow-md ${ring ?? ""}`}
+      className={`rounded-full overflow-hidden bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center font-extrabold text-on-primary-container shadow-md ${ring ?? ""}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
-      {initial}
+      {url ? <img src={url} alt={name} className="w-full h-full object-cover" /> : initial}
     </div>
   );
 }
