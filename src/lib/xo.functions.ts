@@ -293,7 +293,7 @@ export const inviteAnotherPlayer = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const target = await pickOnlineTarget(supabaseAdmin, context.userId, data.exclude);
+    const target = await pickOnlineTarget(supabaseAdmin as unknown as DbClient, context.userId, data.exclude);
     if (!target) {
       await supabaseAdmin
         .from("rooms")
