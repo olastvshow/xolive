@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Shell } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
-import { getMyProfile, getRecentMatches, quickPlay } from "@/lib/xo.functions";
+import { getMyProfile, getRecentMatches } from "@/lib/xo.functions";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({ meta: [{ title: "XO Live — Home" }] }),
@@ -13,16 +13,12 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function Home() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const getProfile = useServerFn(getMyProfile);
   const getMatches = useServerFn(getRecentMatches);
-  const startQuick = useServerFn(quickPlay);
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
   const { data: matches } = useQuery({ queryKey: ["recent-matches"], queryFn: () => getMatches() });
-  const quick = useMutation({
-    mutationFn: () => startQuick(),
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["recent-matches"] }); navigate({ to: "/game", search: { code: r.code, quick: true } as never }); },
-  });
+  const startQuick = () => navigate({ to: "/quick-match" });
+
 
   return (
     <Shell>
