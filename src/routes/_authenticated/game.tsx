@@ -478,12 +478,20 @@ function GameView(props: {
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           <span className="text-[11px] font-bold tracking-wider text-on-surface-variant">LIVE · ROUND {props.round}</span>
         </div>
-        <button onClick={() => setChatOpen(true)} className="relative w-10 h-10 rounded-full bg-surface-container flex items-center justify-center" aria-label="Open chat">
-          <Icon name="chat_bubble" filled />
-          {hasUnread && (
-            <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-error ring-2 ring-surface" />
+        <div className="flex items-center gap-1.5">
+          {!props.finished && !!props.guestId && !!props.youMark && (
+            <button onClick={() => setForfeitOpen(true)} className="w-10 h-10 rounded-full bg-error/15 text-error flex items-center justify-center active:scale-95 transition-transform" aria-label="Forfeit match">
+              <Icon name="flag" filled />
+            </button>
           )}
-        </button>
+          <button onClick={() => setChatOpen(true)} className="relative w-10 h-10 rounded-full bg-surface-container flex items-center justify-center" aria-label="Open chat">
+            <Icon name="chat_bubble" filled />
+            {hasUnread && (
+              <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-error ring-2 ring-surface" />
+            )}
+          </button>
+        </div>
+
       </header>
 
       <section className="flex items-stretch justify-between gap-1.5 px-3 shrink-0">
