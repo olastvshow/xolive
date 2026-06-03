@@ -150,7 +150,7 @@ function LeaderboardPage() {
                   {rank}
                 </div>
                 <div className="flex items-center gap-3 flex-grow pl-3">
-                  <Avatar name={p.username} size={36} />
+                  <Avatar name={p.username} url={p.avatar_url} size={36} />
                   <p className="font-bold text-sm truncate">
                     {p.username}
                     {isMe && " (You)"}
