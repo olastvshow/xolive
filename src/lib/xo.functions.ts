@@ -151,11 +151,17 @@ export const getOnlinePlayers = createServerFn({ method: "GET" })
     // A player is "busy" only if they're actively in a playing match, or already
     // pending in someone else's invite. Hosting a waiting quick-play room is the
     // normal state for everyone searching, so we don't exclude on that.
+    // Only count a "playing" room as truly busy if it's been touched recently.
+    // Abandoned matches stay in 'playing' forever and would otherwise lock
+    // every user out of being shown as available.
+    const busySince = new Date(Date.now() - 90 * 1000).toISOString();
     const { data: busyRooms } = await supabaseAdmin
       .from("rooms")
-      .select("host_id, guest_id, pending_guest_id, status")
+      .select("host_id, guest_id, pending_guest_id, status, updated_at")
       .or(`host_id.in.(${inList}),guest_id.in.(${inList}),pending_guest_id.in.(${inList})`)
-      .in("status", ["playing"]);
+      .eq("status", "playing")
+      .gte("updated_at", busySince);
+
 
     const { data: pendingRooms } = await supabaseAdmin
       .from("rooms")
