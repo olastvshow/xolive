@@ -752,7 +752,8 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
   // Draw
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-400/25 via-indigo-400/15 to-transparent animate-flash-bg" />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-500/40 via-indigo-500/25 to-transparent animate-flash-bg" />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="relative w-72 h-72">
           <div className="absolute inset-0 rounded-full border-4 border-sky-300 animate-burst-ring" />
@@ -760,12 +761,12 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
         </div>
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
-        <span className="text-[120px] leading-none animate-draw-bounce text-sky-300 animate-result-glow">🤝</span>
-        <h2 className="text-5xl font-black text-sky-200 drop-shadow-[0_3px_0_rgba(0,0,0,0.4)] animate-result-pop"
+        <span className="text-[120px] leading-none animate-draw-bounce text-sky-200 animate-result-glow">🤝</span>
+        <h2 className="text-5xl font-black text-sky-100 drop-shadow-[0_3px_0_rgba(0,0,0,0.7)] animate-result-pop"
             style={{ animationDelay: "0.3s" }}>
           DRAW!
         </h2>
-        <p className="text-on-surface-variant font-bold tracking-widest text-xs animate-result-pop" style={{ animationDelay: "0.5s" }}>
+        <p className="text-sky-100/90 font-bold tracking-widest text-xs animate-result-pop drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]" style={{ animationDelay: "0.5s" }}>
           ROUND {round} · EVENLY MATCHED
         </p>
       </div>
