@@ -109,11 +109,19 @@
   .glow-o { filter: drop-shadow(0 0 8px #ffb7ce); }
 
   .bubbly {
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    will-change: transform;
   }
   .bubbly:active {
-    transform: translateY(4px);
+    transform: scale(0.96);
     box-shadow: none !important;
+  }
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
