@@ -25,8 +25,23 @@ export function IncomingInviteModal() {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
   }, []);
 
+  const ensureFreshSession = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return false;
+
+    const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
+    if (expiresAt && expiresAt - Date.now() < 60_000) {
+      const { data, error } = await supabase.auth.refreshSession();
+      return !error && !!data.session;
+    }
+
+    return true;
+  }, []);
+
   const callWithRefresh = useCallback(async <T,>(fn: () => Promise<T>): Promise<T | null> => {
     try {
+      const hasSession = await ensureFreshSession();
+      if (!hasSession) return null;
       return await fn();
     } catch (e) {
       const msg = (e as Error)?.message ?? "";
@@ -36,7 +51,7 @@ export function IncomingInviteModal() {
       }
       return null;
     }
-  }, []);
+  }, [ensureFreshSession]);
 
   const refresh = useCallback(async () => {
     const inv = await callWithRefresh(() => getPending());
@@ -88,7 +103,8 @@ export function IncomingInviteModal() {
     if (busy) return;
     setBusy(true);
     try {
-      const room = await accept({ data: { roomId: invite.room.id } });
+      const room = await callWithRefresh(() => accept({ data: { roomId: invite.room.id } }));
+      if (!room) throw new Error("Session expired");
       setInvite(null);
       navigate({ to: "/game", search: { code: room.code, quick: true } as never });
     } catch { setBusy(false); }
@@ -97,7 +113,7 @@ export function IncomingInviteModal() {
   const handleDecline = async () => {
     if (busy) return;
     setBusy(true);
-    try { await decline({ data: { roomId: invite.room.id } }); } catch { /* ignore */ }
+    try { await callWithRefresh(() => decline({ data: { roomId: invite.room.id } })); } catch { /* ignore */ }
     setInvite(null);
     setBusy(false);
   };
