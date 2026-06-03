@@ -30,7 +30,7 @@ function PodiumCard({
   rank,
   highlight,
 }: {
-  player: { username: string; wins: number; avatar_url?: string | null };
+  player: { username: string; wins: number; losses: number; draws: number; avatar_url?: string | null };
   rank: 1 | 2 | 3;
   highlight?: boolean;
 }) {
@@ -51,7 +51,7 @@ function PodiumCard({
         </div>
       </div>
       <p className="mt-4 font-bold text-sm text-on-surface text-center max-w-[100px] truncate">{player.username}</p>
-      <p className="text-xs text-on-surface-variant mt-0.5">🏆 {player.wins * 100} pts</p>
+      <p className="text-xs text-on-surface-variant mt-0.5">{player.wins}W / {player.losses}L / {player.draws}D</p>
     </div>
   );
 }
@@ -113,7 +113,7 @@ function LeaderboardPage() {
         <div className="flex items-center px-5 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/60">
           <span className="w-10">Rank</span>
           <span className="flex-grow pl-3">Player</span>
-          <span>Points</span>
+          <span>W / L / D</span>
         </div>
 
         {/* Search */}
@@ -156,8 +156,8 @@ function LeaderboardPage() {
                     {isMe && " (You)"}
                   </p>
                 </div>
-                <p className={`text-sm font-bold ${isMe ? "text-on-primary" : "text-primary"}`}>
-                  {p.wins * 100} pts
+                <p className={`text-sm font-bold tabular-nums ${isMe ? "text-on-primary" : "text-primary"}`}>
+                  {p.wins}<span className="opacity-60"> / </span>{p.losses}<span className="opacity-60"> / </span>{p.draws}
                 </p>
               </div>
             );
