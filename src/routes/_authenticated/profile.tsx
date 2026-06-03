@@ -183,14 +183,73 @@ function ProfilePage() {
           </div>
         </section>
 
-        {/* Sign out */}
-        <button
-          onClick={signOut}
-          className="w-full flex items-center justify-center gap-2 py-3.5 bg-error text-on-error rounded-2xl text-sm font-bold tracking-wider active:scale-[0.98] shadow-[0_4px_0_rgba(0,0,0,0.15)]"
-        >
-          <Icon name="logout" className="text-[18px]" /> Sign out
-        </button>
+        {/* Account actions */}
+        <div className="space-y-2.5">
+          <button
+            onClick={signOut}
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-surface-container-highest text-on-surface rounded-2xl text-sm font-bold tracking-wider active:scale-[0.98]"
+          >
+            <Icon name="logout" className="text-[18px]" /> Sign out
+          </button>
+          <button
+            onClick={() => { setConfirmDelete(true); setDeleteText(""); setDeleteErr(null); }}
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-error/10 text-error rounded-2xl text-sm font-bold tracking-wider active:scale-[0.98]"
+          >
+            <Icon name="delete_forever" className="text-[18px]" filled /> Delete account
+          </button>
+          <p className="text-[11px] text-on-surface-variant text-center px-4 leading-relaxed">
+            Deleting your account permanently removes your profile, stats, coins, and chat history. This action can't be undone.
+          </p>
+        </div>
       </div>
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={() => !deleting && setConfirmDelete(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm bg-surface rounded-3xl p-6 shadow-2xl">
+            <div className="mx-auto w-14 h-14 rounded-full bg-error/10 text-error flex items-center justify-center mb-3">
+              <Icon name="warning" className="text-3xl" filled />
+            </div>
+            <h2 className="text-xl font-black text-center text-on-surface">Delete your account?</h2>
+            <p className="text-sm text-on-surface-variant text-center mt-2 leading-relaxed">
+              This permanently deletes <span className="font-bold text-on-surface">@{p?.username}</span>, all stats, coins, and chat history. This can't be undone.
+            </p>
+            <label className="block text-xs font-bold text-on-surface-variant mt-5 mb-1.5">Type <span className="text-error">DELETE</span> to confirm</label>
+            <input
+              value={deleteText}
+              onChange={(e) => setDeleteText(e.target.value)}
+              placeholder="DELETE"
+              className="w-full h-12 px-3.5 rounded-2xl bg-surface-container ring-1 ring-outline-variant focus:ring-error outline-none font-bold tracking-widest text-center"
+            />
+            {deleteErr && <p className="text-xs text-error font-semibold mt-2 text-center">{deleteErr}</p>}
+            <div className="flex gap-2 mt-5">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                disabled={deleting}
+                className="flex-1 py-3 rounded-2xl bg-surface-container-highest text-on-surface font-bold text-sm active:scale-[0.98] disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={deleteText !== "DELETE" || deleting}
+                onClick={async () => {
+                  setDeleting(true); setDeleteErr(null);
+                  try {
+                    await deleteFn();
+                    await supabase.auth.signOut();
+                    navigate({ to: "/auth", replace: true });
+                  } catch (e) {
+                    setDeleteErr(e instanceof Error ? e.message : "Could not delete account");
+                    setDeleting(false);
+                  }
+                }}
+                className="flex-1 py-3 rounded-2xl bg-error text-on-error font-bold text-sm active:scale-[0.98] disabled:opacity-50"
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Shell>
   );
 }
