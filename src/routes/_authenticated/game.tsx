@@ -111,7 +111,7 @@ function GamePage() {
       onCell={(i) => moveFn({ data: { roomId: room.id, index: i } }).catch(() => {})}
       onSend={(text, kind) => sendFn({ data: { roomId: room.id, text, kind } }).catch(() => {})}
       onRematch={() => rematchFn({ data: { roomId: room.id } }).catch(() => {})}
-      onForfeit={() => forfeitFn({ data: { roomId: room.id } }).then(() => toast.info("You forfeited the match")).catch((e) => toast.error(e?.message ?? "Forfeit failed"))}
+      onForfeit={() => forfeitFn({ data: { roomId: room.id } }).then(() => { toast.info("You forfeited the match"); navigate({ to: "/" }); }).catch((e) => toast.error(e?.message ?? "Forfeit failed"))}
       onHome={() => navigate({ to: "/" })}
       autoRematch={!!room.guest_id && room.youAreHost}
     />
