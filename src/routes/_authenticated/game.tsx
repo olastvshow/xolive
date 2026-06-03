@@ -5,7 +5,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { getRoomByCode, makeMove, sendMessage, rematch } from "@/lib/xo.functions";
+import { getRoomByCode, makeMove, sendMessage, rematch, forfeitMatch } from "@/lib/xo.functions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 type Search = { code?: string; quick?: boolean; mode?: string; bet?: number };
 
@@ -32,6 +43,7 @@ function GamePage() {
   const moveFn = useServerFn(makeMove);
   const sendFn = useServerFn(sendMessage);
   const rematchFn = useServerFn(rematch);
+  const forfeitFn = useServerFn(forfeitMatch);
 
   const { data: room, refetch } = useQuery({
     queryKey: ["room", code],
@@ -99,6 +111,7 @@ function GamePage() {
       onCell={(i) => moveFn({ data: { roomId: room.id, index: i } }).catch(() => {})}
       onSend={(text, kind) => sendFn({ data: { roomId: room.id, text, kind } }).catch(() => {})}
       onRematch={() => rematchFn({ data: { roomId: room.id } }).catch(() => {})}
+      onForfeit={() => forfeitFn({ data: { roomId: room.id } }).then(() => toast.info("You forfeited the match")).catch((e) => toast.error(e?.message ?? "Forfeit failed"))}
       onHome={() => navigate({ to: "/" })}
       autoRematch={!!room.guest_id && room.youAreHost}
     />
@@ -125,6 +138,7 @@ function GameView(props: {
   messages: MsgRow[];
   onCell: (i: number) => void; onSend: (text: string, kind: "chat" | "reaction") => void;
   onRematch: () => void; onHome: () => void; autoRematch: boolean;
+  onForfeit: () => void;
 }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -167,6 +181,11 @@ function GameView(props: {
     } else if (last.kind === "chat" && !chatOpen) {
       setChatPops((p) => [...p.slice(-2), { id: last.id, user_id: last.user_id, text: last.text }]);
       setTimeout(() => setChatPops((p) => p.filter((x) => x.id !== last.id)), 4000);
+    } else if (last.kind === "system" && last.text === "forfeit") {
+      const myId = props.youMark === "X" ? props.hostId : props.youMark === "O" ? props.guestId : null;
+      if (myId && last.user_id !== myId) {
+        toast.success("🏆 Opponent forfeited — you win!");
+      }
     }
     if (chatOpen && chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
   }, [props.messages, chatOpen]);
@@ -396,6 +415,7 @@ function GameView(props: {
   };
 
   const [hasUnread, setHasUnread] = useState(false);
+  const [forfeitOpen, setForfeitOpen] = useState(false);
   useEffect(() => {
     const last = props.messages[props.messages.length - 1];
     if (last && last.kind === "chat" && !chatOpen) setHasUnread(true);
@@ -463,12 +483,20 @@ function GameView(props: {
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           <span className="text-[11px] font-bold tracking-wider text-on-surface-variant">LIVE · ROUND {props.round}</span>
         </div>
-        <button onClick={() => setChatOpen(true)} className="relative w-10 h-10 rounded-full bg-surface-container flex items-center justify-center" aria-label="Open chat">
-          <Icon name="chat_bubble" filled />
-          {hasUnread && (
-            <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-error ring-2 ring-surface" />
+        <div className="flex items-center gap-1.5">
+          {!props.finished && !!props.guestId && !!props.youMark && (
+            <button onClick={() => setForfeitOpen(true)} className="w-10 h-10 rounded-full bg-error/15 text-error flex items-center justify-center active:scale-95 transition-transform" aria-label="Forfeit match">
+              <Icon name="flag" filled />
+            </button>
           )}
-        </button>
+          <button onClick={() => setChatOpen(true)} className="relative w-10 h-10 rounded-full bg-surface-container flex items-center justify-center" aria-label="Open chat">
+            <Icon name="chat_bubble" filled />
+            {hasUnread && (
+              <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-error ring-2 ring-surface" />
+            )}
+          </button>
+        </div>
+
       </header>
 
       <section className="flex items-stretch justify-between gap-1.5 px-3 shrink-0">
@@ -608,7 +636,30 @@ function GameView(props: {
           </div>
         </>
       )}
+
+      <AlertDialog open={forfeitOpen} onOpenChange={setForfeitOpen}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-error/15 text-error flex items-center justify-center mb-2 animate-pulse">
+              <Icon name="flag" filled className="text-3xl" />
+            </div>
+            <AlertDialogTitle className="text-center text-2xl">Forfeit the match?</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              You'll lose this round and your opponent wins. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center gap-2">
+            <AlertDialogCancel className="rounded-2xl font-bold">Keep playing</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { setForfeitOpen(false); props.onForfeit(); }}
+              className="rounded-2xl font-bold bg-error text-on-error hover:bg-error/90">
+              <Icon name="flag" filled className="mr-1" /> Forfeit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 }
 

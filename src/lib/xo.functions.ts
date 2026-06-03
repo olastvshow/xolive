@@ -574,6 +574,58 @@ export const rematch = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const forfeitMatch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ roomId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room, error } = await supabaseAdmin.from("rooms").select("*").eq("id", data.roomId).single();
+    if (error || !room) throw new Error("Room not found");
+    if (room.host_id !== context.userId && room.guest_id !== context.userId) throw new Error("Not a participant");
+    if (room.status !== "playing") throw new Error("Game not in progress");
+    if (!room.guest_id) throw new Error("No opponent");
+    const youAreHost = room.host_id === context.userId;
+    const winnerId = youAreHost ? room.guest_id : room.host_id;
+    const updates: Record<string, unknown> = {
+      status: "finished",
+      winner_id: winnerId,
+      is_draw: false,
+      winning_line: null,
+      updated_at: new Date().toISOString(),
+    };
+    if (youAreHost) updates.guest_score = room.guest_score + 1;
+    else updates.host_score = room.host_score + 1;
+    const { error: uerr } = await supabaseAdmin.from("rooms").update(updates as never).eq("id", room.id);
+    if (uerr) throw new Error(uerr.message);
+
+    const { data: profs } = await supabaseAdmin.from("profiles").select("id, wins, losses, coins").in("id", [room.host_id, room.guest_id]);
+    for (const p of profs ?? []) {
+      const patch: Record<string, number> = {};
+      if (p.id === winnerId) {
+        patch.wins = p.wins + 1;
+        if (room.bet === 0) patch.coins = p.coins + 25;
+      } else {
+        patch.losses = p.losses + 1;
+      }
+      await supabaseAdmin.from("profiles").update(patch as never).eq("id", p.id);
+      if (p.id === winnerId && room.bet === 0) {
+        await supabaseAdmin.from("coin_transactions").insert({
+          user_id: p.id, delta: 25, balance_after: patch.coins as number, source: "win_payout", ref: room.id,
+        } as never);
+      }
+    }
+    if (room.bet > 0) {
+      const { error: rpcErr } = await supabaseAdmin.rpc("finish_match", { _room_id: room.id });
+      if (rpcErr) throw new Error(rpcErr.message);
+    }
+    await supabaseAdmin.from("messages").insert({
+      room_id: room.id, user_id: context.userId, kind: "system", text: "forfeit",
+    } as never);
+    return { ok: true };
+  });
+
+
+
 
 export const sendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
