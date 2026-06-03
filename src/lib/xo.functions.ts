@@ -196,7 +196,7 @@ export const getOnlinePlayers = createServerFn({ method: "GET" })
     // A player is "busy" only if they're actively in a recent playing match, or
     // already pending in a fresh invite. Stale games/invites are ignored so old
     // abandoned rooms don't hide everyone from Quick Play.
-    const busy = await getBusyPlayerIds(supabaseAdmin, ids);
+    const busy = await getBusyPlayerIds(supabaseAdmin as unknown as DbClient, ids);
     return online.filter((p) => !busy.has(p.id));
 
   });
@@ -254,7 +254,7 @@ export const invitePlayer = createServerFn({ method: "POST" })
 
     // Mirror the list filtering exactly. If the player became busy after the
     // list loaded, return a safe result instead of throwing a runtime error.
-    const busy = await getBusyPlayerIds(supabaseAdmin, [data.targetId], data.roomId);
+    const busy = await getBusyPlayerIds(supabaseAdmin as unknown as DbClient, [data.targetId], data.roomId);
     if (busy.has(data.targetId)) {
       return { targetId: null, room, busy: true, message: "That player just became busy. Pick another opponent." };
     }
