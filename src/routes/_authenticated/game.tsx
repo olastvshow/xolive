@@ -170,13 +170,40 @@ function GameView(props: {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
         localStreamRef.current = stream;
-        pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+        pc = new RTCPeerConnection({
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+          ],
+        });
         pcRef.current = pc;
         stream.getTracks().forEach((t) => pc!.addTrack(t, stream));
         pc.ontrack = (e) => {
           if (audioRef.current) {
             audioRef.current.srcObject = e.streams[0];
             audioRef.current.play().catch(() => {});
+            setVoiceState("live");
+          }
+        };
+        pc.oniceconnectionstatechange = () => {
+          const st = pc?.iceConnectionState;
+          if (st === "failed" || st === "disconnected") {
+            // try ICE restart (host re-offers); if still bad, schedule full reconnect
+            if (isHost && pc) {
+              pc.createOffer({ iceRestart: true })
+                .then((o) => pc!.setLocalDescription(o).then(() => o))
+                .then((o) => channel?.send({ type: "broadcast", event: "offer", payload: { sdp: o } }))
+                .catch(() => {});
+            }
+            setTimeout(() => {
+              if (cancelled) return;
+              const s = pcRef.current?.iceConnectionState;
+              if (s === "failed" || s === "disconnected" || s === "closed") {
+                setVoiceState("connecting");
+                setVoiceAttempt((n) => n + 1);
+              }
+            }, 4000);
+          } else if (st === "connected" || st === "completed") {
             setVoiceState("live");
           }
         };
@@ -236,7 +263,23 @@ function GameView(props: {
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
     };
-  }, [props.roomId, props.guestId, props.youMark]);
+  }, [props.roomId, props.guestId, props.youMark, voiceAttempt]);
+
+  // Keep remote audio playing if the browser pauses it (tab focus, autoplay policy, etc.)
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    const resume = () => { el.play().catch(() => {}); };
+    el.addEventListener("pause", resume);
+    el.addEventListener("ended", resume);
+    const onVis = () => { if (document.visibilityState === "visible") resume(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      el.removeEventListener("pause", resume);
+      el.removeEventListener("ended", resume);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
 
   const toggleMute = () => {
     setMuted((m) => {
