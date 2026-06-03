@@ -775,6 +775,15 @@ const GRACE_DAYS = 30;
 
 async function purgeUser(uid: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  // Remove all avatar files in the user's folder before deleting profile.
+  try {
+    const { data: files } = await supabaseAdmin.storage.from("avatars").list(uid);
+    if (files?.length) {
+      await supabaseAdmin.storage.from("avatars").remove(files.map((f) => `${uid}/${f.name}`));
+    }
+  } catch {
+    // best-effort cleanup; continue with row purge
+  }
   await supabaseAdmin.from("user_cosmetics").delete().eq("user_id", uid);
   await supabaseAdmin.from("coin_transactions").delete().eq("user_id", uid);
   await supabaseAdmin.from("messages").delete().eq("user_id", uid);
