@@ -131,22 +131,39 @@ async function pickOnlineTarget(admin: any, meId: string, exclude: string[]) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-// Online players for the radar animation
+// Online players for the radar animation AND the pickable list.
+// Excludes anyone already busy in another waiting/playing room.
 export const getOnlinePlayers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const onlineSince = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
-    const { data } = await supabaseAdmin
+    const { data: online } = await supabaseAdmin
       .from("profiles")
-      .select("id, username, avatar_url")
+      .select("id, username, avatar_url, wins, losses, draws")
       .gte("last_seen_at", onlineSince)
       .neq("id", context.userId)
-      .limit(30);
-    return data ?? [];
+      .limit(50);
+    if (!online?.length) return [];
+
+    const ids = online.map((p) => p.id);
+    const inList = ids.join(",");
+    const { data: busyRooms } = await supabaseAdmin
+      .from("rooms")
+      .select("host_id, guest_id, pending_guest_id, status")
+      .or(`host_id.in.(${inList}),guest_id.in.(${inList}),pending_guest_id.in.(${inList})`)
+      .in("status", ["waiting", "playing"]);
+
+    const busy = new Set<string>();
+    for (const r of busyRooms ?? []) {
+      if (r.host_id) busy.add(r.host_id);
+      if (r.guest_id) busy.add(r.guest_id);
+      if (r.pending_guest_id) busy.add(r.pending_guest_id);
+    }
+    return online.filter((p) => !busy.has(p.id));
   });
 
-// Start quick play: create my room and invite a random online player.
+// Start quick play: just create a waiting room. The host then picks from the list.
 export const quickPlay = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -156,7 +173,19 @@ export const quickPlay = createServerFn({ method: "POST" })
       .update({ last_seen_at: new Date().toISOString() })
       .eq("id", context.userId);
 
-    let room: any = null;
+    // Reuse an existing open quick room if there is one
+    const { data: existing } = await supabaseAdmin
+      .from("rooms")
+      .select("*")
+      .eq("host_id", context.userId)
+      .eq("status", "waiting")
+      .eq("is_quick", true)
+      .is("guest_id", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existing) return { ...existing, targetId: existing.pending_guest_id, mode: existing.pending_guest_id ? "inviting" as const : "searching" as const };
+
     for (let i = 0; i < 5; i++) {
       const code = genCode();
       const { data: row, error } = await supabaseAdmin
@@ -164,25 +193,62 @@ export const quickPlay = createServerFn({ method: "POST" })
         .insert({ code, host_id: context.userId, is_quick: true })
         .select("*")
         .single();
-      if (!error) { room = row; break; }
+      if (!error) return { ...row, targetId: null, mode: "searching" as const };
       if (!error.message.includes("duplicate")) throw new Error(error.message);
     }
-    if (!room) throw new Error("Could not create room");
-
-    const target = await pickOnlineTarget(supabaseAdmin, context.userId, []);
-    if (target) {
-      const { data: updated } = await supabaseAdmin
-        .from("rooms")
-        .update({ pending_guest_id: target.id, updated_at: new Date().toISOString() })
-        .eq("id", room.id)
-        .select("*")
-        .single();
-      return { ...(updated ?? room), targetId: target.id, mode: "inviting" as const };
-    }
-    return { ...room, targetId: null, mode: "searching" as const };
+    throw new Error("Could not create room");
   });
 
-// Try a fresh random online player on the same room (after decline / timeout).
+// Host picks a player from the list — invite that specific user.
+export const invitePlayer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    roomId: z.string().uuid(),
+    targetId: z.string().uuid(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin
+      .from("rooms").select("*").eq("id", data.roomId).single();
+    if (!room || room.host_id !== context.userId) throw new Error("Not your room");
+    if (room.status !== "waiting") throw new Error("Room not waiting");
+    if (data.targetId === context.userId) throw new Error("Cannot invite yourself");
+
+    // Check target isn't already busy
+    const { data: busy } = await supabaseAdmin
+      .from("rooms")
+      .select("id, status")
+      .or(`host_id.eq.${data.targetId},guest_id.eq.${data.targetId},pending_guest_id.eq.${data.targetId}`)
+      .in("status", ["waiting", "playing"])
+      .neq("id", data.roomId)
+      .limit(1);
+    if (busy && busy.length) throw new Error("Player is busy");
+
+    const { data: updated, error } = await supabaseAdmin
+      .from("rooms")
+      .update({ pending_guest_id: data.targetId, updated_at: new Date().toISOString() })
+      .eq("id", room.id)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return { targetId: data.targetId, room: updated };
+  });
+
+// Cancel an outstanding invite (host changes their mind / picks another).
+export const cancelInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ roomId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("rooms")
+      .update({ pending_guest_id: null, updated_at: new Date().toISOString() })
+      .eq("id", data.roomId)
+      .eq("host_id", context.userId);
+    return { ok: true };
+  });
+
+// Back-compat shim — picks first available and invites them.
 export const inviteAnotherPlayer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
@@ -191,23 +257,18 @@ export const inviteAnotherPlayer = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: room } = await supabaseAdmin
-      .from("rooms").select("*").eq("id", data.roomId).single();
-    if (!room || room.host_id !== context.userId) throw new Error("Not your room");
-    if (room.status !== "waiting") throw new Error("Room not waiting");
-
     const target = await pickOnlineTarget(supabaseAdmin, context.userId, data.exclude);
     if (!target) {
       await supabaseAdmin
         .from("rooms")
         .update({ pending_guest_id: null, updated_at: new Date().toISOString() })
-        .eq("id", room.id);
+        .eq("id", data.roomId);
       return { targetId: null };
     }
     await supabaseAdmin
       .from("rooms")
       .update({ pending_guest_id: target.id, updated_at: new Date().toISOString() })
-      .eq("id", room.id);
+      .eq("id", data.roomId);
     return { targetId: target.id };
   });
 
