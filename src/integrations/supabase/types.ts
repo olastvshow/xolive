@@ -131,6 +131,7 @@ export type Database = {
           equipped_frame: string
           equipped_piece: string
           id: string
+          last_seen_at: string | null
           losses: number
           username: string
           wins: number
@@ -147,6 +148,7 @@ export type Database = {
           equipped_frame?: string
           equipped_piece?: string
           id: string
+          last_seen_at?: string | null
           losses?: number
           username: string
           wins?: number
@@ -163,6 +165,7 @@ export type Database = {
           equipped_frame?: string
           equipped_piece?: string
           id?: string
+          last_seen_at?: string | null
           losses?: number
           username?: string
           wins?: number
@@ -183,6 +186,7 @@ export type Database = {
           is_draw: boolean
           is_quick: boolean
           mode: string
+          pending_guest_id: string | null
           pot: number
           round: number
           status: string
@@ -204,6 +208,7 @@ export type Database = {
           is_draw?: boolean
           is_quick?: boolean
           mode?: string
+          pending_guest_id?: string | null
           pot?: number
           round?: number
           status?: string
@@ -225,6 +230,7 @@ export type Database = {
           is_draw?: boolean
           is_quick?: boolean
           mode?: string
+          pending_guest_id?: string | null
           pot?: number
           round?: number
           status?: string
