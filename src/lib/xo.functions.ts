@@ -102,7 +102,6 @@ const PENDING_INVITE_BUSY_SECONDS = 30;
 type DbError = { message: string };
 type DbResult = { data: unknown; error: DbError | null };
 type DbQuery = PromiseLike<DbResult> & {
-  select: (columns: string) => DbQuery;
   or: (filters: string) => DbQuery;
   eq: (column: string, value: unknown) => DbQuery;
   gte: (column: string, value: string) => DbQuery;
@@ -110,7 +109,7 @@ type DbQuery = PromiseLike<DbResult> & {
   neq: (column: string, value: string) => DbQuery;
   limit: (count: number) => DbQuery;
 };
-type DbClient = { from: (table: string) => DbQuery };
+type DbClient = { from: (table: string) => { select: (columns: string) => DbQuery } };
 type BusyRoom = { host_id: string | null; guest_id: string | null; pending_guest_id?: string | null };
 type OnlineTarget = { id: string; username: string; avatar_url: string | null };
 
