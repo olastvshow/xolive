@@ -125,6 +125,7 @@ export type Database = {
           coins_purchased_total: number
           coins_spent_total: number
           created_at: string
+          deletion_scheduled_at: string | null
           draws: number
           equipped_board: string
           equipped_frame: string
@@ -140,6 +141,7 @@ export type Database = {
           coins_purchased_total?: number
           coins_spent_total?: number
           created_at?: string
+          deletion_scheduled_at?: string | null
           draws?: number
           equipped_board?: string
           equipped_frame?: string
@@ -155,6 +157,7 @@ export type Database = {
           coins_purchased_total?: number
           coins_spent_total?: number
           created_at?: string
+          deletion_scheduled_at?: string | null
           draws?: number
           equipped_board?: string
           equipped_frame?: string
