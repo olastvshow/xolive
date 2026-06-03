@@ -79,6 +79,7 @@ function ProfilePage() {
   };
 
   const signOut = async () => {
+    qc.clear();
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
