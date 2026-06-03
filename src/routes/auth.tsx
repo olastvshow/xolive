@@ -1,8 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Icon } from "@/components/Icon";
 import logoAsset from "@/assets/logo.png.asset.json";
+import heroAsset from "@/assets/auth-hero.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -26,6 +27,14 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // First-time visitor → onboarding
+    try {
+      if (!localStorage.getItem("xo_onboarded")) {
+        navigate({ to: "/onboarding", replace: true });
+        return;
+      }
+    } catch {}
+
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/", replace: true });
     });
@@ -61,43 +70,94 @@ function AuthPage() {
     } finally { setLoading(false); }
   };
 
-  return (
-    <div className="relative min-h-[100dvh] overflow-hidden bg-surface flex items-center justify-center px-5 py-10">
-      {/* Ambient gradient blobs */}
-      <div aria-hidden className="pointer-events-none absolute -top-32 -left-24 h-80 w-80 rounded-full blur-3xl opacity-50"
-        style={{ background: "radial-gradient(circle, var(--color-primary-fixed-dim), transparent 70%)" }} />
-      <div aria-hidden className="pointer-events-none absolute -bottom-40 -right-24 h-96 w-96 rounded-full blur-3xl opacity-40"
-        style={{ background: "radial-gradient(circle, var(--color-pastel-pink), transparent 70%)" }} />
+  const stars = useMemo(
+    () => Array.from({ length: 16 }, (_, k) => ({
+      left: `${(k * 53) % 100}%`,
+      top: `${(k * 29) % 60}%`,
+      delay: (k % 6) * 0.3,
+    })),
+    [],
+  );
 
-      <div className="relative w-full max-w-sm">
-        {/* Brand */}
-        <div className="text-center mb-8">
-          <div className="mx-auto h-20 w-20 rounded-[1.4rem] bg-white shadow-[0_10px_30px_-12px_rgba(57,64,134,0.45)] flex items-center justify-center mb-4 ring-1 ring-black/5 overflow-hidden">
-            <img src={logoAsset.url} alt="XO Live" className="w-full h-full object-cover" />
+  return (
+    <div className="relative min-h-[100dvh] overflow-hidden text-white"
+      style={{
+        background:
+          "radial-gradient(120% 80% at 80% 0%, #6b4cf0 0%, #4b2bb8 40%, #2a1373 75%, #160a3d 100%)",
+      }}
+    >
+      {/* Background atmosphere */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-20 h-96 w-96 rounded-full blur-3xl opacity-50"
+          style={{ background: "radial-gradient(circle, #ff7eb6, transparent 70%)" }} />
+        <div className="absolute -bottom-40 -right-20 h-[28rem] w-[28rem] rounded-full blur-3xl opacity-40"
+          style={{ background: "radial-gradient(circle, #6bd1ff, transparent 70%)" }} />
+        {stars.map((s, k) => (
+          <span
+            key={k}
+            className="twinkle absolute rounded-full bg-white"
+            style={{ left: s.left, top: s.top, width: 4, height: 4, animationDelay: `${s.delay}s` }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 mx-auto w-full max-w-md min-h-[100dvh] flex flex-col px-6 pt-5 pb-6">
+        {/* Top bar */}
+        <div className="flex items-center justify-between">
+          <Link to="/onboarding"
+            className="h-10 w-10 grid place-items-center rounded-full bg-white/10 ring-1 ring-white/20 active:scale-95 transition">
+            <Icon name="arrow_back" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-xl bg-white/95 overflow-hidden ring-1 ring-white/30">
+              <img src={logoAsset.url} alt="XO Live" className="w-full h-full object-cover" />
+            </div>
+            <span className="font-bold tracking-tight">XO Live</span>
           </div>
-          <h1 className="text-[28px] leading-tight font-semibold tracking-tight text-on-surface">
-            {tab === "signin" ? "Welcome back" : "Create your account"}
+          <span className="w-10" />
+        </div>
+
+        {/* Hero illustration */}
+        <div className="relative flex justify-center mt-2 mb-1 h-44">
+          <div className="absolute inset-x-0 mx-auto top-6 h-32 w-56 rounded-full blur-2xl opacity-50"
+            style={{ background: "radial-gradient(circle, #ffb7ce, transparent 70%)" }} />
+          <img
+            src={heroAsset.url}
+            alt="XO Live mascots"
+            width={1024}
+            height={1024}
+            className="relative w-44 h-44 object-contain float-bob drop-shadow-[0_18px_30px_rgba(0,0,0,0.45)]"
+          />
+        </div>
+
+        {/* Heading */}
+        <div className="text-center mb-5 animate-slide-in-up">
+          <h1 className="text-[30px] leading-tight font-extrabold tracking-tight">
+            {tab === "signin" ? "Welcome back!" : "Join the fun"}
           </h1>
-          <p className="text-on-surface-variant text-[15px] mt-1.5">
-            {tab === "signin" ? "Sign in to continue to XO Live." : "Join XO Live in seconds."}
+          <p className="text-white/70 text-[14px] mt-1">
+            {tab === "signin" ? "Sign in and jump back in." : "Create an account to start playing."}
           </p>
         </div>
 
         {/* Card */}
-        <div className="rounded-3xl bg-white/80 backdrop-blur-xl ring-1 ring-black/5 shadow-[0_20px_60px_-25px_rgba(20,20,40,0.25)] p-5">
-          {/* Segmented control */}
-          <div className="relative grid grid-cols-2 p-1 bg-surface-container rounded-full mb-5 text-sm font-semibold">
+        <div className="rounded-3xl bg-white/10 backdrop-blur-xl ring-1 ring-white/15 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.5)] p-4 animate-pop-in">
+          {/* Segmented */}
+          <div className="relative grid grid-cols-2 p-1 bg-white/10 rounded-full mb-4 text-sm font-bold">
             <div
               aria-hidden
-              className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-out"
-              style={{ transform: tab === "signin" ? "translateX(4px)" : "translateX(calc(100% + 4px))" }}
+              className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full shadow-md transition-transform duration-300 ease-out"
+              style={{
+                background: "linear-gradient(135deg, #ffe082, #ffb7ce 60%, #bdc2ff)",
+                transform: tab === "signin" ? "translateX(4px)" : "translateX(calc(100% + 4px))",
+              }}
             />
             {(["signin", "signup"] as const).map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => { setTab(t); setError(null); }}
-                className={`relative z-10 py-2 rounded-full transition-colors ${tab === t ? "text-on-surface" : "text-on-surface-variant"}`}
+                className={`relative z-10 py-2 rounded-full transition-colors ${tab === t ? "text-[#2a1373]" : "text-white/80"}`}
               >
                 {t === "signin" ? "Sign in" : "Sign up"}
               </button>
@@ -140,7 +200,7 @@ function AuthPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="text-on-surface-variant hover:text-on-surface p-1 -mr-1 rounded-full"
+                  className="text-white/60 hover:text-white p-1 -mr-1 rounded-full"
                   aria-label={showPw ? "Hide password" : "Show password"}
                 >
                   <Icon name={showPw ? "visibility_off" : "visibility"} />
@@ -150,14 +210,14 @@ function AuthPage() {
 
             {tab === "signin" && (
               <div className="flex justify-end -mt-1">
-                <button type="button" className="text-[13px] font-medium text-primary hover:underline">
+                <button type="button" className="text-[13px] font-semibold text-white/80 hover:text-white">
                   Forgot password?
                 </button>
               </div>
             )}
 
             {error && (
-              <div className="flex items-start gap-2 rounded-xl bg-error-container/60 text-on-error-container px-3 py-2.5 text-sm">
+              <div className="flex items-start gap-2 rounded-xl bg-[#ff6b6b]/25 text-white ring-1 ring-[#ff6b6b]/40 px-3 py-2.5 text-sm">
                 <Icon name="error" filled />
                 <span className="font-medium leading-snug">{error}</span>
               </div>
@@ -166,31 +226,33 @@ function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group w-full h-12 mt-1 bg-on-surface text-surface rounded-2xl font-semibold tracking-tight flex items-center justify-center gap-2 transition active:scale-[0.985] disabled:opacity-60"
+              className="relative overflow-hidden w-full h-12 mt-1 rounded-2xl font-bold tracking-tight text-[#2a1373] flex items-center justify-center gap-2 active:scale-[0.985] transition disabled:opacity-60 shadow-[0_18px_40px_-12px_rgba(255,182,206,0.55)]"
+              style={{ background: "linear-gradient(135deg, #ffe082, #ffb7ce 60%, #bdc2ff)" }}
             >
               {loading ? (
-                <span className="inline-block h-4 w-4 rounded-full border-2 border-surface/40 border-t-surface animate-spin" />
+                <span className="inline-block h-4 w-4 rounded-full border-2 border-[#2a1373]/30 border-t-[#2a1373] animate-spin" />
               ) : (
                 <>
                   {tab === "signin" ? "Sign in" : "Create account"}
                   <Icon name="arrow_forward" />
                 </>
               )}
+              <span aria-hidden className="absolute inset-y-0 left-0 w-1/3 bg-white/40 shine-sweep" />
             </button>
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-3 my-5">
-            <div className="h-px flex-1 bg-outline-variant/60" />
-            <span className="text-xs uppercase tracking-wider text-on-surface-variant">or</span>
-            <div className="h-px flex-1 bg-outline-variant/60" />
+          <div className="flex items-center gap-3 my-4">
+            <div className="h-px flex-1 bg-white/15" />
+            <span className="text-[11px] uppercase tracking-widest text-white/60">or</span>
+            <div className="h-px flex-1 bg-white/15" />
           </div>
 
-          {/* Social placeholder (visual only) */}
+          {/* Social placeholder */}
           <button
             type="button"
             disabled
-            className="w-full h-12 rounded-2xl bg-white ring-1 ring-black/10 font-medium text-on-surface flex items-center justify-center gap-2 opacity-60 cursor-not-allowed"
+            className="w-full h-12 rounded-2xl bg-white text-[#2a1373] font-semibold flex items-center justify-center gap-2 opacity-80 cursor-not-allowed"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
               <path fill="#4285F4" d="M23 12.27c0-.79-.07-1.54-.2-2.27H12v4.51h6.18c-.27 1.4-1.07 2.59-2.28 3.39v2.82h3.69C21.74 18.74 23 15.78 23 12.27z"/>
@@ -203,16 +265,16 @@ function AuthPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[13px] text-on-surface-variant mt-6">
+        <p className="text-center text-[13px] text-white/75 mt-5">
           {tab === "signin" ? "New to XO Live? " : "Already have an account? "}
           <button
             onClick={() => { setTab(tab === "signin" ? "signup" : "signin"); setError(null); }}
-            className="text-primary font-semibold"
+            className="text-[#ffd66b] font-bold"
           >
             {tab === "signin" ? "Create an account" : "Sign in"}
           </button>
         </p>
-        <p className="text-center text-[11px] text-on-surface-variant/80 mt-3 px-6 leading-relaxed">
+        <p className="text-center text-[11px] text-white/55 mt-2 px-4 leading-relaxed">
           By continuing, you agree to our Terms and acknowledge our Privacy Policy.
         </p>
       </div>
@@ -229,13 +291,13 @@ function Field({
   trailing?: React.ReactNode;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
   return (
-    <label className="group flex items-center gap-2.5 h-12 px-3.5 rounded-2xl bg-surface-container/70 ring-1 ring-transparent focus-within:ring-primary focus-within:bg-white transition-colors">
-      <Icon name={icon} className="text-on-surface-variant" />
+    <label className="group flex items-center gap-2.5 h-12 px-3.5 rounded-2xl bg-white/10 ring-1 ring-white/15 focus-within:ring-[#ffd66b] focus-within:bg-white/15 transition-colors">
+      <Icon name={icon} className="text-white/70" />
       <input
         {...rest}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-on-surface-variant/80"
+        className="flex-1 bg-transparent outline-none text-[15px] text-white placeholder:text-white/55"
       />
       {trailing}
     </label>
