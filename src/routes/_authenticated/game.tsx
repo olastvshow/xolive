@@ -181,6 +181,11 @@ function GameView(props: {
     } else if (last.kind === "chat" && !chatOpen) {
       setChatPops((p) => [...p.slice(-2), { id: last.id, user_id: last.user_id, text: last.text }]);
       setTimeout(() => setChatPops((p) => p.filter((x) => x.id !== last.id)), 4000);
+    } else if (last.kind === "system" && last.text === "forfeit") {
+      const myId = props.youMark === "X" ? props.hostId : props.youMark === "O" ? props.guestId : null;
+      if (myId && last.user_id !== myId) {
+        toast.success("🏆 Opponent forfeited — you win!");
+      }
     }
     if (chatOpen && chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
   }, [props.messages, chatOpen]);
