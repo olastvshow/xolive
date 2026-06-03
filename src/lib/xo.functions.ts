@@ -109,10 +109,10 @@ export const quickPlay = createServerFn({ method: "POST" })
 
     const onlineSince = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
 
-    // Find rooms hosted by online players, waiting, no guest and no pending request yet.
+    // Find rooms waiting with no guest and no pending request yet.
     const { data: waiting } = await supabaseAdmin
       .from("rooms")
-      .select("*, host:profiles!rooms_host_id_fkey(id, username, avatar_url, wins, losses, draws, last_seen_at)")
+      .select("*")
       .eq("status", "waiting")
       .eq("is_quick", true)
       .neq("host_id", context.userId)
@@ -121,9 +121,17 @@ export const quickPlay = createServerFn({ method: "POST" })
       .order("created_at")
       .limit(10);
 
-    const candidate = (waiting ?? []).find(
-      (r) => r.host?.last_seen_at && r.host.last_seen_at >= onlineSince,
-    );
+    let candidate: typeof waiting extends (infer T)[] ? T : never | undefined;
+    if (waiting && waiting.length) {
+      const hostIds = waiting.map((r) => r.host_id);
+      const { data: hosts } = await supabaseAdmin
+        .from("profiles")
+        .select("id, last_seen_at")
+        .in("id", hostIds)
+        .gte("last_seen_at", onlineSince);
+      const onlineIds = new Set((hosts ?? []).map((h) => h.id));
+      candidate = waiting.find((r) => onlineIds.has(r.host_id));
+    }
 
     if (candidate) {
       // Send a join request — host must accept before the match starts.
