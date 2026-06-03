@@ -225,6 +225,22 @@ function ProfilePage() {
           </div>
         )}
 
+        {/* Legal */}
+        <section className="bg-surface-container-low ring-1 ring-outline-variant/60 rounded-2xl overflow-hidden divide-y divide-outline-variant/40">
+          <ActionRow
+            icon="shield_person"
+            label="Privacy Policy"
+            hint="How we handle your data"
+            onClick={() => navigate({ to: "/privacy" })}
+          />
+          <ActionRow
+            icon="gavel"
+            label="Terms of Service"
+            hint="Rules for using XO Live"
+            onClick={() => navigate({ to: "/terms" })}
+          />
+        </section>
+
         {/* Account list */}
         <section className="bg-surface-container-low ring-1 ring-outline-variant/60 rounded-2xl overflow-hidden divide-y divide-outline-variant/40">
           <ActionRow
