@@ -38,11 +38,15 @@ function AuthPage() {
     setLoading(true); setError(null);
     try {
       if (tab === "signup") {
+        const uname = username.trim();
+        if (!/^[a-zA-Z0-9_]{3,24}$/.test(uname)) {
+          throw new Error("Username must be 3-24 characters: letters, numbers, or underscores.");
+        }
         const { error } = await supabase.auth.signUp({
           email, password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: username ? { username } : undefined,
+            data: { username: uname },
           },
         });
         if (error) throw error;
@@ -76,7 +80,8 @@ function AuthPage() {
         <form onSubmit={submit} className="space-y-3">
           {tab === "signup" && (
             <input value={username} onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username (optional)" autoComplete="username"
+              required minLength={3} maxLength={24} pattern="[a-zA-Z0-9_]+"
+              placeholder="Username" autoComplete="username"
               className="w-full px-4 py-3 rounded-xl bg-white border border-outline-variant focus:border-primary outline-none" />
           )}
           <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
