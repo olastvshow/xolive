@@ -303,51 +303,48 @@ function ProfilePage() {
   );
 }
 
-function Chip({ icon, label }: { icon: string; label: string }) {
+function SummaryTile({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-[11px] font-bold uppercase tracking-wider">
-      <Icon name={icon} className="text-[14px]" filled />
-      {label}
-    </span>
-  );
-}
-
-function Stat({ label, value, icon, tint }: { label: string; value: number; icon: string; tint: string }) {
-  return (
-    <div className={cn("p-3 rounded-2xl flex flex-col items-center text-center", tint)}>
-      <Icon name={icon} className="text-xl mb-0.5" filled />
-      <div className="text-2xl font-black leading-none tabular-nums">{value}</div>
-      <div className="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">{label}</div>
-    </div>
-  );
-}
-
-function WinRateRing({ percent }: { percent: number }) {
-  const size = 72;
-  const stroke = 8;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const offset = c - (percent / 100) * c;
-  return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="currentColor" strokeWidth={stroke} fill="none" className="text-surface" />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="currentColor"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          fill="none"
-          strokeDasharray={c}
-          strokeDashoffset={offset}
-          className="text-primary transition-all duration-700"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <Icon name="trophy" className="text-primary text-xl" filled />
+    <div className="rounded-xl bg-white/15 backdrop-blur px-3 py-2.5 ring-1 ring-white/20">
+      <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{label}</div>
+      <div className="flex items-center gap-1.5 mt-0.5">
+        <Icon name={icon} className="text-[16px]" filled />
+        <span className="text-base font-black tabular-nums leading-none">{value}</span>
       </div>
     </div>
   );
 }
+
+function Stat({ label, value, tone }: { label: string; value: number; tone: string }) {
+  return (
+    <div className="p-3 rounded-2xl bg-surface-container-low ring-1 ring-outline-variant/60 flex flex-col items-center text-center">
+      <div className={cn("text-2xl font-black leading-none tabular-nums", tone)}>{value}</div>
+      <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1.5">{label}</div>
+    </div>
+  );
+}
+
+function ActionRow({
+  icon, label, hint, onClick, tone,
+}: { icon: string; label: string; hint?: string; onClick: () => void; tone?: "error" }) {
+  const isError = tone === "error";
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-surface-container transition-colors cursor-pointer"
+    >
+      <span className={cn(
+        "w-10 h-10 shrink-0 rounded-xl flex items-center justify-center",
+        isError ? "bg-error/10 text-error" : "bg-surface-container-highest text-on-surface-variant"
+      )}>
+        <Icon name={icon} className="text-[20px]" filled />
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className={cn("block text-sm font-bold leading-tight", isError ? "text-error" : "text-on-surface")}>{label}</span>
+        {hint && <span className="block text-[11px] text-on-surface-variant mt-0.5">{hint}</span>}
+      </span>
+      <Icon name="chevron_right" className="text-on-surface-variant text-[20px]" />
+    </button>
+  );
+}
+
