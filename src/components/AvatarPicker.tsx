@@ -46,8 +46,8 @@ export function AvatarPicker({
       const path = `${userId}/avatar-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
-      const tenYears = 60 * 60 * 24 * 365 * 10;
-      const { data, error: sErr } = await supabase.storage.from("avatars").createSignedUrl(path, tenYears);
+      const oneYear = 60 * 60 * 24 * 365;
+      const { data, error: sErr } = await supabase.storage.from("avatars").createSignedUrl(path, oneYear);
       if (sErr || !data) throw sErr ?? new Error("Could not create URL");
       await save(data.signedUrl);
     } catch (e) {
