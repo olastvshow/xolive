@@ -42,12 +42,11 @@ function Home() {
         </section>
 
         <section>
-          <button onClick={() => quick.mutate()} disabled={quick.isPending}
-            className="w-full bubbly bg-tertiary-container text-on-tertiary-container py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_6px_0_0_#56589b] text-xl font-semibold disabled:opacity-60">
+          <button onClick={startQuick}
+            className="w-full bubbly bg-tertiary-container text-on-tertiary-container py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_6px_0_0_#56589b] text-xl font-semibold">
             <Icon name="bolt" filled />
-            {quick.isPending ? "Matching…" : "Quick Play"}
+            Quick Play
           </button>
-          {quick.error && <p className="text-error text-sm mt-2">{(quick.error as Error).message}</p>}
         </section>
 
         <section className="space-y-3">
