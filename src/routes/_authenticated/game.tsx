@@ -458,12 +458,7 @@ function GameView(props: {
       </section>
 
       {props.finished && (
-        <div className={cn("mx-3 mt-2 text-center py-2 rounded-xl font-bold text-sm shadow shrink-0",
-          youWon && "bg-primary text-on-primary",
-          !youWon && !props.isDraw && "bg-error text-on-error",
-          props.isDraw && "bg-surface-container-high text-on-surface")}>
-          {props.isDraw ? "🤝 Draw" : youWon ? "🏆 You won!" : "💀 You lost"}
-        </div>
+        <ResultOverlay outcome={props.isDraw ? "draw" : youWon ? "win" : "lose"} round={props.round} />
       )}
 
       <section className="flex-1 min-h-0 flex items-center justify-center px-4 py-2">
