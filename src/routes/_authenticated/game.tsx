@@ -476,6 +476,14 @@ function GameView(props: {
         <ResultOverlay outcome={props.isDraw ? "draw" : youWon ? "win" : "lose"} round={props.round} />
       )}
 
+      {introPhase !== "hidden" && (
+        <VsIntro
+          hostName={props.hostName}
+          guestName={props.guestName}
+          phaseOut={introPhase === "out"}
+        />
+      )}
+
       <section className="flex-1 min-h-0 flex items-center justify-center px-4 py-2">
         <div className="bg-inverse-surface p-3 rounded-2xl shadow-xl aspect-square" style={{ width: "min(100%, calc(100dvh - 360px), 360px)" }}>
           <div className="grid grid-cols-3 grid-rows-3 gap-2 w-full h-full">
