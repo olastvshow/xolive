@@ -407,18 +407,69 @@ export const getCoinHistory = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+const GRACE_DAYS = 30;
+
+async function purgeUser(uid: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin.from("user_cosmetics").delete().eq("user_id", uid);
+  await supabaseAdmin.from("coin_transactions").delete().eq("user_id", uid);
+  await supabaseAdmin.from("messages").delete().eq("user_id", uid);
+  await supabaseAdmin.from("rooms").delete().or(`host_id.eq.${uid},guest_id.eq.${uid}`);
+  await supabaseAdmin.from("profiles").delete().eq("id", uid);
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(uid);
+  if (error) throw new Error(error.message);
+}
+
+// Soft-delete: schedule account for permanent deletion in 30 days.
+// User can sign back in and cancel anytime before then.
 export const deleteMyAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const uid = context.userId;
-    // Best-effort cleanup of user-owned data
-    await supabaseAdmin.from("user_cosmetics").delete().eq("user_id", uid);
-    await supabaseAdmin.from("coin_transactions").delete().eq("user_id", uid);
-    await supabaseAdmin.from("messages").delete().eq("user_id", uid);
-    await supabaseAdmin.from("rooms").delete().or(`host_id.eq.${uid},guest_id.eq.${uid}`);
-    await supabaseAdmin.from("profiles").delete().eq("id", uid);
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(uid);
+    const scheduledAt = new Date().toISOString();
+    const purgeAt = new Date(Date.now() + GRACE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({ deletion_scheduled_at: scheduledAt })
+      .eq("id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true, scheduled_at: scheduledAt, purge_at: purgeAt, grace_days: GRACE_DAYS };
+  });
+
+export const cancelAccountDeletion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({ deletion_scheduled_at: null })
+      .eq("id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// Called on every getMyProfile load: if grace window has elapsed, purge now.
+async function purgeIfExpired(uid: string, scheduled: string | null) {
+  if (!scheduled) return false;
+  const elapsedDays = (Date.now() - new Date(scheduled).getTime()) / (24 * 60 * 60 * 1000);
+  if (elapsedDays >= GRACE_DAYS) {
+    await purgeUser(uid);
+    return true;
+  }
+  return false;
+}
+
+export const checkAccountStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("deletion_scheduled_at")
+      .eq("id", context.userId)
+      .maybeSingle();
+    const scheduled = data?.deletion_scheduled_at ?? null;
+    const purged = await purgeIfExpired(context.userId, scheduled);
+    return { purged, deletion_scheduled_at: purged ? null : scheduled, grace_days: GRACE_DAYS };
+  });
+
