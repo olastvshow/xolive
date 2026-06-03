@@ -96,6 +96,47 @@ export const heartbeat = createServerFn({ method: "POST" })
   });
 
 const ONLINE_WINDOW_SECONDS = 45;
+const ACTIVE_MATCH_BUSY_SECONDS = 90;
+const PENDING_INVITE_BUSY_SECONDS = 30;
+
+async function getBusyPlayerIds(admin: any, ids: string[], excludeRoomId?: string) {
+  const busy = new Set<string>();
+  if (!ids.length) return busy;
+
+  const inList = ids.join(",");
+  const busySince = new Date(Date.now() - ACTIVE_MATCH_BUSY_SECONDS * 1000).toISOString();
+  let playingQuery = admin
+    .from("rooms")
+    .select("id, host_id, guest_id")
+    .or(`host_id.in.(${inList}),guest_id.in.(${inList})`)
+    .eq("status", "playing")
+    .gte("updated_at", busySince);
+  if (excludeRoomId) playingQuery = playingQuery.neq("id", excludeRoomId);
+
+  const { data: playingRooms, error: playingError } = await playingQuery;
+  if (playingError) throw new Error(playingError.message);
+
+  const pendingSince = new Date(Date.now() - PENDING_INVITE_BUSY_SECONDS * 1000).toISOString();
+  let pendingQuery = admin
+    .from("rooms")
+    .select("id, pending_guest_id")
+    .eq("status", "waiting")
+    .in("pending_guest_id", ids)
+    .gte("updated_at", pendingSince);
+  if (excludeRoomId) pendingQuery = pendingQuery.neq("id", excludeRoomId);
+
+  const { data: pendingRooms, error: pendingError } = await pendingQuery;
+  if (pendingError) throw new Error(pendingError.message);
+
+  for (const r of playingRooms ?? []) {
+    if (r.host_id) busy.add(r.host_id);
+    if (r.guest_id) busy.add(r.guest_id);
+  }
+  for (const r of pendingRooms ?? []) {
+    if (r.pending_guest_id) busy.add(r.pending_guest_id);
+  }
+  return busy;
+}
 
 // Pick a random online player not already busy in another room.
 async function pickOnlineTarget(admin: any, meId: string, exclude: string[]) {
@@ -112,19 +153,7 @@ async function pickOnlineTarget(admin: any, meId: string, exclude: string[]) {
   const ids = online.map((p: { id: string }) => p.id).filter((id: string) => !exSet.has(id));
   if (!ids.length) return null;
 
-  const inList = ids.join(",");
-  const { data: busyRooms } = await admin
-    .from("rooms")
-    .select("host_id, guest_id, pending_guest_id, status")
-    .or(`host_id.in.(${inList}),guest_id.in.(${inList}),pending_guest_id.in.(${inList})`)
-    .in("status", ["waiting", "playing"]);
-
-  const busy = new Set<string>();
-  for (const r of busyRooms ?? []) {
-    if (r.host_id) busy.add(r.host_id);
-    if (r.guest_id) busy.add(r.guest_id);
-    if (r.pending_guest_id) busy.add(r.pending_guest_id);
-  }
+  const busy = await getBusyPlayerIds(admin, ids);
 
   const pool = online.filter((p: { id: string }) => !busy.has(p.id) && !exSet.has(p.id));
   if (!pool.length) return null;
