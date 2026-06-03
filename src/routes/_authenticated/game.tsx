@@ -458,12 +458,7 @@ function GameView(props: {
       </section>
 
       {props.finished && (
-        <div className={cn("mx-3 mt-2 text-center py-2 rounded-xl font-bold text-sm shadow shrink-0",
-          youWon && "bg-primary text-on-primary",
-          !youWon && !props.isDraw && "bg-error text-on-error",
-          props.isDraw && "bg-surface-container-high text-on-surface")}>
-          {props.isDraw ? "🤝 Draw" : youWon ? "🏆 You won!" : "💀 You lost"}
-        </div>
+        <ResultOverlay outcome={props.isDraw ? "draw" : youWon ? "win" : "lose"} round={props.round} />
       )}
 
       <section className="flex-1 min-h-0 flex items-center justify-center px-4 py-2">
@@ -605,6 +600,122 @@ function PlayerCard({ name, score, active, mark, side, you }: {
           <span>{score}</span>
           <span className={cn("text-xs opacity-60", mark === "X" ? "text-mint-blue" : "text-pastel-pink")}>{mark}</span>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; round: number }) {
+  // Stable random particle positions per mount
+  const confetti = useMemo(
+    () => Array.from({ length: 60 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.6,
+      duration: 1.6 + Math.random() * 1.8,
+      hue: Math.floor(Math.random() * 360),
+      size: 6 + Math.random() * 10,
+    })),
+    [],
+  );
+  const rain = useMemo(
+    () => Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.8,
+      duration: 1.4 + Math.random() * 1.4,
+      emoji: ["💧", "😭", "💔"][i % 3],
+    })),
+    [],
+  );
+
+  if (outcome === "win") {
+    return (
+      <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-yellow-300/30 via-amber-400/20 to-transparent animate-flash-bg" />
+        {/* Confetti */}
+        {confetti.map((p) => (
+          <span key={p.id} className="confetti-piece"
+            style={{
+              left: `${p.left}%`,
+              width: `${p.size}px`,
+              height: `${p.size * 1.6}px`,
+              background: `hsl(${p.hue} 90% 60%)`,
+              animationDuration: `${p.duration}s`,
+              animationDelay: `${p.delay}s`,
+            }} />
+        ))}
+        {/* Bursting rings */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative w-72 h-72">
+            <div className="absolute inset-0 rounded-full border-4 border-yellow-300 animate-burst-ring" />
+            <div className="absolute inset-0 rounded-full border-4 border-amber-400 animate-burst-ring" style={{ animationDelay: "0.4s" }} />
+            <div className="absolute inset-0 rounded-full border-4 border-orange-300 animate-burst-ring" style={{ animationDelay: "0.8s" }} />
+          </div>
+        </div>
+        {/* Trophy + label */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
+          <span className="text-[120px] leading-none animate-trophy-spin text-yellow-400 animate-result-glow">🏆</span>
+          <h2 className="text-5xl font-black text-yellow-300 drop-shadow-[0_3px_0_rgba(0,0,0,0.4)] animate-result-pop"
+              style={{ animationDelay: "0.3s" }}>
+            VICTORY!
+          </h2>
+          <p className="text-on-surface-variant font-bold tracking-widest text-xs animate-result-pop" style={{ animationDelay: "0.5s" }}>
+            ROUND {round} · +COINS EARNED
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (outcome === "lose") {
+    return (
+      <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-red-900/40 via-red-700/25 to-transparent animate-flash-bg" />
+        {/* Rain of tears */}
+        {rain.map((p) => (
+          <span key={p.id} className="rain-drop"
+            style={{
+              left: `${p.left}%`,
+              animationDuration: `${p.duration}s`,
+              animationDelay: `${p.delay}s`,
+            }}>
+            {p.emoji}
+          </span>
+        ))}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
+          <span className="text-[120px] leading-none text-red-500 animate-shake-hard animate-result-glow">💀</span>
+          <h2 className="text-5xl font-black text-red-400 drop-shadow-[0_3px_0_rgba(0,0,0,0.5)] animate-result-pop"
+              style={{ animationDelay: "0.3s" }}>
+            DEFEAT
+          </h2>
+          <p className="text-on-surface-variant font-bold tracking-widest text-xs animate-result-pop" style={{ animationDelay: "0.5s" }}>
+            ROUND {round} · BETTER LUCK NEXT TIME
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Draw
+  return (
+    <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-400/25 via-indigo-400/15 to-transparent animate-flash-bg" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative w-72 h-72">
+          <div className="absolute inset-0 rounded-full border-4 border-sky-300 animate-burst-ring" />
+          <div className="absolute inset-0 rounded-full border-4 border-indigo-300 animate-burst-ring" style={{ animationDelay: "0.5s" }} />
+        </div>
+      </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
+        <span className="text-[120px] leading-none animate-draw-bounce text-sky-300 animate-result-glow">🤝</span>
+        <h2 className="text-5xl font-black text-sky-200 drop-shadow-[0_3px_0_rgba(0,0,0,0.4)] animate-result-pop"
+            style={{ animationDelay: "0.3s" }}>
+          DRAW!
+        </h2>
+        <p className="text-on-surface-variant font-bold tracking-widest text-xs animate-result-pop" style={{ animationDelay: "0.5s" }}>
+          ROUND {round} · EVENLY MATCHED
+        </p>
       </div>
     </div>
   );
