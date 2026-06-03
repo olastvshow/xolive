@@ -140,6 +140,21 @@ function GameView(props: {
   const [voiceAttempt, setVoiceAttempt] = useState(0);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
+  // VS intro: show whenever both players are present at the start of round 1
+  const [introPhase, setIntroPhase] = useState<"hidden" | "show" | "out">("hidden");
+  const introShownFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!props.guestId || props.finished) return;
+    const key = `${props.roomId}-${props.round}`;
+    if (introShownFor.current === key) return;
+    introShownFor.current = key;
+    setIntroPhase("show");
+    const t1 = setTimeout(() => setIntroPhase("out"), 2200);
+    const t2 = setTimeout(() => setIntroPhase("hidden"), 2600);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [props.guestId, props.roomId, props.round, props.finished]);
+
+
   // Spawn reaction emoji floats + chat pop-ups from message stream
   useEffect(() => {
     const last = props.messages[props.messages.length - 1];
