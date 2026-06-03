@@ -395,7 +395,12 @@ function GameView(props: {
     });
   };
 
-  const unread = props.messages.filter((m) => m.kind === "chat").length;
+  const [hasUnread, setHasUnread] = useState(false);
+  useEffect(() => {
+    const last = props.messages[props.messages.length - 1];
+    if (last && last.kind === "chat" && !chatOpen) setHasUnread(true);
+  }, [props.messages, chatOpen]);
+  useEffect(() => { if (chatOpen) setHasUnread(false); }, [chatOpen]);
 
   // Auto-rematch when multiplayer game finishes (host triggers to avoid double-fire)
   const [rematchIn, setRematchIn] = useState<number | null>(null);
