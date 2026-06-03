@@ -41,6 +41,10 @@ export const createRoom = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.bet > 0) {
+      const { data: me } = await supabaseAdmin.from("profiles").select("coins").eq("id", context.userId).single();
+      if (!me || me.coins < data.bet) throw new Error("Not enough coins for that bet");
+    }
     for (let i = 0; i < 5; i++) {
       const code = genCode();
       const { data: row, error } = await supabaseAdmin.from("rooms").insert({
@@ -64,10 +68,18 @@ export const joinRoomByCode = createServerFn({ method: "POST" })
     if (room.host_id === context.userId || room.guest_id === context.userId) return room;
     if (room.guest_id) throw new Error("Room is full");
     if (room.status !== "waiting") throw new Error("Room is not joinable");
+    if (room.bet > 0) {
+      const { data: me } = await supabaseAdmin.from("profiles").select("coins").eq("id", context.userId).single();
+      if (!me || me.coins < room.bet) throw new Error("Not enough coins to join this bet");
+    }
     const { data: updated, error: uerr } = await supabaseAdmin
       .from("rooms").update({ guest_id: context.userId, status: "playing", updated_at: new Date().toISOString() })
       .eq("id", room.id).eq("status", "waiting").select("*").single();
     if (uerr) throw new Error(uerr.message);
+    if (updated.bet > 0) {
+      const { error: rpcErr } = await supabaseAdmin.rpc("start_match", { _room_id: updated.id });
+      if (rpcErr) throw new Error(rpcErr.message);
+    }
     return updated;
   });
 
@@ -83,7 +95,13 @@ export const quickPlay = createServerFn({ method: "POST" })
       const { data: updated, error } = await supabaseAdmin
         .from("rooms").update({ guest_id: context.userId, status: "playing", updated_at: new Date().toISOString() })
         .eq("id", r.id).eq("status", "waiting").is("guest_id", null).select("*").single();
-      if (!error && updated) return updated;
+      if (!error && updated) {
+        if (updated.bet > 0) {
+          const { error: rpcErr } = await supabaseAdmin.rpc("start_match", { _room_id: updated.id });
+          if (rpcErr) throw new Error(rpcErr.message);
+        }
+        return updated;
+      }
     }
     // create
     for (let i = 0; i < 5; i++) {
@@ -96,6 +114,7 @@ export const quickPlay = createServerFn({ method: "POST" })
     }
     throw new Error("Could not start quick play");
   });
+
 
 export const getRoomByCode = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -150,20 +169,30 @@ export const makeMove = createServerFn({ method: "POST" })
     const { error: uerr } = await supabaseAdmin.from("rooms").update(updates as never).eq("id", room.id);
     if (uerr) throw new Error(uerr.message);
     if (winner || draw) {
-      // update profile stats
+      // Update win/loss/draw counters
       const ids = [room.host_id, room.guest_id].filter(Boolean) as string[];
-      const { data: profs } = await supabaseAdmin.from("profiles").select("*").in("id", ids);
+      const { data: profs } = await supabaseAdmin.from("profiles").select("id, wins, losses, draws, coins").in("id", ids);
+      const winnerId = winner ? (winner === "X" ? room.host_id : room.guest_id) : null;
       for (const p of profs ?? []) {
         const patch: Record<string, number> = {};
         if (draw) patch.draws = p.draws + 1;
-        else if (p.id === (winner === "X" ? room.host_id : room.guest_id)) {
-          patch.wins = p.wins + 1;
-          patch.coins = p.coins + 50 + room.bet;
-        } else {
-          patch.losses = p.losses + 1;
-          patch.coins = Math.max(0, p.coins - room.bet);
+        else if (p.id === winnerId) patch.wins = p.wins + 1;
+        else patch.losses = p.losses + 1;
+        // Small "free-play" bonus only for 0-coin matches, to keep new players active.
+        if (!draw && p.id === winnerId && room.bet === 0) {
+          patch.coins = p.coins + 25;
         }
         await supabaseAdmin.from("profiles").update(patch as never).eq("id", p.id);
+        if (!draw && p.id === winnerId && room.bet === 0) {
+          await supabaseAdmin.from("coin_transactions").insert({
+            user_id: p.id, delta: 25, balance_after: (patch.coins as number), source: "win_payout", ref: room.id,
+          } as never);
+        }
+      }
+      // Pay out the escrowed pot (no-op if bet was 0)
+      if (room.bet > 0) {
+        const { error: rpcErr } = await supabaseAdmin.rpc("finish_match", { _room_id: room.id });
+        if (rpcErr) throw new Error(rpcErr.message);
       }
     }
     return { ok: true };
@@ -177,6 +206,13 @@ export const rematch = createServerFn({ method: "POST" })
     const { data: room } = await supabaseAdmin.from("rooms").select("*").eq("id", data.roomId).single();
     if (!room) throw new Error("Room not found");
     if (room.host_id !== context.userId && room.guest_id !== context.userId) throw new Error("Not a participant");
+    if (room.bet > 0 && room.guest_id) {
+      // Verify both players can afford the next round
+      const { data: profs } = await supabaseAdmin.from("profiles").select("id, coins").in("id", [room.host_id, room.guest_id]);
+      for (const p of profs ?? []) {
+        if (p.coins < room.bet) throw new Error("A player no longer has enough coins to rematch");
+      }
+    }
     const newTurn = room.winner_id === room.host_id ? "O" : "X";
     const { error } = await supabaseAdmin.from("rooms").update({
       board: [null, null, null, null, null, null, null, null, null],
@@ -186,11 +222,17 @@ export const rematch = createServerFn({ method: "POST" })
       winning_line: null,
       is_draw: false,
       round: room.round + 1,
+      pot: 0,
       updated_at: new Date().toISOString(),
     }).eq("id", room.id);
     if (error) throw new Error(error.message);
+    if (room.bet > 0 && room.guest_id) {
+      const { error: rpcErr } = await supabaseAdmin.rpc("start_match", { _room_id: room.id });
+      if (rpcErr) throw new Error(rpcErr.message);
+    }
     return { ok: true };
   });
+
 
 export const sendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -264,4 +306,85 @@ export const updateProfile = createServerFn({ method: "POST" })
     const { error } = await supabase.from("profiles").update(updates).eq("id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+// ===== Cosmetics =====
+
+export const getCosmetics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: catalog }, { data: owned }, { data: me }] = await Promise.all([
+      supabaseAdmin.from("cosmetics").select("*").eq("active", true).order("kind").order("sort_order"),
+      supabaseAdmin.from("user_cosmetics").select("cosmetic_id").eq("user_id", context.userId),
+      supabaseAdmin.from("profiles").select("equipped_board, equipped_piece, equipped_frame, coins").eq("id", context.userId).single(),
+    ]);
+    const ownedIds = new Set((owned ?? []).map((r) => r.cosmetic_id));
+    return {
+      catalog: (catalog ?? []).map((c) => ({ ...c, owned: ownedIds.has(c.id) || c.price_coins === 0 })),
+      equipped: {
+        board: me?.equipped_board ?? "classic",
+        piece: me?.equipped_piece ?? "classic",
+        frame: me?.equipped_frame ?? "classic",
+      },
+      coins: me?.coins ?? 0,
+    };
+  });
+
+export const purchaseCosmetic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ cosmeticId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: cosmetic, error: cerr } = await supabaseAdmin.from("cosmetics").select("*").eq("id", data.cosmeticId).eq("active", true).maybeSingle();
+    if (cerr) throw new Error(cerr.message);
+    if (!cosmetic) throw new Error("Cosmetic not found");
+    const { data: existing } = await supabaseAdmin.from("user_cosmetics").select("id").eq("user_id", context.userId).eq("cosmetic_id", cosmetic.id).maybeSingle();
+    if (existing) return { ok: true, alreadyOwned: true };
+    const { data: me } = await supabaseAdmin.from("profiles").select("coins, coins_spent_total").eq("id", context.userId).single();
+    if (!me) throw new Error("Profile not found");
+    if (me.coins < cosmetic.price_coins) throw new Error("Not enough coins");
+    const newBalance = me.coins - cosmetic.price_coins;
+    const { error: uerr } = await supabaseAdmin.from("profiles").update({
+      coins: newBalance,
+      coins_spent_total: me.coins_spent_total + cosmetic.price_coins,
+    } as never).eq("id", context.userId);
+    if (uerr) throw new Error(uerr.message);
+    await supabaseAdmin.from("user_cosmetics").insert({ user_id: context.userId, cosmetic_id: cosmetic.id } as never);
+    if (cosmetic.price_coins > 0) {
+      await supabaseAdmin.from("coin_transactions").insert({
+        user_id: context.userId, delta: -cosmetic.price_coins, balance_after: newBalance,
+        source: "cosmetic_spend", ref: cosmetic.id,
+      } as never);
+    }
+    return { ok: true };
+  });
+
+export const equipCosmetic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ cosmeticId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: cosmetic } = await supabaseAdmin.from("cosmetics").select("*").eq("id", data.cosmeticId).eq("active", true).maybeSingle();
+    if (!cosmetic) throw new Error("Cosmetic not found");
+    if (cosmetic.price_coins > 0) {
+      const { data: owned } = await supabaseAdmin.from("user_cosmetics").select("id").eq("user_id", context.userId).eq("cosmetic_id", cosmetic.id).maybeSingle();
+      if (!owned) throw new Error("You don't own this cosmetic");
+    }
+    const col = cosmetic.kind === "board" ? "equipped_board"
+      : cosmetic.kind === "piece" ? "equipped_piece"
+      : cosmetic.kind === "frame" ? "equipped_frame" : null;
+    if (!col) throw new Error("This cosmetic can't be equipped");
+    const { error } = await supabaseAdmin.from("profiles").update({ [col]: cosmetic.slug } as never).eq("id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getCoinHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+    const { data, error } = await supabase.from("coin_transactions").select("*").order("created_at", { ascending: false }).limit(50);
+    if (error) throw new Error(error.message);
+    return data ?? [];
   });

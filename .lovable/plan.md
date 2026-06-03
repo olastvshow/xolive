@@ -1,67 +1,137 @@
-# XO Live — Completion Plan
 
-Build out the remaining flows on top of the existing UI shell, with real-time multiplayer powered by Lovable Cloud and email/password auth.
+# XO Live — Monetization + Gap-closure Plan
 
-## 1. Backend (Lovable Cloud)
+## TL;DR on your idea
 
-Enable Lovable Cloud, then create schema:
+Buying coins is fine. **Withdrawing coins as cash is real-money gambling** — it requires a gambling license, KYC/AML, age verification, and is banned by Stripe/Paddle/Apple/Google under standard terms. It would get the app shut down before it makes a dollar.
 
-- `profiles` — `id` (FK auth.users), `username`, `avatar_url`, `wins`, `losses`, `draws`, `coins`, `couple_bond`, `created_at`. Auto-created via signup trigger.
-- `rooms` — `id`, `code` (6-char join code), `host_id`, `guest_id` (nullable), `status` (waiting/playing/finished), `board` (jsonb 9 cells), `turn` (X/O), `winner_id`, `is_quick_play`, `created_at`.
-- `messages` — `id`, `room_id`, `user_id`, `text`, `kind` (chat/reaction), `created_at`.
-- `user_roles` + `has_role()` (standard pattern, for future admin).
+**Recommended path:** keep the coin-bet loop you already have (it's the fun part), let users **buy** coins with real money, and let them **spend** coins on cosmetics. No cashout. This is the proven model (Chess.com, Clash Royale, 8 Ball Pool) — app-store safe, processor-safe, ship-this-week safe.
 
-RLS: profiles readable by all auth'd users, updatable by owner. Rooms readable by participants or by code lookup, writable by participants. Messages scoped to room participants. Enable Realtime on `rooms` and `messages`.
+If XO Live blows up later, we revisit licensed real-money tournaments in specific jurisdictions with a specialist lawyer. Not now.
 
-GRANTs on every public table per template rules.
+---
 
-## 2. Auth
+## How coins work today (audit)
 
-- `/auth` route with sign-in / sign-up tabs (email + password, username on signup).
-- Root `onAuthStateChange` listener invalidates router + query cache.
-- `src/routes/_authenticated/route.tsx` integration-managed gate (`ssr: false`, redirects to `/auth`).
-- Move `/`, `/game/$roomId`, `/leaderboard`, `/profile` under `_authenticated/`.
+From `src/lib/xo.functions.ts` + `profiles` schema:
 
-## 3. Routes & flows
+- New user starts with **1,250 coins**.
+- `Create Room` lets host pick bet: **0 / 50 / 100 / 250**. Quick Play & Join-by-code always = 0.
+- On game end (`makeMove` handler):
+  - **Winner:** `coins += 50 + bet`
+  - **Loser:** `coins -= bet` (floored at 0)
+  - **Draw:** no change
+- **Bug:** the bet is never escrowed and never actually transferred. The winner is paid by "the house" (50 + bet minted from nothing), and the loser pays bet to the void. This is harmless today, but the moment coins cost money it becomes free money printing.
+- No cap on bet vs. balance — a user with 10 coins can host a 250-coin bet and only lose 10.
 
-- **Home (`/`)** — wire real data: current user's recent matches (last 10 from rooms), coin counter from profile. Buttons:
-  - **Quick Play** → server fn matches with any `waiting` quick-play room or creates one, redirects to `/game/$roomId`.
-  - **Create Room** → modal/page collecting options → inserts room with generated code → redirect to game room (waiting state shows code to share).
-  - **Join Room** → modal with 6-char code input → server fn validates + sets guest → redirect.
-- **Game Room (`/game/$roomId`)** — replace local state with realtime:
-  - Subscribe to `rooms` row + `messages` for the room.
-  - Cell tap → server fn `makeMove(roomId, index)` validates turn/ownership, updates board, checks winner, swaps turn, awards coins & updates stats on game end.
-  - Reactions & chat → insert into `messages`.
-  - Waiting state when no guest yet: show invite code + "waiting for opponent".
-  - Rematch button when finished.
-- **Leaderboard (`/leaderboard`)** — query top profiles by wins; search by username; highlight current user's rank.
-- **Profile (`/profile`)** — current user stats, badges (derived from wins thresholds), sign-out button.
+## What's missing in the app (prioritized)
 
-## 4. Server functions
+**Must-fix before money is involved**
+1. True bet escrow + balance check (deduct both on game start, full pot to winner)
+2. Anti-collusion: block matches where both players share IP/device fingerprint (prevents 2-tab coin laundering)
+3. Per-action rate limits on `makeMove` and `sendMessage`
 
-In `src/lib/*.functions.ts` (all gated by `requireSupabaseAuth` except where noted):
-- `getMyProfile`, `updateProfile`
-- `createRoom({ isQuickPlay })`, `joinRoomByCode({ code })`, `quickPlay()`
-- `getRoom({ id })`, `getRecentMatches()`
-- `makeMove({ roomId, index })` — auth'd, validates state, computes winner, updates stats
-- `sendMessage({ roomId, text, kind })`
-- `getLeaderboard({ search? })`
-- `requestRematch({ roomId })`
+**Promised features still missing**
+4. WebRTC live voice between the 2 players (signaling via Supabase Realtime on `messages` with `kind='signal'`)
+5. Reaction emoji bar wired end-to-end (insert into `messages` with `kind='reaction'`, float on both clients)
+6. Blitz mode per-move timer (mode is stored but not enforced)
 
-## 5. Realtime wiring
+**Polish gaps**
+7. Loading / empty / error / offline states on leaderboard, recent matches, game
+8. Edit-username UI on profile (server fn exists, no UI)
+9. Leaderboard tie-breakers (wins, then win-rate, then draws)
+10. Toasts for join errors / game-end states
 
-Client subscribes via browser supabase client to `postgres_changes` on `rooms` (filter `id=eq.$roomId`) and `messages` (filter `room_id=eq.$roomId`); invalidate corresponding React Query keys on event.
+## Monetization design (cosmetics + coin store)
 
-## 6. Cleanup
+**Coin Store** — Lovable's built-in Stripe payments (no Stripe account needed):
+- $0.99 → 500 coins
+- $4.99 → 3,000 coins (+20% bonus)
+- $9.99 → 7,000 coins (+40% bonus)
+- $19.99 → 16,000 coins (+60%)
+- $49.99 → 45,000 coins (+80%)
 
-- Remove placeholder static board state in `game.tsx`, replace with live data.
-- Add `errorComponent` + `notFoundComponent` to every route with a loader.
-- Update `TopBar` coin counter to read live profile.
-- Add toasts for join errors, game-end states.
+**Spend coins on (no real-money withdrawal):**
+- Board skins (neon, wood, marble, retro CRT)
+- X/O piece styles (emoji, animated, neon)
+- Win animations (fireworks, confetti, dragon)
+- Avatar frames + name colors
+- Emote packs for reactions
+
+**Optional next step (out of scope for this turn):** "XO Pro" $4.99/month subscription — ranked mode, all skins, ad-free, 2× daily coin bonus.
+
+---
+
+## Implementation plan
+
+### Phase 1 — Fix the economy (this turn)
+
+**1. Schema migration**
+- Add `rooms.pot` (int) — escrowed bet from both players at game start
+- Add `profiles.coins_spent_total`, `profiles.coins_purchased_total` (for analytics)
+- Add `cosmetics` table: `id`, `kind` (board/piece/frame/emote), `slug`, `name`, `price_coins`, `preview_url`
+- Add `user_cosmetics` table: `user_id`, `cosmetic_id`, `equipped` (bool), unique(user_id, cosmetic_id)
+- Add `profiles.equipped_board`, `equipped_piece`, `equipped_frame` (text slugs, default 'classic')
+- Plus GRANTs + RLS per template rules
+
+**2. Server fn changes in `src/lib/xo.functions.ts`**
+- `joinRoomByCode` / `quickPlay`: when 2nd player joins a betting room, deduct `bet` from BOTH players atomically (RPC `start_match(room_id)`), insert into `rooms.pot = bet * 2`. Reject if either balance < bet.
+- `createRoom`: validate host balance ≥ bet. (Don't deduct yet — wait for opponent.)
+- `makeMove` on game end: pay `rooms.pot` to winner. On draw, refund half to each. Remove the magic +50 win bonus (the bet IS the reward now). Optional: keep a small win bonus only for 0-coin matches to keep new users active.
+- New `cancelRoom` server fn: host cancels a waiting room — no refund needed (nothing deducted yet).
+
+**3. New server fns**
+- `getCosmetics()` — list catalog
+- `purchaseCosmetic({ id })` — deducts coins, inserts `user_cosmetics` row
+- `equipCosmetic({ id })` — sets `profiles.equipped_*`
+
+### Phase 2 — Coin Store (Stripe Payments)
+
+- Enable Lovable's built-in Stripe payments (no API key needed)
+- Create the 5 coin-pack products
+- Add `/coins` route: pack grid → Stripe checkout
+- Add webhook at `src/routes/api/public/stripe-webhook.ts` (signature-verified) that credits `profiles.coins` on `checkout.session.completed` and logs to a `coin_transactions` table (id, user_id, delta, source: purchase|win|loss|spend|refund, ref, created_at)
+- Add "Buy coins" CTA on TopBar when balance < 100, plus a "Store" tab in bottom nav
+
+### Phase 3 — Cosmetics UI
+
+- `/store` route: tabs for Boards / Pieces / Frames / Emotes. Each card shows preview, price, Buy / Equip / Equipped state
+- Profile shows owned cosmetics
+- Game board renders `equipped_board` skin and `equipped_piece` style
+- TopBar avatar uses `equipped_frame`
+
+### Phase 4 — Close the social gaps
+
+- **Reactions UI**: floating emoji bar above the board (👍 😂 🔥 😱 🤝 💀). Tap inserts `messages` row with `kind='reaction'`. Realtime subscriber on both clients animates emoji floating up from sender's side.
+- **WebRTC voice**: Mute/Unmute button in game header. Signaling (offer/answer/ICE) sent through `messages` with `kind='signal'` (not displayed in chat). Use STUN-only (Google public STUN); TURN can come later if NAT issues appear. Show mic-level indicator next to each avatar.
+- **Blitz timer**: server tracks `rooms.move_deadline` (timestamp). If `now() > deadline` on next `makeMove`, force-forfeit the slow player. Client shows countdown.
+- **Anti-collusion (basic)**: server fn rejects joining a betting room if both players share the same IP within the last hour (log IP hash in `messages` insert middleware).
+
+### Phase 5 — Polish
+
+- Toasts on every server-fn error/success via existing `sonner`
+- Loading skeletons on leaderboard, recent matches, game waiting state
+- Edit-username dialog on profile
+- Leaderboard sort: wins DESC, then (wins / (wins+losses)) DESC, then draws DESC
+
+---
 
 ## Technical notes
 
-- Game-end logic & coin awards happen server-side in `makeMove` (never trust client).
-- Room code = uppercase alphanumeric, retry on collision.
-- Quick Play matchmaking uses a single transaction (`SELECT ... FOR UPDATE SKIP LOCKED` via RPC) to avoid double-join races; if too complex, fall back to insert+update with unique constraint on `(status, is_quick_play)` filter and retry.
-- Default move turn: host=X, guest=O.
+- All economy mutations go through `coin_transactions` ledger so we can audit, refund, and ban printers. Never update `profiles.coins` outside a server fn that also writes to the ledger.
+- `start_match` and `finish_match` should be Postgres functions (security definer) to keep both-sides balance updates atomic — JS-side multi-step updates race under realtime.
+- WebRTC: keep peer connection logic in a dedicated `src/hooks/useVoiceChat.ts`. Only initialize after the user explicitly taps "Join voice" (browser autoplay/permission rules).
+- Reactions: throttle to 1 per 500ms per user, server-side.
+- Stripe webhook MUST verify signature with `STRIPE_WEBHOOK_SECRET`; idempotent on `checkout.session.id`.
+- All coin display in TopBar already reads live profile via React Query — invalidating `["profile"]` after purchase/win is enough.
+
+## What I will NOT build
+
+- Real-money withdrawals / cashout (legal blocker)
+- Sweepstakes / "free entry" lottery loophole (needs lawyer)
+- Tournaments with cash prizes
+- Skins gambling / loot boxes (regulated in many countries; cosmetics direct-purchase only)
+
+## Scope for the very next build turn
+
+Phase 1 only (fix the economy + ledger + escrow). That unblocks everything else and ships a correct, auditable coin system. Phases 2–5 follow in subsequent turns once you've confirmed Phase 1 works.
