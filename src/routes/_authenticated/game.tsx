@@ -43,6 +43,7 @@ function GamePage() {
   const moveFn = useServerFn(makeMove);
   const sendFn = useServerFn(sendMessage);
   const rematchFn = useServerFn(rematch);
+  const forfeitFn = useServerFn(forfeitMatch);
 
   const { data: room, refetch } = useQuery({
     queryKey: ["room", code],
