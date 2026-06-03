@@ -1,33 +1,45 @@
 import { useEffect } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { App as CapApp } from '@capacitor/app';
-import { StatusBar, Style } from '@capacitor/status-bar';
 import { useRouter } from '@tanstack/react-router';
 
 /**
- * Wires native shell behavior when running inside Capacitor (Android/iOS):
- * - Themes the status bar
- * - Maps Android hardware back button to in-app history, exits when no history
- * No-ops in a regular browser.
+ * Wires native shell behavior when running inside Capacitor (Android/iOS).
+ * Capacitor modules are loaded dynamically inside the effect so SSR never
+ * touches browser globals.
  */
 export function useNativeShell() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
 
-    StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+    (async () => {
+      const [{ Capacitor }, { App: CapApp }, { StatusBar, Style }] = await Promise.all([
+        import('@capacitor/core'),
+        import('@capacitor/app'),
+        import('@capacitor/status-bar'),
+      ]);
 
-    const sub = CapApp.addListener('backButton', ({ canGoBack }) => {
-      if (canGoBack && window.history.length > 1) {
-        router.history.back();
-      } else {
-        CapApp.exitApp();
-      }
-    });
+      if (cancelled || !Capacitor.isNativePlatform()) return;
+
+      StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+
+      const subPromise = CapApp.addListener('backButton', ({ canGoBack }) => {
+        if (canGoBack && window.history.length > 1) {
+          router.history.back();
+        } else {
+          CapApp.exitApp();
+        }
+      });
+
+      cleanup = () => {
+        subPromise.then((s) => s.remove()).catch(() => {});
+      };
+    })().catch(() => {});
 
     return () => {
-      sub.then((s) => s.remove()).catch(() => {});
+      cancelled = true;
+      cleanup?.();
     };
   }, [router]);
 }
