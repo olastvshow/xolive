@@ -87,21 +87,21 @@ function ProfilePage() {
 
   return (
     <Shell>
-      <div className="space-y-5 pb-4">
-        {/* Hero */}
-        <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-secondary text-on-primary px-5 pt-6 pb-5 shadow-[0_8px_0_rgba(0,0,0,0.12)]">
-          <div className="absolute -top-16 -right-12 w-48 h-48 rounded-full bg-white/15 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-10 w-44 h-44 rounded-full bg-secondary/40 blur-2xl pointer-events-none" />
+      <div className="space-y-4 pb-4">
+        {/* Hero card */}
+        <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-secondary to-tertiary text-on-primary px-5 pt-5 pb-5 shadow-lg">
+          <div className="absolute -top-20 -right-16 w-56 h-56 rounded-full bg-white/15 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-12 w-52 h-52 rounded-full bg-secondary/30 blur-3xl pointer-events-none" />
 
           <div className="relative flex items-center gap-4">
             <button
               onClick={() => setPickerOpen(true)}
-              className="relative w-24 h-24 rounded-full bg-white/15 p-1 border-4 border-white/80 shadow-lg active:scale-95 transition"
+              className="relative w-20 h-20 shrink-0 rounded-2xl bg-white/10 p-1 ring-2 ring-white/60 shadow-md active:scale-95 transition"
               aria-label="Change avatar"
             >
-              <Avatar url={p?.avatar_url ?? null} name={p?.username} className="w-full h-full text-3xl" />
-              <span className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center shadow-md ring-2 ring-white">
-                <Icon name="photo_camera" className="text-[16px]" filled />
+              <Avatar url={p?.avatar_url ?? null} name={p?.username} className="w-full h-full rounded-xl text-2xl" />
+              <span className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-xl bg-on-surface text-surface flex items-center justify-center shadow-md ring-2 ring-white">
+                <Icon name="photo_camera" className="text-[14px]" filled />
               </span>
             </button>
 
@@ -112,15 +112,13 @@ function ProfilePage() {
                   className="group flex items-center gap-1.5 max-w-full text-left"
                   aria-label="Edit username"
                 >
-                  <h1 className="text-2xl font-black truncate">@{p?.username ?? "—"}</h1>
-                  <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-active:scale-90 transition">
-                    <Icon name="edit" className="text-[15px]" filled />
-                  </span>
+                  <h1 className="text-xl font-black tracking-tight truncate">@{p?.username ?? "—"}</h1>
+                  <Icon name="edit" className="text-[14px] opacity-70 group-active:scale-90 transition" filled />
                 </button>
               ) : (
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xl font-black opacity-70">@</span>
+                    <span className="text-lg font-black opacity-70">@</span>
                     <input
                       ref={inputRef}
                       value={draft}
@@ -130,7 +128,7 @@ function ProfilePage() {
                         if (e.key === "Escape") setEditing(false);
                       }}
                       maxLength={24}
-                      className="flex-1 min-w-0 bg-white/15 text-white placeholder:text-white/50 font-bold text-lg rounded-xl px-3 py-1.5 outline-none ring-2 ring-white/60 focus:ring-white"
+                      className="flex-1 min-w-0 bg-white/15 text-white placeholder:text-white/50 font-bold text-base rounded-lg px-2.5 py-1 outline-none ring-2 ring-white/60 focus:ring-white"
                       placeholder="username"
                     />
                   </div>
@@ -153,15 +151,22 @@ function ProfilePage() {
                 </div>
               )}
               {!editing && (
-                <p className="text-sm font-medium opacity-90 mt-0.5 truncate">Tactical XO Strategist ♟️</p>
+                <>
+                  <p className="text-xs font-medium opacity-90 mt-0.5 truncate">Tactical XO Strategist</p>
+                  {joined && (
+                    <span className="inline-block mt-1.5 px-2 py-0.5 rounded-md bg-white/15 text-[10px] font-bold uppercase tracking-widest">
+                      Joined {joined}
+                    </span>
+                  )}
+                </>
               )}
             </div>
           </div>
 
-          <div className="relative mt-4 flex flex-wrap items-center gap-2">
-            <Chip icon="paid" label={`${p?.coins ?? 0} coins`} />
-            {joined && <Chip icon="event" label={`Joined ${joined}`} />}
-            <Chip icon="trophy" label={`${winRate}% win`} />
+          {/* Summary badges */}
+          <div className="relative mt-4 grid grid-cols-2 gap-2.5">
+            <SummaryTile icon="paid" label="Balance" value={(p?.coins ?? 0).toLocaleString()} />
+            <SummaryTile icon="trophy" label="Win rate" value={`${winRate}%`} />
           </div>
         </header>
 
@@ -170,82 +175,81 @@ function ProfilePage() {
         )}
 
         {/* Stats */}
-        <section className="grid grid-cols-3 gap-2.5">
-          <Stat label="Wins" value={p?.wins ?? 0} icon="emoji_events" tint="bg-primary-container text-on-primary-container" />
-          <Stat label="Losses" value={p?.losses ?? 0} icon="close" tint="bg-error/10 text-error" />
-          <Stat label="Draws" value={p?.draws ?? 0} icon="handshake" tint="bg-secondary-container text-on-secondary-container" />
+        <section className="grid grid-cols-3 gap-2">
+          <Stat label="Wins" value={p?.wins ?? 0} tone="text-primary" />
+          <Stat label="Losses" value={p?.losses ?? 0} tone="text-error" />
+          <Stat label="Draws" value={p?.draws ?? 0} tone="text-on-surface" />
         </section>
 
-        {/* Win rate ring */}
-        <section className="bg-surface-container-highest p-5 rounded-3xl">
-          <div className="flex items-center gap-4">
-            <WinRateRing percent={winRate} />
-            <div className="flex-1 min-w-0">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Win rate</h2>
-              <p className="text-2xl font-black text-primary leading-tight">{winRate}%</p>
-              <p className="text-xs text-on-surface-variant mt-0.5">
-                {total} {total === 1 ? "game" : "games"} played
-              </p>
+        {/* Performance */}
+        <section className="bg-surface-container-low ring-1 ring-outline-variant/60 p-4 rounded-2xl">
+          <div className="flex items-end justify-between mb-3">
+            <div>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Performance</h3>
+              <p className="text-[11px] text-on-surface-variant mt-0.5">Based on {total} {total === 1 ? "match" : "matches"}</p>
             </div>
+            <span className="text-2xl font-black text-primary tabular-nums leading-none">{winRate}%</span>
           </div>
-          <div className="mt-4 w-full h-2.5 bg-surface rounded-full overflow-hidden shadow-inner">
+          <div className="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-secondary to-primary transition-all duration-700"
+              className="h-full bg-gradient-to-r from-secondary to-primary transition-all duration-700 rounded-full"
               style={{ width: `${winRate}%` }}
             />
           </div>
         </section>
 
-        {/* Account actions */}
-        <div className="space-y-2.5">
-          {scheduledAt && (
-            <div className="rounded-2xl bg-error/10 ring-1 ring-error/30 p-4">
-              <div className="flex items-start gap-3">
-                <span className="w-9 h-9 shrink-0 rounded-full bg-error/15 text-error flex items-center justify-center">
-                  <Icon name="schedule" className="text-[20px]" filled />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-on-surface">Account deletion scheduled</p>
-                  <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">
-                    Your account will be permanently deleted in{" "}
-                    <span className="font-bold text-error">{daysLeft} day{daysLeft === 1 ? "" : "s"}</span>.
-                    Change your mind? You can restore it before then.
-                  </p>
-                </div>
+        {/* Deletion banner */}
+        {scheduledAt && (
+          <div className="rounded-2xl bg-error/10 ring-1 ring-error/30 p-4">
+            <div className="flex items-start gap-3">
+              <span className="w-9 h-9 shrink-0 rounded-full bg-error/15 text-error flex items-center justify-center">
+                <Icon name="schedule" className="text-[20px]" filled />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-on-surface">Account deletion scheduled</p>
+                <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">
+                  Permanently deleted in <span className="font-bold text-error">{daysLeft} day{daysLeft === 1 ? "" : "s"}</span>. Restore it any time before then.
+                </p>
               </div>
-              <button
-                onClick={async () => {
-                  await cancelDelFn();
-                  qc.invalidateQueries({ queryKey: ["account-status"] });
-                }}
-                className="mt-3 w-full py-2.5 rounded-xl bg-on-surface text-surface text-sm font-bold active:scale-[0.98]"
-              >
-                Restore account
-              </button>
             </div>
-          )}
+            <button
+              onClick={async () => {
+                await cancelDelFn();
+                qc.invalidateQueries({ queryKey: ["account-status"] });
+              }}
+              className="mt-3 w-full py-2.5 rounded-xl bg-on-surface text-surface text-sm font-bold active:scale-[0.98]"
+            >
+              Restore account
+            </button>
+          </div>
+        )}
 
-          <button
+        {/* Account list */}
+        <section className="bg-surface-container-low ring-1 ring-outline-variant/60 rounded-2xl overflow-hidden divide-y divide-outline-variant/40">
+          <ActionRow
+            icon="logout"
+            label="Sign out"
+            hint="End this session"
             onClick={signOut}
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-surface-container-highest text-on-surface rounded-2xl text-sm font-bold tracking-wider active:scale-[0.98]"
-          >
-            <Icon name="logout" className="text-[18px]" /> Sign out
-          </button>
+          />
           {!scheduledAt && (
-            <>
-              <button
-                onClick={() => { setConfirmDelete(true); setDeleteText(""); setDeleteErr(null); }}
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-error/10 text-error rounded-2xl text-sm font-bold tracking-wider active:scale-[0.98]"
-              >
-                <Icon name="delete_forever" className="text-[18px]" filled /> Delete account
-              </button>
-              <p className="text-[11px] text-on-surface-variant text-center px-4 leading-relaxed">
-                Your account stays recoverable for {graceDays} days. After that it's permanently deleted: profile, stats, coins, and private chats are removed. Public game records are anonymized.
-              </p>
-            </>
+            <ActionRow
+              icon="delete_forever"
+              label="Delete account"
+              hint={`Recoverable for ${graceDays} days`}
+              tone="error"
+              onClick={() => { setConfirmDelete(true); setDeleteText(""); setDeleteErr(null); }}
+            />
           )}
-        </div>
+        </section>
+
+        {!scheduledAt && (
+          <p className="text-[11px] text-on-surface-variant text-center px-4 leading-relaxed">
+            Deleting your account permanently removes your profile, stats, coins, and private chats after {graceDays} days. Public game records are anonymized.
+          </p>
+        )}
       </div>
+
 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 overflow-y-auto" onClick={() => !deleting && setConfirmDelete(false)}>
@@ -299,51 +303,48 @@ function ProfilePage() {
   );
 }
 
-function Chip({ icon, label }: { icon: string; label: string }) {
+function SummaryTile({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur text-[11px] font-bold uppercase tracking-wider">
-      <Icon name={icon} className="text-[14px]" filled />
-      {label}
-    </span>
-  );
-}
-
-function Stat({ label, value, icon, tint }: { label: string; value: number; icon: string; tint: string }) {
-  return (
-    <div className={cn("p-3 rounded-2xl flex flex-col items-center text-center", tint)}>
-      <Icon name={icon} className="text-xl mb-0.5" filled />
-      <div className="text-2xl font-black leading-none tabular-nums">{value}</div>
-      <div className="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1">{label}</div>
-    </div>
-  );
-}
-
-function WinRateRing({ percent }: { percent: number }) {
-  const size = 72;
-  const stroke = 8;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const offset = c - (percent / 100) * c;
-  return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="currentColor" strokeWidth={stroke} fill="none" className="text-surface" />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="currentColor"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          fill="none"
-          strokeDasharray={c}
-          strokeDashoffset={offset}
-          className="text-primary transition-all duration-700"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <Icon name="trophy" className="text-primary text-xl" filled />
+    <div className="rounded-xl bg-white/15 backdrop-blur px-3 py-2.5 ring-1 ring-white/20">
+      <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{label}</div>
+      <div className="flex items-center gap-1.5 mt-0.5">
+        <Icon name={icon} className="text-[16px]" filled />
+        <span className="text-base font-black tabular-nums leading-none">{value}</span>
       </div>
     </div>
   );
 }
+
+function Stat({ label, value, tone }: { label: string; value: number; tone: string }) {
+  return (
+    <div className="p-3 rounded-2xl bg-surface-container-low ring-1 ring-outline-variant/60 flex flex-col items-center text-center">
+      <div className={cn("text-2xl font-black leading-none tabular-nums", tone)}>{value}</div>
+      <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1.5">{label}</div>
+    </div>
+  );
+}
+
+function ActionRow({
+  icon, label, hint, onClick, tone,
+}: { icon: string; label: string; hint?: string; onClick: () => void; tone?: "error" }) {
+  const isError = tone === "error";
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-surface-container transition-colors cursor-pointer"
+    >
+      <span className={cn(
+        "w-10 h-10 shrink-0 rounded-xl flex items-center justify-center",
+        isError ? "bg-error/10 text-error" : "bg-surface-container-highest text-on-surface-variant"
+      )}>
+        <Icon name={icon} className="text-[20px]" filled />
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className={cn("block text-sm font-bold leading-tight", isError ? "text-error" : "text-on-surface")}>{label}</span>
+        {hint && <span className="block text-[11px] text-on-surface-variant mt-0.5">{hint}</span>}
+      </span>
+      <Icon name="chevron_right" className="text-on-surface-variant text-[20px]" />
+    </button>
+  );
+}
+
