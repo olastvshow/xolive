@@ -176,36 +176,10 @@ export const getOnlinePlayers = createServerFn({ method: "GET" })
     if (!online?.length) return [];
 
     const ids = online.map((p) => p.id);
-    const inList = ids.join(",");
-    // A player is "busy" only if they're actively in a playing match, or already
-    // pending in someone else's invite. Hosting a waiting quick-play room is the
-    // normal state for everyone searching, so we don't exclude on that.
-    // Only count a "playing" room as truly busy if it's been touched recently.
-    // Abandoned matches stay in 'playing' forever and would otherwise lock
-    // every user out of being shown as available.
-    const busySince = new Date(Date.now() - 90 * 1000).toISOString();
-    const { data: busyRooms } = await supabaseAdmin
-      .from("rooms")
-      .select("host_id, guest_id, pending_guest_id, status, updated_at")
-      .or(`host_id.in.(${inList}),guest_id.in.(${inList}),pending_guest_id.in.(${inList})`)
-      .eq("status", "playing")
-      .gte("updated_at", busySince);
-
-
-    const { data: pendingRooms } = await supabaseAdmin
-      .from("rooms")
-      .select("pending_guest_id")
-      .eq("status", "waiting")
-      .in("pending_guest_id", ids);
-
-    const busy = new Set<string>();
-    for (const r of busyRooms ?? []) {
-      if (r.host_id) busy.add(r.host_id);
-      if (r.guest_id) busy.add(r.guest_id);
-    }
-    for (const r of pendingRooms ?? []) {
-      if (r.pending_guest_id) busy.add(r.pending_guest_id);
-    }
+    // A player is "busy" only if they're actively in a recent playing match, or
+    // already pending in a fresh invite. Stale games/invites are ignored so old
+    // abandoned rooms don't hide everyone from Quick Play.
+    const busy = await getBusyPlayerIds(supabaseAdmin, ids);
     return online.filter((p) => !busy.has(p.id));
 
   });
@@ -261,27 +235,11 @@ export const invitePlayer = createServerFn({ method: "POST" })
     if (room.status !== "waiting") throw new Error("Room not waiting");
     if (data.targetId === context.userId) throw new Error("Cannot invite yourself");
 
-    // Check target isn't already busy. "waiting as host" is the normal state of
-    // anyone in the matchmaking list, so it doesn't count. Stale 'playing' rooms
-    // (>90s without an update) are treated as abandoned and ignored.
-    const busySince = new Date(Date.now() - 90 * 1000).toISOString();
-    const { data: playingBusy } = await supabaseAdmin
-      .from("rooms")
-      .select("id")
-      .or(`host_id.eq.${data.targetId},guest_id.eq.${data.targetId}`)
-      .eq("status", "playing")
-      .gte("updated_at", busySince)
-      .neq("id", data.roomId)
-      .limit(1);
-    const { data: pendingBusy } = await supabaseAdmin
-      .from("rooms")
-      .select("id")
-      .eq("pending_guest_id", data.targetId)
-      .eq("status", "waiting")
-      .neq("id", data.roomId)
-      .limit(1);
-    if ((playingBusy && playingBusy.length) || (pendingBusy && pendingBusy.length)) {
-      throw new Error("Player is busy");
+    // Mirror the list filtering exactly. If the player became busy after the
+    // list loaded, return a safe result instead of throwing a runtime error.
+    const busy = await getBusyPlayerIds(supabaseAdmin, [data.targetId], data.roomId);
+    if (busy.has(data.targetId)) {
+      return { targetId: null, room, busy: true, message: "That player just became busy. Pick another opponent." };
     }
 
 
