@@ -20,7 +20,20 @@ function ProfilePage() {
   const fn = useServerFn(getMyProfile);
   const updateFn = useServerFn(updateProfile);
   const deleteFn = useServerFn(deleteMyAccount);
+  const cancelDelFn = useServerFn(cancelAccountDeletion);
+  const statusFn = useServerFn(checkAccountStatus);
   const { data: p } = useQuery({ queryKey: ["profile"], queryFn: () => fn() });
+  const { data: status } = useQuery({ queryKey: ["account-status"], queryFn: () => statusFn() });
+  useEffect(() => {
+    if (status?.purged) {
+      supabase.auth.signOut().then(() => navigate({ to: "/auth", replace: true }));
+    }
+  }, [status?.purged, navigate]);
+  const scheduledAt = status?.deletion_scheduled_at ?? null;
+  const graceDays = status?.grace_days ?? 30;
+  const daysLeft = scheduledAt
+    ? Math.max(0, Math.ceil(graceDays - (Date.now() - new Date(scheduledAt).getTime()) / 86400000))
+    : 0;
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteText, setDeleteText] = useState("");
   const [deleting, setDeleting] = useState(false);
