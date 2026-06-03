@@ -99,7 +99,22 @@ const ONLINE_WINDOW_SECONDS = 45;
 const ACTIVE_MATCH_BUSY_SECONDS = 90;
 const PENDING_INVITE_BUSY_SECONDS = 30;
 
-async function getBusyPlayerIds(admin: any, ids: string[], excludeRoomId?: string) {
+type DbError = { message: string };
+type DbResult = { data: unknown; error: DbError | null };
+type DbQuery = PromiseLike<DbResult> & {
+  select: (columns: string) => DbQuery;
+  or: (filters: string) => DbQuery;
+  eq: (column: string, value: unknown) => DbQuery;
+  gte: (column: string, value: string) => DbQuery;
+  in: (column: string, values: string[]) => DbQuery;
+  neq: (column: string, value: string) => DbQuery;
+  limit: (count: number) => DbQuery;
+};
+type DbClient = { from: (table: string) => DbQuery };
+type BusyRoom = { host_id: string | null; guest_id: string | null; pending_guest_id?: string | null };
+type OnlineTarget = { id: string; username: string; avatar_url: string | null };
+
+async function getBusyPlayerIds(admin: DbClient, ids: string[], excludeRoomId?: string) {
   const busy = new Set<string>();
   if (!ids.length) return busy;
 
@@ -113,7 +128,7 @@ async function getBusyPlayerIds(admin: any, ids: string[], excludeRoomId?: strin
     .gte("updated_at", busySince);
   if (excludeRoomId) playingQuery = playingQuery.neq("id", excludeRoomId);
 
-  const { data: playingRooms, error: playingError } = await playingQuery;
+  const { data: playingRows, error: playingError } = await playingQuery;
   if (playingError) throw new Error(playingError.message);
 
   const pendingSince = new Date(Date.now() - PENDING_INVITE_BUSY_SECONDS * 1000).toISOString();
@@ -125,9 +140,11 @@ async function getBusyPlayerIds(admin: any, ids: string[], excludeRoomId?: strin
     .gte("updated_at", pendingSince);
   if (excludeRoomId) pendingQuery = pendingQuery.neq("id", excludeRoomId);
 
-  const { data: pendingRooms, error: pendingError } = await pendingQuery;
+  const { data: pendingRows, error: pendingError } = await pendingQuery;
   if (pendingError) throw new Error(pendingError.message);
 
+  const playingRooms = (playingRows ?? []) as BusyRoom[];
+  const pendingRooms = (pendingRows ?? []) as BusyRoom[];
   for (const r of playingRooms ?? []) {
     if (r.host_id) busy.add(r.host_id);
     if (r.guest_id) busy.add(r.guest_id);
@@ -139,15 +156,16 @@ async function getBusyPlayerIds(admin: any, ids: string[], excludeRoomId?: strin
 }
 
 // Pick a random online player not already busy in another room.
-async function pickOnlineTarget(admin: any, meId: string, exclude: string[]) {
+async function pickOnlineTarget(admin: DbClient, meId: string, exclude: string[]) {
   const onlineSince = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
-  const { data: online } = await admin
+  const { data: onlineRows } = await admin
     .from("profiles")
     .select("id, username, avatar_url")
     .gte("last_seen_at", onlineSince)
     .neq("id", meId)
     .limit(50);
-  if (!online || !online.length) return null;
+  const online = (onlineRows ?? []) as OnlineTarget[];
+  if (!online.length) return null;
 
   const exSet = new Set([meId, ...exclude]);
   const ids = online.map((p: { id: string }) => p.id).filter((id: string) => !exSet.has(id));
