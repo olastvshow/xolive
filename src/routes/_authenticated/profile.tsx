@@ -285,6 +285,7 @@ function ProfilePage() {
                   setDeleting(true); setDeleteErr(null);
                   try {
                     await deleteFn();
+                    qc.clear();
                     await supabase.auth.signOut();
                     navigate({ to: "/auth", replace: true });
                   } catch (e) {
