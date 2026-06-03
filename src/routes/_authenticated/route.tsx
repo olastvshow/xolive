@@ -32,5 +32,5 @@ function AuthedLayout() {
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [beat]);
-  return <Outlet />;
+  return (<><Outlet /><IncomingInviteModal /></>);
 }
