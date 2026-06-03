@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { heartbeat } from "@/lib/xo.functions";
+import { useNativeShell } from "@/hooks/useNativeShell";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthedLayout() {
+  useNativeShell();
   const beat = useServerFn(heartbeat);
   useEffect(() => {
     let alive = true;
