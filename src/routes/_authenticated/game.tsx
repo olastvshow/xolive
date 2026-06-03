@@ -607,25 +607,43 @@ function GameView(props: {
   );
 }
 
+function ScoreCenter({ hostScore, guestScore, draws }: { hostScore: number; guestScore: number; draws: number }) {
+  return (
+    <div className="shrink-0 self-stretch flex flex-col items-center justify-center px-2.5 py-1.5 rounded-2xl bg-inverse-surface text-white shadow-[0_4px_0_rgba(0,0,0,0.25)] border border-white/10">
+      <div className="flex items-baseline gap-1.5 leading-none">
+        <span className="text-2xl font-black text-mint-blue tabular-nums">{hostScore}</span>
+        <span className="text-sm font-bold opacity-50">:</span>
+        <span className="text-2xl font-black text-pastel-pink tabular-nums">{guestScore}</span>
+      </div>
+      <div className="mt-1 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/10">
+        <span className="text-[9px] font-bold tracking-widest opacity-70">DRAWS</span>
+        <span className="text-[11px] font-black tabular-nums">{draws}</span>
+      </div>
+    </div>
+  );
+}
+
 function PlayerCard({ name, score, active, mark, side, you }: {
   name: string; score: number; active: boolean; mark: "X" | "O"; side: "left" | "right"; you: boolean;
 }) {
+  const accent = mark === "X" ? "text-mint-blue" : "text-pastel-pink";
   return (
     <div className={cn("flex-1 flex items-center gap-2 p-2 rounded-2xl border-2 transition relative min-w-0",
       side === "right" && "flex-row-reverse",
-      active ? "bg-secondary text-on-secondary border-[#FFD700] scale-[1.02]" : "bg-surface-container text-on-surface border-transparent")}>
+      active ? "bg-secondary text-on-secondary border-[#FFD700] scale-[1.02] shadow-[0_0_20px_rgba(255,215,0,0.45)]" : "bg-surface-container text-on-surface border-transparent")}>
       {active && (
-        <div className={cn("absolute -top-2 bg-[#FFD700] text-on-primary-fixed text-[9px] tracking-widest font-bold px-2 py-0.5 rounded-full shadow whitespace-nowrap",
-          side === "left" ? "left-2" : "right-2")}>TURN</div>
+        <div className={cn("absolute -top-2 bg-[#FFD700] text-on-primary-fixed text-[9px] tracking-widest font-bold px-2 py-0.5 rounded-full shadow whitespace-nowrap animate-pulse",
+          side === "left" ? "left-2" : "right-2")}>YOUR TURN</div>
       )}
-      <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center font-bold text-on-primary-container shrink-0">
+      <div className={cn("w-11 h-11 rounded-full bg-primary-container flex items-center justify-center font-black text-on-primary-container shrink-0 text-lg border-2",
+        active ? "border-[#FFD700]" : "border-transparent")}>
         {name[0]?.toUpperCase() ?? "?"}
       </div>
       <div className={cn("min-w-0 flex-1", side === "right" && "text-right")}>
-        <div className="text-xs font-semibold truncate">{name}{you && " (You)"}</div>
-        <div className="text-lg font-bold leading-none flex items-baseline gap-1.5" style={{ justifyContent: side === "right" ? "flex-end" : "flex-start" }}>
-          <span>{score}</span>
-          <span className={cn("text-xs opacity-60", mark === "X" ? "text-mint-blue" : "text-pastel-pink")}>{mark}</span>
+        <div className="text-[11px] font-bold truncate opacity-90 uppercase tracking-wide">{name}{you && " (You)"}</div>
+        <div className={cn("flex items-baseline gap-1.5", side === "right" && "justify-end flex-row-reverse")}>
+          <span className={cn("text-2xl font-black leading-none tabular-nums", active ? "text-on-secondary" : accent)}>{score}</span>
+          <span className={cn("text-[10px] font-bold opacity-70 tracking-widest", accent)}>{mark}</span>
         </div>
       </div>
     </div>
