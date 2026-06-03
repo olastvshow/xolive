@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      coin_transactions: {
+        Row: {
+          balance_after: number
+          created_at: string
+          delta: number
+          id: string
+          ref: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          balance_after: number
+          created_at?: string
+          delta: number
+          id?: string
+          ref?: string | null
+          source: string
+          user_id: string
+        }
+        Update: {
+          balance_after?: number
+          created_at?: string
+          delta?: number
+          id?: string
+          ref?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cosmetics: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          kind: string
+          name: string
+          preview_url: string | null
+          price_coins: number
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind: string
+          name: string
+          preview_url?: string | null
+          price_coins?: number
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          preview_url?: string | null
+          price_coins?: number
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           created_at: string
@@ -53,8 +122,13 @@ export type Database = {
         Row: {
           avatar_url: string | null
           coins: number
+          coins_purchased_total: number
+          coins_spent_total: number
           created_at: string
           draws: number
+          equipped_board: string
+          equipped_frame: string
+          equipped_piece: string
           id: string
           losses: number
           username: string
@@ -63,8 +137,13 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           coins?: number
+          coins_purchased_total?: number
+          coins_spent_total?: number
           created_at?: string
           draws?: number
+          equipped_board?: string
+          equipped_frame?: string
+          equipped_piece?: string
           id: string
           losses?: number
           username: string
@@ -73,8 +152,13 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           coins?: number
+          coins_purchased_total?: number
+          coins_spent_total?: number
           created_at?: string
           draws?: number
+          equipped_board?: string
+          equipped_frame?: string
+          equipped_piece?: string
           id?: string
           losses?: number
           username?: string
@@ -96,6 +180,7 @@ export type Database = {
           is_draw: boolean
           is_quick: boolean
           mode: string
+          pot: number
           round: number
           status: string
           turn: string
@@ -116,6 +201,7 @@ export type Database = {
           is_draw?: boolean
           is_quick?: boolean
           mode?: string
+          pot?: number
           round?: number
           status?: string
           turn?: string
@@ -136,6 +222,7 @@ export type Database = {
           is_draw?: boolean
           is_quick?: boolean
           mode?: string
+          pot?: number
           round?: number
           status?: string
           turn?: string
@@ -145,12 +232,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_cosmetics: {
+        Row: {
+          acquired_at: string
+          cosmetic_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          cosmetic_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          cosmetic_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_cosmetics_cosmetic_id_fkey"
+            columns: ["cosmetic_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      finish_match: { Args: { _room_id: string }; Returns: undefined }
+      start_match: { Args: { _room_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
