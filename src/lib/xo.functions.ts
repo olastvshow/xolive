@@ -169,20 +169,30 @@ export const makeMove = createServerFn({ method: "POST" })
     const { error: uerr } = await supabaseAdmin.from("rooms").update(updates as never).eq("id", room.id);
     if (uerr) throw new Error(uerr.message);
     if (winner || draw) {
-      // update profile stats
+      // Update win/loss/draw counters
       const ids = [room.host_id, room.guest_id].filter(Boolean) as string[];
-      const { data: profs } = await supabaseAdmin.from("profiles").select("*").in("id", ids);
+      const { data: profs } = await supabaseAdmin.from("profiles").select("id, wins, losses, draws, coins").in("id", ids);
+      const winnerId = winner ? (winner === "X" ? room.host_id : room.guest_id) : null;
       for (const p of profs ?? []) {
         const patch: Record<string, number> = {};
         if (draw) patch.draws = p.draws + 1;
-        else if (p.id === (winner === "X" ? room.host_id : room.guest_id)) {
-          patch.wins = p.wins + 1;
-          patch.coins = p.coins + 50 + room.bet;
-        } else {
-          patch.losses = p.losses + 1;
-          patch.coins = Math.max(0, p.coins - room.bet);
+        else if (p.id === winnerId) patch.wins = p.wins + 1;
+        else patch.losses = p.losses + 1;
+        // Small "free-play" bonus only for 0-coin matches, to keep new players active.
+        if (!draw && p.id === winnerId && room.bet === 0) {
+          patch.coins = p.coins + 25;
         }
         await supabaseAdmin.from("profiles").update(patch as never).eq("id", p.id);
+        if (!draw && p.id === winnerId && room.bet === 0) {
+          await supabaseAdmin.from("coin_transactions").insert({
+            user_id: p.id, delta: 25, balance_after: (patch.coins as number), source: "win_payout", ref: room.id,
+          } as never);
+        }
+      }
+      // Pay out the escrowed pot (no-op if bet was 0)
+      if (room.bet > 0) {
+        const { error: rpcErr } = await supabaseAdmin.rpc("finish_match", { _room_id: room.id });
+        if (rpcErr) throw new Error(rpcErr.message);
       }
     }
     return { ok: true };
@@ -196,6 +206,13 @@ export const rematch = createServerFn({ method: "POST" })
     const { data: room } = await supabaseAdmin.from("rooms").select("*").eq("id", data.roomId).single();
     if (!room) throw new Error("Room not found");
     if (room.host_id !== context.userId && room.guest_id !== context.userId) throw new Error("Not a participant");
+    if (room.bet > 0 && room.guest_id) {
+      // Verify both players can afford the next round
+      const { data: profs } = await supabaseAdmin.from("profiles").select("id, coins").in("id", [room.host_id, room.guest_id]);
+      for (const p of profs ?? []) {
+        if (p.coins < room.bet) throw new Error("A player no longer has enough coins to rematch");
+      }
+    }
     const newTurn = room.winner_id === room.host_id ? "O" : "X";
     const { error } = await supabaseAdmin.from("rooms").update({
       board: [null, null, null, null, null, null, null, null, null],
@@ -205,11 +222,17 @@ export const rematch = createServerFn({ method: "POST" })
       winning_line: null,
       is_draw: false,
       round: room.round + 1,
+      pot: 0,
       updated_at: new Date().toISOString(),
     }).eq("id", room.id);
     if (error) throw new Error(error.message);
+    if (room.bet > 0 && room.guest_id) {
+      const { error: rpcErr } = await supabaseAdmin.rpc("start_match", { _room_id: room.id });
+      if (rpcErr) throw new Error(rpcErr.message);
+    }
     return { ok: true };
   });
+
 
 export const sendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
