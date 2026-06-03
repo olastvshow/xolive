@@ -121,7 +121,8 @@ export const quickPlay = createServerFn({ method: "POST" })
       .order("created_at")
       .limit(10);
 
-    let candidate: (typeof waiting extends readonly (infer T)[] ? T : never) | undefined;
+    type Room = NonNullable<typeof waiting>[number];
+    let candidate: Room | undefined;
     if (waiting && waiting.length) {
       const hostIds = waiting.map((r) => r.host_id);
       const { data: hosts } = await supabaseAdmin
@@ -130,7 +131,7 @@ export const quickPlay = createServerFn({ method: "POST" })
         .in("id", hostIds)
         .gte("last_seen_at", onlineSince);
       const onlineIds = new Set((hosts ?? []).map((h) => h.id));
-      candidate = waiting.find((r) => onlineIds.has(r.host_id)) as typeof candidate;
+      candidate = waiting.find((r) => onlineIds.has(r.host_id));
     }
 
     if (candidate) {
