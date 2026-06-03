@@ -26,8 +26,8 @@ function genCode() {
 export const getMyProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.from("profiles").select("*").eq("id", context.userId).maybeSingle();
     if (error) throw new Error(error.message);
     return data;
   });
