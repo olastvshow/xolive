@@ -25,20 +25,32 @@ export function IncomingInviteModal() {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
   }, []);
 
-  const refresh = useCallback(async () => {
+  const callWithRefresh = useCallback(async <T,>(fn: () => Promise<T>): Promise<T | null> => {
     try {
-      const inv = await getPending();
-      if (inv && inv.host) setInvite(inv as Invite);
-      else setInvite((cur) => cur);
-    } catch { /* ignore */ }
-  }, [getPending]);
+      return await fn();
+    } catch (e) {
+      const msg = (e as Error)?.message ?? "";
+      if (/JWT|expired|Unauthorized|401/i.test(msg)) {
+        try { await supabase.auth.refreshSession(); } catch { /* ignore */ }
+        try { return await fn(); } catch { return null; }
+      }
+      return null;
+    }
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const inv = await callWithRefresh(() => getPending());
+    if (inv && (inv as Invite).host) setInvite(inv as Invite);
+  }, [getPending, callWithRefresh]);
 
   // Initial fetch + 5s poll fallback
   useEffect(() => {
     if (!userId) return;
     refresh();
     const id = setInterval(refresh, 5000);
-    return () => clearInterval(id);
+    const onVis = () => { if (document.visibilityState === "visible") refresh(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
   }, [userId, refresh]);
 
   // Realtime: listen for rooms updates where pending_guest_id = me
