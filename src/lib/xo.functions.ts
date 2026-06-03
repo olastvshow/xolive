@@ -148,19 +148,31 @@ export const getOnlinePlayers = createServerFn({ method: "GET" })
 
     const ids = online.map((p) => p.id);
     const inList = ids.join(",");
+    // A player is "busy" only if they're actively in a playing match, or already
+    // pending in someone else's invite. Hosting a waiting quick-play room is the
+    // normal state for everyone searching, so we don't exclude on that.
     const { data: busyRooms } = await supabaseAdmin
       .from("rooms")
       .select("host_id, guest_id, pending_guest_id, status")
       .or(`host_id.in.(${inList}),guest_id.in.(${inList}),pending_guest_id.in.(${inList})`)
-      .in("status", ["waiting", "playing"]);
+      .in("status", ["playing"]);
+
+    const { data: pendingRooms } = await supabaseAdmin
+      .from("rooms")
+      .select("pending_guest_id")
+      .eq("status", "waiting")
+      .in("pending_guest_id", ids);
 
     const busy = new Set<string>();
     for (const r of busyRooms ?? []) {
       if (r.host_id) busy.add(r.host_id);
       if (r.guest_id) busy.add(r.guest_id);
+    }
+    for (const r of pendingRooms ?? []) {
       if (r.pending_guest_id) busy.add(r.pending_guest_id);
     }
     return online.filter((p) => !busy.has(p.id));
+
   });
 
 // Start quick play: just create a waiting room. The host then picks from the list.
