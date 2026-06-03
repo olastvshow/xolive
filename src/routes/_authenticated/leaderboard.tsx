@@ -13,14 +13,14 @@ export const Route = createFileRoute("/_authenticated/leaderboard")({
 
 const TABS = ["Daily", "Monthly", "All time"] as const;
 
-function Avatar({ name, size = 56, ring }: { name: string; size?: number; ring?: string }) {
+function Avatar({ name, url, size = 56, ring }: { name: string; url?: string | null; size?: number; ring?: string }) {
   const initial = name[0]?.toUpperCase() ?? "?";
   return (
     <div
-      className={`rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center font-extrabold text-on-primary-container shadow-md ${ring ?? ""}`}
+      className={`rounded-full overflow-hidden bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center font-extrabold text-on-primary-container shadow-md ${ring ?? ""}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
-      {initial}
+      {url ? <img src={url} alt={name} className="w-full h-full object-cover" /> : initial}
     </div>
   );
 }
@@ -30,7 +30,7 @@ function PodiumCard({
   rank,
   highlight,
 }: {
-  player: { username: string; wins: number };
+  player: { username: string; wins: number; avatar_url?: string | null };
   rank: 1 | 2 | 3;
   highlight?: boolean;
 }) {
@@ -43,7 +43,7 @@ function PodiumCard({
         {rank === 1 && (
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-3xl float-y">👑</div>
         )}
-        <Avatar name={player.username} size={size} ring="ring-4 ring-white" />
+        <Avatar name={player.username} url={player.avatar_url} size={size} ring="ring-4 ring-white" />
         <div
           className={`absolute -bottom-2 left-1/2 -translate-x-1/2 ${badgeColor} text-xs font-extrabold rounded-full w-7 h-7 flex items-center justify-center shadow-md`}
         >
@@ -150,7 +150,7 @@ function LeaderboardPage() {
                   {rank}
                 </div>
                 <div className="flex items-center gap-3 flex-grow pl-3">
-                  <Avatar name={p.username} size={36} />
+                  <Avatar name={p.username} url={p.avatar_url} size={36} />
                   <p className="font-bold text-sm truncate">
                     {p.username}
                     {isMe && " (You)"}
