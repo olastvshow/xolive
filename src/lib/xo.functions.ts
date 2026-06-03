@@ -97,97 +97,136 @@ export const heartbeat = createServerFn({ method: "POST" })
 
 const ONLINE_WINDOW_SECONDS = 45;
 
+// Pick a random online player not already busy in another room.
+async function pickOnlineTarget(admin: any, meId: string, exclude: string[]) {
+  const onlineSince = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
+  const { data: online } = await admin
+    .from("profiles")
+    .select("id, username, avatar_url")
+    .gte("last_seen_at", onlineSince)
+    .neq("id", meId)
+    .limit(50);
+  if (!online || !online.length) return null;
+
+  const exSet = new Set([meId, ...exclude]);
+  const ids = online.map((p: { id: string }) => p.id).filter((id: string) => !exSet.has(id));
+  if (!ids.length) return null;
+
+  const inList = ids.join(",");
+  const { data: busyRooms } = await admin
+    .from("rooms")
+    .select("host_id, guest_id, pending_guest_id, status")
+    .or(`host_id.in.(${inList}),guest_id.in.(${inList}),pending_guest_id.in.(${inList})`)
+    .in("status", ["waiting", "playing"]);
+
+  const busy = new Set<string>();
+  for (const r of busyRooms ?? []) {
+    if (r.host_id) busy.add(r.host_id);
+    if (r.guest_id) busy.add(r.guest_id);
+    if (r.pending_guest_id) busy.add(r.pending_guest_id);
+  }
+
+  const pool = online.filter((p: { id: string }) => !busy.has(p.id) && !exSet.has(p.id));
+  if (!pool.length) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// Online players for the radar animation
+export const getOnlinePlayers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const onlineSince = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("id, username, avatar_url")
+      .gte("last_seen_at", onlineSince)
+      .neq("id", context.userId)
+      .limit(30);
+    return data ?? [];
+  });
+
+// Start quick play: create my room and invite a random online player.
 export const quickPlay = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Mark me online right now.
     await supabaseAdmin
       .from("profiles")
       .update({ last_seen_at: new Date().toISOString() })
       .eq("id", context.userId);
 
-    const onlineSince = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
-
-    // Find rooms waiting with no guest and no pending request yet.
-    const { data: waiting } = await supabaseAdmin
-      .from("rooms")
-      .select("*")
-      .eq("status", "waiting")
-      .eq("is_quick", true)
-      .neq("host_id", context.userId)
-      .is("guest_id", null)
-      .is("pending_guest_id", null)
-      .order("created_at")
-      .limit(10);
-
-    type Room = NonNullable<typeof waiting>[number];
-    let candidate: Room | undefined;
-    if (waiting && waiting.length) {
-      const hostIds = waiting.map((r) => r.host_id);
-      const { data: hosts } = await supabaseAdmin
-        .from("profiles")
-        .select("id, last_seen_at")
-        .in("id", hostIds)
-        .gte("last_seen_at", onlineSince);
-      const onlineIds = new Set((hosts ?? []).map((h) => h.id));
-      candidate = waiting.find((r) => onlineIds.has(r.host_id));
-    }
-
-    if (candidate) {
-      // Send a join request — host must accept before the match starts.
-      const { data: updated, error } = await supabaseAdmin
-        .from("rooms")
-        .update({ pending_guest_id: context.userId, updated_at: new Date().toISOString() })
-        .eq("id", candidate.id)
-        .eq("status", "waiting")
-        .is("guest_id", null)
-        .is("pending_guest_id", null)
-        .select("*")
-        .single();
-      if (!error && updated) return { ...updated, mode: "requested" as const };
-    }
-
-    // Otherwise create our own waiting room and wait for someone to request us.
+    let room: any = null;
     for (let i = 0; i < 5; i++) {
       const code = genCode();
-      const { data: row, error } = await supabaseAdmin.from("rooms").insert({
-        code, host_id: context.userId, is_quick: true,
-      }).select("*").single();
-      if (!error) return { ...row, mode: "hosting" as const };
+      const { data: row, error } = await supabaseAdmin
+        .from("rooms")
+        .insert({ code, host_id: context.userId, is_quick: true })
+        .select("*")
+        .single();
+      if (!error) { room = row; break; }
       if (!error.message.includes("duplicate")) throw new Error(error.message);
     }
-    throw new Error("Could not start quick play");
+    if (!room) throw new Error("Could not create room");
+
+    const target = await pickOnlineTarget(supabaseAdmin, context.userId, []);
+    if (target) {
+      const { data: updated } = await supabaseAdmin
+        .from("rooms")
+        .update({ pending_guest_id: target.id, updated_at: new Date().toISOString() })
+        .eq("id", room.id)
+        .select("*")
+        .single();
+      return { ...(updated ?? room), targetId: target.id, mode: "inviting" as const };
+    }
+    return { ...room, targetId: null, mode: "searching" as const };
   });
 
-// Host accepts/declines an incoming request.
-export const respondMatchRequest = createServerFn({ method: "POST" })
+// Try a fresh random online player on the same room (after decline / timeout).
+export const inviteAnotherPlayer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     roomId: z.string().uuid(),
-    accept: z.boolean(),
+    exclude: z.array(z.string().uuid()).default([]),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: room, error: rerr } = await supabaseAdmin
+    const { data: room } = await supabaseAdmin
       .from("rooms").select("*").eq("id", data.roomId).single();
-    if (rerr || !room) throw new Error("Room not found");
-    if (room.host_id !== context.userId) throw new Error("Only the host can respond");
-    if (!room.pending_guest_id) throw new Error("No pending request");
+    if (!room || room.host_id !== context.userId) throw new Error("Not your room");
+    if (room.status !== "waiting") throw new Error("Room not waiting");
 
-    if (!data.accept) {
-      const { error } = await supabaseAdmin
+    const target = await pickOnlineTarget(supabaseAdmin, context.userId, data.exclude);
+    if (!target) {
+      await supabaseAdmin
         .from("rooms")
         .update({ pending_guest_id: null, updated_at: new Date().toISOString() })
         .eq("id", room.id);
-      if (error) throw new Error(error.message);
-      return { ok: true, accepted: false };
+      return { targetId: null };
     }
+    await supabaseAdmin
+      .from("rooms")
+      .update({ pending_guest_id: target.id, updated_at: new Date().toISOString() })
+      .eq("id", room.id);
+    return { targetId: target.id };
+  });
+
+// Invitee accepts an invitation.
+export const acceptInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ roomId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin
+      .from("rooms").select("*").eq("id", data.roomId).single();
+    if (!room) throw new Error("Room not found");
+    if (room.pending_guest_id !== context.userId) throw new Error("Invite not for you");
+    if (room.status !== "waiting") throw new Error("Room no longer waiting");
 
     const { data: updated, error } = await supabaseAdmin
       .from("rooms")
       .update({
-        guest_id: room.pending_guest_id,
+        guest_id: context.userId,
         pending_guest_id: null,
         status: "playing",
         updated_at: new Date().toISOString(),
@@ -196,15 +235,83 @@ export const respondMatchRequest = createServerFn({ method: "POST" })
       .eq("status", "waiting")
       .select("*")
       .single();
-    if (error || !updated) throw new Error(error?.message ?? "Could not start match");
+    if (error || !updated) throw new Error(error?.message ?? "Could not accept");
     if (updated.bet > 0) {
       const { error: rpcErr } = await supabaseAdmin.rpc("start_match", { _room_id: updated.id });
       if (rpcErr) throw new Error(rpcErr.message);
     }
-    return { ok: true, accepted: true, room: updated };
+    return updated;
   });
 
-// Guest withdraws a pending request (cancels their own request to a host).
+// Invitee declines.
+export const declineInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ roomId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("rooms")
+      .update({ pending_guest_id: null, updated_at: new Date().toISOString() })
+      .eq("id", data.roomId)
+      .eq("pending_guest_id", context.userId)
+      .eq("status", "waiting");
+    return { ok: true };
+  });
+
+// Any invitation currently addressed to me (used as a poll fallback to realtime).
+export const getPendingInviteForMe = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin
+      .from("rooms")
+      .select("id, code, host_id, bet, mode")
+      .eq("pending_guest_id", context.userId)
+      .eq("status", "waiting")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!room) return null;
+    const { data: host } = await supabaseAdmin
+      .from("profiles")
+      .select("id, username, avatar_url, wins, losses, draws")
+      .eq("id", room.host_id)
+      .maybeSingle();
+    return { room, host };
+  });
+
+// Kept for back-compat with existing UI calls.
+export const respondMatchRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ roomId: z.string().uuid(), accept: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.accept) {
+      const { data: room } = await supabaseAdmin
+        .from("rooms").select("*").eq("id", data.roomId).single();
+      if (!room) throw new Error("Room not found");
+      if (room.pending_guest_id !== context.userId) throw new Error("Invite not for you");
+      const { data: updated, error } = await supabaseAdmin
+        .from("rooms")
+        .update({
+          guest_id: context.userId,
+          pending_guest_id: null,
+          status: "playing",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", room.id).eq("status", "waiting").select("*").single();
+      if (error || !updated) throw new Error(error?.message ?? "Could not accept");
+      if (updated.bet > 0) await supabaseAdmin.rpc("start_match", { _room_id: updated.id });
+      return { ok: true, accepted: true, room: updated };
+    }
+    await supabaseAdmin
+      .from("rooms")
+      .update({ pending_guest_id: null, updated_at: new Date().toISOString() })
+      .eq("id", data.roomId)
+      .eq("pending_guest_id", context.userId);
+    return { ok: true, accepted: false };
+  });
+
 export const withdrawMatchRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ roomId: z.string().uuid() }).parse(d))
@@ -224,7 +331,6 @@ export const cancelQuickMatch = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ roomId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Only delete if still waiting and owned by caller (no opponent yet).
     const { error } = await supabaseAdmin
       .from("rooms")
       .delete()
