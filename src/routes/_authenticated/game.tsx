@@ -737,11 +737,11 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
         ))}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
           <span className="text-[120px] leading-none text-red-500 animate-shake-hard animate-result-glow">💀</span>
-          <h2 className="text-5xl font-black text-red-400 drop-shadow-[0_3px_0_rgba(0,0,0,0.5)] animate-result-pop"
+          <h2 className="text-5xl font-black text-red-300 drop-shadow-[0_3px_0_rgba(0,0,0,0.7)] animate-result-pop"
               style={{ animationDelay: "0.3s" }}>
             DEFEAT
           </h2>
-          <p className="text-on-surface-variant font-bold tracking-widest text-xs animate-result-pop" style={{ animationDelay: "0.5s" }}>
+          <p className="text-red-100/90 font-bold tracking-widest text-xs animate-result-pop drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]" style={{ animationDelay: "0.5s" }}>
             ROUND {round} · BETTER LUCK NEXT TIME
           </p>
         </div>
