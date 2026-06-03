@@ -248,8 +248,8 @@ function ProfilePage() {
       </div>
 
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={() => !deleting && setConfirmDelete(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm bg-surface rounded-3xl p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 overflow-y-auto" onClick={() => !deleting && setConfirmDelete(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm bg-surface rounded-3xl p-5 sm:p-6 shadow-2xl my-auto max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <div className="mx-auto w-14 h-14 rounded-full bg-error/10 text-error flex items-center justify-center mb-3">
               <Icon name="warning" className="text-3xl" filled />
             </div>
