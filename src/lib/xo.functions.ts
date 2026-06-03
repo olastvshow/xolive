@@ -696,12 +696,12 @@ export const updateProfile = createServerFn({ method: "POST" })
     avatar_url: z.string().url().max(1000).nullable().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const updates: { username?: string; avatar_url?: string | null } = {};
     if (data.username !== undefined) updates.username = data.username;
     if (data.avatar_url !== undefined) updates.avatar_url = data.avatar_url;
     if (Object.keys(updates).length === 0) return { ok: true };
-    const { error } = await supabase.from("profiles").update(updates).eq("id", userId);
+    const { error } = await supabaseAdmin.from("profiles").update(updates).eq("id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
