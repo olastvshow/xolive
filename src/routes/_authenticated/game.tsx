@@ -446,6 +446,24 @@ function GameView(props: {
         ))}
       </div>
 
+      {/* Floating chat pop-ups (auto-dismiss) */}
+      {chatPops.length > 0 && (
+        <div className="absolute top-28 left-0 right-0 z-10 px-4 flex flex-col items-center gap-1.5 pointer-events-none">
+          {chatPops.map((m) => {
+            const mine = (props.youMark === "X" && m.user_id === props.hostId) || (props.youMark === "O" && m.user_id === props.guestId);
+            const name = m.user_id === props.hostId ? props.hostName : props.guestName;
+            return (
+              <button key={m.id} onClick={() => setChatOpen(true)}
+                className={cn("pointer-events-auto max-w-[85%] px-4 py-2 rounded-2xl text-sm font-medium shadow-lg animate-slide-up text-left",
+                  mine ? "bg-secondary text-on-secondary" : "bg-inverse-surface text-white")}>
+                <span className="block text-[10px] font-bold opacity-70 uppercase tracking-wide">{name}</span>
+                <span className="block">{m.text}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {chatOpen && (
         <>
           <button className="absolute inset-0 bg-black/50 animate-fade-in z-10" onClick={() => setChatOpen(false)} aria-label="Close chat" />
