@@ -149,8 +149,8 @@ function GameView(props: {
     if (introShownFor.current === key) return;
     introShownFor.current = key;
     setIntroPhase("show");
-    const t1 = setTimeout(() => setIntroPhase("out"), 2200);
-    const t2 = setTimeout(() => setIntroPhase("hidden"), 2600);
+    const t1 = setTimeout(() => setIntroPhase("out"), 4200);
+    const t2 = setTimeout(() => setIntroPhase("hidden"), 4700);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [props.guestId, props.roomId, props.round, props.finished]);
 
@@ -395,7 +395,12 @@ function GameView(props: {
     });
   };
 
-  const unread = props.messages.filter((m) => m.kind === "chat").length;
+  const [hasUnread, setHasUnread] = useState(false);
+  useEffect(() => {
+    const last = props.messages[props.messages.length - 1];
+    if (last && last.kind === "chat" && !chatOpen) setHasUnread(true);
+  }, [props.messages, chatOpen]);
+  useEffect(() => { if (chatOpen) setHasUnread(false); }, [chatOpen]);
 
   // Auto-rematch when multiplayer game finishes (host triggers to avoid double-fire)
   const [rematchIn, setRematchIn] = useState<number | null>(null);
@@ -460,8 +465,8 @@ function GameView(props: {
         </div>
         <button onClick={() => setChatOpen(true)} className="relative w-10 h-10 rounded-full bg-surface-container flex items-center justify-center" aria-label="Open chat">
           <Icon name="chat_bubble" filled />
-          {unread > 0 && (
-            <span className="absolute -top-1 -right-1 bg-error text-on-error text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">{unread}</span>
+          {hasUnread && (
+            <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-error ring-2 ring-surface" />
           )}
         </button>
       </header>
@@ -677,7 +682,8 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
   if (outcome === "win") {
     return (
       <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-yellow-300/30 via-amber-400/20 to-transparent animate-flash-bg" />
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
+        <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/40 via-amber-500/25 to-transparent animate-flash-bg" />
         {/* Confetti */}
         {confetti.map((p) => (
           <span key={p.id} className="confetti-piece"
@@ -705,7 +711,7 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
               style={{ animationDelay: "0.3s" }}>
             VICTORY!
           </h2>
-          <p className="text-on-surface-variant font-bold tracking-widest text-xs animate-result-pop" style={{ animationDelay: "0.5s" }}>
+          <p className="text-yellow-100/90 font-bold tracking-widest text-xs animate-result-pop drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]" style={{ animationDelay: "0.5s" }}>
             ROUND {round} · +COINS EARNED
           </p>
         </div>
@@ -716,7 +722,8 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
   if (outcome === "lose") {
     return (
       <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-red-900/40 via-red-700/25 to-transparent animate-flash-bg" />
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
+        <div className="absolute inset-0 bg-gradient-to-b from-red-900/60 via-red-700/35 to-transparent animate-flash-bg" />
         {/* Rain of tears */}
         {rain.map((p) => (
           <span key={p.id} className="rain-drop"
@@ -730,11 +737,11 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
         ))}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
           <span className="text-[120px] leading-none text-red-500 animate-shake-hard animate-result-glow">💀</span>
-          <h2 className="text-5xl font-black text-red-400 drop-shadow-[0_3px_0_rgba(0,0,0,0.5)] animate-result-pop"
+          <h2 className="text-5xl font-black text-red-300 drop-shadow-[0_3px_0_rgba(0,0,0,0.7)] animate-result-pop"
               style={{ animationDelay: "0.3s" }}>
             DEFEAT
           </h2>
-          <p className="text-on-surface-variant font-bold tracking-widest text-xs animate-result-pop" style={{ animationDelay: "0.5s" }}>
+          <p className="text-red-100/90 font-bold tracking-widest text-xs animate-result-pop drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]" style={{ animationDelay: "0.5s" }}>
             ROUND {round} · BETTER LUCK NEXT TIME
           </p>
         </div>
@@ -745,7 +752,8 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
   // Draw
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-400/25 via-indigo-400/15 to-transparent animate-flash-bg" />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-500/40 via-indigo-500/25 to-transparent animate-flash-bg" />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="relative w-72 h-72">
           <div className="absolute inset-0 rounded-full border-4 border-sky-300 animate-burst-ring" />
@@ -753,12 +761,12 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
         </div>
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
-        <span className="text-[120px] leading-none animate-draw-bounce text-sky-300 animate-result-glow">🤝</span>
-        <h2 className="text-5xl font-black text-sky-200 drop-shadow-[0_3px_0_rgba(0,0,0,0.4)] animate-result-pop"
+        <span className="text-[120px] leading-none animate-draw-bounce text-sky-200 animate-result-glow">🤝</span>
+        <h2 className="text-5xl font-black text-sky-100 drop-shadow-[0_3px_0_rgba(0,0,0,0.7)] animate-result-pop"
             style={{ animationDelay: "0.3s" }}>
           DRAW!
         </h2>
-        <p className="text-on-surface-variant font-bold tracking-widest text-xs animate-result-pop" style={{ animationDelay: "0.5s" }}>
+        <p className="text-sky-100/90 font-bold tracking-widest text-xs animate-result-pop drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]" style={{ animationDelay: "0.5s" }}>
           ROUND {round} · EVENLY MATCHED
         </p>
       </div>
