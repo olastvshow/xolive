@@ -96,35 +96,81 @@ export const heartbeat = createServerFn({ method: "POST" })
   });
 
 const ONLINE_WINDOW_SECONDS = 45;
+const ACTIVE_MATCH_BUSY_SECONDS = 90;
+const PENDING_INVITE_BUSY_SECONDS = 30;
+
+type DbError = { message: string };
+type DbResult = { data: unknown; error: DbError | null };
+type DbQuery = PromiseLike<DbResult> & {
+  or: (filters: string) => DbQuery;
+  eq: (column: string, value: unknown) => DbQuery;
+  gte: (column: string, value: string) => DbQuery;
+  in: (column: string, values: string[]) => DbQuery;
+  neq: (column: string, value: string) => DbQuery;
+  limit: (count: number) => DbQuery;
+};
+type DbClient = { from: (table: string) => { select: (columns: string) => DbQuery } };
+type BusyRoom = { host_id: string | null; guest_id: string | null; pending_guest_id?: string | null };
+type OnlineTarget = { id: string; username: string; avatar_url: string | null };
+
+async function getBusyPlayerIds(admin: DbClient, ids: string[], excludeRoomId?: string) {
+  const busy = new Set<string>();
+  if (!ids.length) return busy;
+
+  const inList = ids.join(",");
+  const busySince = new Date(Date.now() - ACTIVE_MATCH_BUSY_SECONDS * 1000).toISOString();
+  let playingQuery = admin
+    .from("rooms")
+    .select("id, host_id, guest_id")
+    .or(`host_id.in.(${inList}),guest_id.in.(${inList})`)
+    .eq("status", "playing")
+    .gte("updated_at", busySince);
+  if (excludeRoomId) playingQuery = playingQuery.neq("id", excludeRoomId);
+
+  const { data: playingRows, error: playingError } = await playingQuery;
+  if (playingError) throw new Error(playingError.message);
+
+  const pendingSince = new Date(Date.now() - PENDING_INVITE_BUSY_SECONDS * 1000).toISOString();
+  let pendingQuery = admin
+    .from("rooms")
+    .select("id, pending_guest_id")
+    .eq("status", "waiting")
+    .in("pending_guest_id", ids)
+    .gte("updated_at", pendingSince);
+  if (excludeRoomId) pendingQuery = pendingQuery.neq("id", excludeRoomId);
+
+  const { data: pendingRows, error: pendingError } = await pendingQuery;
+  if (pendingError) throw new Error(pendingError.message);
+
+  const playingRooms = (playingRows ?? []) as BusyRoom[];
+  const pendingRooms = (pendingRows ?? []) as BusyRoom[];
+  for (const r of playingRooms ?? []) {
+    if (r.host_id) busy.add(r.host_id);
+    if (r.guest_id) busy.add(r.guest_id);
+  }
+  for (const r of pendingRooms ?? []) {
+    if (r.pending_guest_id) busy.add(r.pending_guest_id);
+  }
+  return busy;
+}
 
 // Pick a random online player not already busy in another room.
-async function pickOnlineTarget(admin: any, meId: string, exclude: string[]) {
+async function pickOnlineTarget(admin: DbClient, meId: string, exclude: string[]) {
   const onlineSince = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
-  const { data: online } = await admin
+  const { data: onlineRows } = await admin
     .from("profiles")
     .select("id, username, avatar_url")
     .gte("last_seen_at", onlineSince)
     .neq("id", meId)
     .limit(50);
-  if (!online || !online.length) return null;
+  const online = (onlineRows ?? []) as OnlineTarget[];
+  if (!online.length) return null;
 
   const exSet = new Set([meId, ...exclude]);
   const ids = online.map((p: { id: string }) => p.id).filter((id: string) => !exSet.has(id));
   if (!ids.length) return null;
 
-  const inList = ids.join(",");
-  const { data: busyRooms } = await admin
-    .from("rooms")
-    .select("host_id, guest_id, pending_guest_id, status")
-    .or(`host_id.in.(${inList}),guest_id.in.(${inList}),pending_guest_id.in.(${inList})`)
-    .in("status", ["waiting", "playing"]);
-
-  const busy = new Set<string>();
-  for (const r of busyRooms ?? []) {
-    if (r.host_id) busy.add(r.host_id);
-    if (r.guest_id) busy.add(r.guest_id);
-    if (r.pending_guest_id) busy.add(r.pending_guest_id);
-  }
+  const busy = await getBusyPlayerIds(admin, ids);
 
   const pool = online.filter((p: { id: string }) => !busy.has(p.id) && !exSet.has(p.id));
   if (!pool.length) return null;
@@ -147,36 +193,10 @@ export const getOnlinePlayers = createServerFn({ method: "GET" })
     if (!online?.length) return [];
 
     const ids = online.map((p) => p.id);
-    const inList = ids.join(",");
-    // A player is "busy" only if they're actively in a playing match, or already
-    // pending in someone else's invite. Hosting a waiting quick-play room is the
-    // normal state for everyone searching, so we don't exclude on that.
-    // Only count a "playing" room as truly busy if it's been touched recently.
-    // Abandoned matches stay in 'playing' forever and would otherwise lock
-    // every user out of being shown as available.
-    const busySince = new Date(Date.now() - 90 * 1000).toISOString();
-    const { data: busyRooms } = await supabaseAdmin
-      .from("rooms")
-      .select("host_id, guest_id, pending_guest_id, status, updated_at")
-      .or(`host_id.in.(${inList}),guest_id.in.(${inList}),pending_guest_id.in.(${inList})`)
-      .eq("status", "playing")
-      .gte("updated_at", busySince);
-
-
-    const { data: pendingRooms } = await supabaseAdmin
-      .from("rooms")
-      .select("pending_guest_id")
-      .eq("status", "waiting")
-      .in("pending_guest_id", ids);
-
-    const busy = new Set<string>();
-    for (const r of busyRooms ?? []) {
-      if (r.host_id) busy.add(r.host_id);
-      if (r.guest_id) busy.add(r.guest_id);
-    }
-    for (const r of pendingRooms ?? []) {
-      if (r.pending_guest_id) busy.add(r.pending_guest_id);
-    }
+    // A player is "busy" only if they're actively in a recent playing match, or
+    // already pending in a fresh invite. Stale games/invites are ignored so old
+    // abandoned rooms don't hide everyone from Quick Play.
+    const busy = await getBusyPlayerIds(supabaseAdmin as unknown as DbClient, ids);
     return online.filter((p) => !busy.has(p.id));
 
   });
@@ -232,27 +252,11 @@ export const invitePlayer = createServerFn({ method: "POST" })
     if (room.status !== "waiting") throw new Error("Room not waiting");
     if (data.targetId === context.userId) throw new Error("Cannot invite yourself");
 
-    // Check target isn't already busy. "waiting as host" is the normal state of
-    // anyone in the matchmaking list, so it doesn't count. Stale 'playing' rooms
-    // (>90s without an update) are treated as abandoned and ignored.
-    const busySince = new Date(Date.now() - 90 * 1000).toISOString();
-    const { data: playingBusy } = await supabaseAdmin
-      .from("rooms")
-      .select("id")
-      .or(`host_id.eq.${data.targetId},guest_id.eq.${data.targetId}`)
-      .eq("status", "playing")
-      .gte("updated_at", busySince)
-      .neq("id", data.roomId)
-      .limit(1);
-    const { data: pendingBusy } = await supabaseAdmin
-      .from("rooms")
-      .select("id")
-      .eq("pending_guest_id", data.targetId)
-      .eq("status", "waiting")
-      .neq("id", data.roomId)
-      .limit(1);
-    if ((playingBusy && playingBusy.length) || (pendingBusy && pendingBusy.length)) {
-      throw new Error("Player is busy");
+    // Mirror the list filtering exactly. If the player became busy after the
+    // list loaded, return a safe result instead of throwing a runtime error.
+    const busy = await getBusyPlayerIds(supabaseAdmin as unknown as DbClient, [data.targetId], data.roomId);
+    if (busy.has(data.targetId)) {
+      return { targetId: null, room, busy: true, message: "That player just became busy. Pick another opponent." };
     }
 
 
@@ -289,7 +293,7 @@ export const inviteAnotherPlayer = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const target = await pickOnlineTarget(supabaseAdmin, context.userId, data.exclude);
+    const target = await pickOnlineTarget(supabaseAdmin as unknown as DbClient, context.userId, data.exclude);
     if (!target) {
       await supabaseAdmin
         .from("rooms")
@@ -356,11 +360,13 @@ export const getPendingInviteForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const pendingSince = new Date(Date.now() - PENDING_INVITE_BUSY_SECONDS * 1000).toISOString();
     const { data: room } = await supabaseAdmin
       .from("rooms")
       .select("id, code, host_id, bet, mode")
       .eq("pending_guest_id", context.userId)
       .eq("status", "waiting")
+      .gte("updated_at", pendingSince)
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();

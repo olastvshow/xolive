@@ -42,7 +42,7 @@ function QuickMatch() {
   const onlineFn = useServerFn(getOnlinePlayers);
 
   const { data: me } = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
-  const { data: onlinePlayers = [], refetch: refetchOnline } = useQuery<OnlinePlayer[]>({
+  const { data: onlinePlayers = [], refetch: refetchOnline, isFetching: isRefreshing } = useQuery<OnlinePlayer[]>({
     queryKey: ["online-players"],
     queryFn: () => onlineFn() as Promise<OnlinePlayer[]>,
     refetchInterval: 6000,
@@ -112,16 +112,29 @@ function QuickMatch() {
 
   const handlePick = async (p: OnlinePlayer) => {
     if (!roomId) return;
+    setErr(null);
     setTarget(p);
     setPhase("inviting");
     try {
-      await invite({ data: { roomId, targetId: p.id } });
+      const result = await invite({ data: { roomId, targetId: p.id } });
+      if (!result?.targetId) {
+        const message = result && "message" in result ? result.message : null;
+        setErr(message ?? "That player is not available anymore.");
+        setTarget(null);
+        setPhase("list");
+        refetchOnline();
+      }
     } catch (e) {
       setErr((e as Error).message || "Couldn't invite that player");
       setTarget(null);
       setPhase("list");
       refetchOnline();
     }
+  };
+
+  const handleRefresh = async () => {
+    setErr(null);
+    await refetchOnline();
   };
 
   const handleCancelInvite = async () => {
@@ -228,6 +241,7 @@ function QuickMatch() {
           <div className="text-left mb-3">
             <h1 className="text-2xl font-black text-on-surface">Pick your opponent</h1>
             <p className="text-on-surface-variant text-sm">Tap a player to send them a match request.</p>
+            {err && <p className="text-error text-sm font-bold mt-2">{err}</p>}
           </div>
           {onlinePlayers.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
@@ -236,8 +250,8 @@ function QuickMatch() {
               </div>
               <h2 className="font-black text-on-surface text-lg">No one's online right now</h2>
               <p className="text-on-surface-variant text-sm mt-1">We'll keep checking every few seconds.</p>
-              <button onClick={() => refetchOnline()} className="mt-5 px-5 py-2.5 rounded-full bg-primary text-on-primary font-bold bubbly">
-                Refresh
+              <button onClick={handleRefresh} disabled={isRefreshing} className="mt-5 px-5 py-2.5 rounded-full bg-primary text-on-primary font-bold bubbly disabled:opacity-60">
+                {isRefreshing ? "Refreshing…" : "Refresh"}
               </button>
             </div>
           ) : (
