@@ -410,6 +410,7 @@ function GameView(props: {
   };
 
   const [hasUnread, setHasUnread] = useState(false);
+  const [forfeitOpen, setForfeitOpen] = useState(false);
   useEffect(() => {
     const last = props.messages[props.messages.length - 1];
     if (last && last.kind === "chat" && !chatOpen) setHasUnread(true);
