@@ -41,6 +41,10 @@ export const createRoom = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.bet > 0) {
+      const { data: me } = await supabaseAdmin.from("profiles").select("coins").eq("id", context.userId).single();
+      if (!me || me.coins < data.bet) throw new Error("Not enough coins for that bet");
+    }
     for (let i = 0; i < 5; i++) {
       const code = genCode();
       const { data: row, error } = await supabaseAdmin.from("rooms").insert({
@@ -64,10 +68,18 @@ export const joinRoomByCode = createServerFn({ method: "POST" })
     if (room.host_id === context.userId || room.guest_id === context.userId) return room;
     if (room.guest_id) throw new Error("Room is full");
     if (room.status !== "waiting") throw new Error("Room is not joinable");
+    if (room.bet > 0) {
+      const { data: me } = await supabaseAdmin.from("profiles").select("coins").eq("id", context.userId).single();
+      if (!me || me.coins < room.bet) throw new Error("Not enough coins to join this bet");
+    }
     const { data: updated, error: uerr } = await supabaseAdmin
       .from("rooms").update({ guest_id: context.userId, status: "playing", updated_at: new Date().toISOString() })
       .eq("id", room.id).eq("status", "waiting").select("*").single();
     if (uerr) throw new Error(uerr.message);
+    if (updated.bet > 0) {
+      const { error: rpcErr } = await supabaseAdmin.rpc("start_match", { _room_id: updated.id });
+      if (rpcErr) throw new Error(rpcErr.message);
+    }
     return updated;
   });
 
@@ -83,7 +95,13 @@ export const quickPlay = createServerFn({ method: "POST" })
       const { data: updated, error } = await supabaseAdmin
         .from("rooms").update({ guest_id: context.userId, status: "playing", updated_at: new Date().toISOString() })
         .eq("id", r.id).eq("status", "waiting").is("guest_id", null).select("*").single();
-      if (!error && updated) return updated;
+      if (!error && updated) {
+        if (updated.bet > 0) {
+          const { error: rpcErr } = await supabaseAdmin.rpc("start_match", { _room_id: updated.id });
+          if (rpcErr) throw new Error(rpcErr.message);
+        }
+        return updated;
+      }
     }
     // create
     for (let i = 0; i < 5; i++) {
@@ -96,6 +114,7 @@ export const quickPlay = createServerFn({ method: "POST" })
     }
     throw new Error("Could not start quick play");
   });
+
 
 export const getRoomByCode = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
