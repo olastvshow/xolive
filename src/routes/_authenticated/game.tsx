@@ -743,3 +743,80 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
     </div>
   );
 }
+
+function VsIntro({ hostName, guestName, phaseOut }: { hostName: string; guestName: string; phaseOut: boolean }) {
+  const sparks = useMemo(
+    () => Array.from({ length: 18 }, (_, i) => ({
+      id: i,
+      left: 40 + Math.random() * 20,
+      top: 40 + Math.random() * 20,
+      delay: Math.random() * 0.3,
+      duration: 0.8 + Math.random() * 0.6,
+      hue: Math.floor(Math.random() * 360),
+    })),
+    [],
+  );
+
+  return (
+    <div className={cn("pointer-events-none fixed inset-0 z-40 overflow-hidden", phaseOut && "animate-intro-out")}>
+      <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-600/60 via-black/70 to-cyan-600/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-y-0 w-1/3 bg-white/10 animate-intro-streak" style={{ left: "-10%" }} />
+        <div className="absolute inset-y-0 w-1/4 bg-white/15 animate-intro-streak" style={{ left: "-20%", animationDelay: "0.15s" }} />
+      </div>
+
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/40 to-blue-700/40 animate-slam-left"
+          style={{ clipPath: "polygon(0 0, 60% 0, 40% 100%, 0 100%)" }} />
+        <div className="absolute inset-0 bg-gradient-to-bl from-pink-400/40 to-rose-700/40 animate-slam-right"
+          style={{ clipPath: "polygon(60% 0, 100% 0, 100% 100%, 40% 100%)" }} />
+      </div>
+
+      <div className="absolute inset-y-0 left-0 w-1/2 flex flex-col items-center justify-center gap-4 animate-slam-left">
+        <div className="w-32 h-32 rounded-full bg-cyan-300 border-[6px] border-white flex items-center justify-center text-6xl font-black text-cyan-900 shadow-[0_0_60px_rgba(34,211,238,0.9)]">
+          {hostName[0]?.toUpperCase() ?? "?"}
+        </div>
+        <div className="text-white font-black text-2xl tracking-wider drop-shadow-[0_3px_0_rgba(0,0,0,0.6)] max-w-[80%] truncate text-center">{hostName}</div>
+        <div className="text-cyan-200 text-xs font-bold tracking-[0.3em]">PLAYER · X</div>
+      </div>
+
+      <div className="absolute inset-y-0 right-0 w-1/2 flex flex-col items-center justify-center gap-4 animate-slam-right">
+        <div className="w-32 h-32 rounded-full bg-pink-300 border-[6px] border-white flex items-center justify-center text-6xl font-black text-pink-900 shadow-[0_0_60px_rgba(244,114,182,0.9)]">
+          {guestName[0]?.toUpperCase() ?? "?"}
+        </div>
+        <div className="text-white font-black text-2xl tracking-wider drop-shadow-[0_3px_0_rgba(0,0,0,0.6)] max-w-[80%] truncate text-center">{guestName}</div>
+        <div className="text-pink-200 text-xs font-bold tracking-[0.3em]">PLAYER · O</div>
+      </div>
+
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full border-4 border-yellow-300 animate-shockwave" style={{ animationDelay: "0.55s" }} />
+          <div className="absolute inset-0 rounded-full border-4 border-white animate-shockwave" style={{ animationDelay: "0.7s" }} />
+          <div className="relative text-[140px] leading-none font-black bg-gradient-to-b from-yellow-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent animate-vs-smash"
+            style={{
+              WebkitTextStroke: "4px white",
+              filter: "drop-shadow(0 6px 0 rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(253,224,71,0.8))",
+              animationDelay: "0.5s",
+            }}>
+            VS
+          </div>
+          {sparks.map((s) => (
+            <span key={s.id} className="absolute w-2 h-2 rounded-full animate-shockwave"
+              style={{
+                left: `${s.left}%`, top: `${s.top}%`,
+                background: `hsl(${s.hue} 90% 70%)`,
+                animationDelay: `${0.6 + s.delay}s`,
+                animationDuration: `${s.duration}s`,
+              }} />
+          ))}
+        </div>
+      </div>
+
+      <div className="absolute bottom-24 left-0 right-0 text-center">
+        <div className="inline-block text-white font-black text-lg tracking-[0.4em] animate-vs-smash" style={{ animationDelay: "1.1s" }}>
+          GAME ON!
+        </div>
+      </div>
+    </div>
+  );
+}
