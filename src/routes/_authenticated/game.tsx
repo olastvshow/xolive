@@ -722,7 +722,8 @@ function ResultOverlay({ outcome, round }: { outcome: "win" | "lose" | "draw"; r
   if (outcome === "lose") {
     return (
       <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-red-900/40 via-red-700/25 to-transparent animate-flash-bg" />
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
+        <div className="absolute inset-0 bg-gradient-to-b from-red-900/60 via-red-700/35 to-transparent animate-flash-bg" />
         {/* Rain of tears */}
         {rain.map((p) => (
           <span key={p.id} className="rain-drop"
