@@ -138,6 +138,7 @@ function GameView(props: {
   messages: MsgRow[];
   onCell: (i: number) => void; onSend: (text: string, kind: "chat" | "reaction") => void;
   onRematch: () => void; onHome: () => void; autoRematch: boolean;
+  onForfeit: () => void;
 }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [muted, setMuted] = useState(false);
