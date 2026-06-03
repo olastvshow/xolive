@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Icon } from "@/components/Icon";
+import logoAsset from "@/assets/logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -71,8 +72,8 @@ function AuthPage() {
       <div className="relative w-full max-w-sm">
         {/* Brand */}
         <div className="text-center mb-8">
-          <div className="mx-auto h-16 w-16 rounded-[1.4rem] bg-white shadow-[0_10px_30px_-12px_rgba(57,64,134,0.45)] flex items-center justify-center mb-4 ring-1 ring-black/5">
-            <span className="text-3xl">⚡</span>
+          <div className="mx-auto h-20 w-20 rounded-[1.4rem] bg-white shadow-[0_10px_30px_-12px_rgba(57,64,134,0.45)] flex items-center justify-center mb-4 ring-1 ring-black/5 overflow-hidden">
+            <img src={logoAsset.url} alt="XO Live" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-[28px] leading-tight font-semibold tracking-tight text-on-surface">
             {tab === "signin" ? "Welcome back" : "Create your account"}
