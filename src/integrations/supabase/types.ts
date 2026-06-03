@@ -276,6 +276,10 @@ export type Database = {
     }
     Functions: {
       finish_match: { Args: { _room_id: string }; Returns: undefined }
+      purchase_cosmetic: {
+        Args: { _cosmetic_id: string; _user_id: string }
+        Returns: Json
+      }
       start_match: { Args: { _room_id: string }; Returns: undefined }
     }
     Enums: {
