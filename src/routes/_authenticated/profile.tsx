@@ -198,21 +198,52 @@ function ProfilePage() {
 
         {/* Account actions */}
         <div className="space-y-2.5">
+          {scheduledAt && (
+            <div className="rounded-2xl bg-error/10 ring-1 ring-error/30 p-4">
+              <div className="flex items-start gap-3">
+                <span className="w-9 h-9 shrink-0 rounded-full bg-error/15 text-error flex items-center justify-center">
+                  <Icon name="schedule" className="text-[20px]" filled />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-on-surface">Account deletion scheduled</p>
+                  <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">
+                    Your account will be permanently deleted in{" "}
+                    <span className="font-bold text-error">{daysLeft} day{daysLeft === 1 ? "" : "s"}</span>.
+                    Change your mind? You can restore it before then.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  await cancelDelFn();
+                  qc.invalidateQueries({ queryKey: ["account-status"] });
+                }}
+                className="mt-3 w-full py-2.5 rounded-xl bg-on-surface text-surface text-sm font-bold active:scale-[0.98]"
+              >
+                Restore account
+              </button>
+            </div>
+          )}
+
           <button
             onClick={signOut}
             className="w-full flex items-center justify-center gap-2 py-3.5 bg-surface-container-highest text-on-surface rounded-2xl text-sm font-bold tracking-wider active:scale-[0.98]"
           >
             <Icon name="logout" className="text-[18px]" /> Sign out
           </button>
-          <button
-            onClick={() => { setConfirmDelete(true); setDeleteText(""); setDeleteErr(null); }}
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-error/10 text-error rounded-2xl text-sm font-bold tracking-wider active:scale-[0.98]"
-          >
-            <Icon name="delete_forever" className="text-[18px]" filled /> Delete account
-          </button>
-          <p className="text-[11px] text-on-surface-variant text-center px-4 leading-relaxed">
-            Deleting your account permanently removes your profile, stats, coins, and chat history. This action can't be undone.
-          </p>
+          {!scheduledAt && (
+            <>
+              <button
+                onClick={() => { setConfirmDelete(true); setDeleteText(""); setDeleteErr(null); }}
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-error/10 text-error rounded-2xl text-sm font-bold tracking-wider active:scale-[0.98]"
+              >
+                <Icon name="delete_forever" className="text-[18px]" filled /> Delete account
+              </button>
+              <p className="text-[11px] text-on-surface-variant text-center px-4 leading-relaxed">
+                Your account stays recoverable for {graceDays} days. After that it's permanently deleted: profile, stats, coins, and private chats are removed. Public game records are anonymized.
+              </p>
+            </>
+          )}
         </div>
       </div>
 
@@ -224,7 +255,8 @@ function ProfilePage() {
             </div>
             <h2 className="text-xl font-black text-center text-on-surface">Delete your account?</h2>
             <p className="text-sm text-on-surface-variant text-center mt-2 leading-relaxed">
-              This permanently deletes <span className="font-bold text-on-surface">@{p?.username}</span>, all stats, coins, and chat history. This can't be undone.
+              <span className="font-bold text-on-surface">@{p?.username}</span> will be deactivated immediately and permanently deleted after{" "}
+              <span className="font-bold text-on-surface">{graceDays} days</span>. Sign back in any time during that window to restore your account.
             </p>
             <label className="block text-xs font-bold text-on-surface-variant mt-5 mb-1.5">Type <span className="text-error">DELETE</span> to confirm</label>
             <input
@@ -240,7 +272,7 @@ function ProfilePage() {
                 disabled={deleting}
                 className="flex-1 py-3 rounded-2xl bg-surface-container-highest text-on-surface font-bold text-sm active:scale-[0.98] disabled:opacity-60"
               >
-                Cancel
+                Keep account
               </button>
               <button
                 disabled={deleteText !== "DELETE" || deleting}
@@ -257,7 +289,7 @@ function ProfilePage() {
                 }}
                 className="flex-1 py-3 rounded-2xl bg-error text-on-error font-bold text-sm active:scale-[0.98] disabled:opacity-50"
               >
-                {deleting ? "Deleting…" : "Delete"}
+                {deleting ? "Scheduling…" : "Delete"}
               </button>
             </div>
           </div>
