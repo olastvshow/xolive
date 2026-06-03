@@ -5,7 +5,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { getRoomByCode, makeMove, sendMessage, rematch } from "@/lib/xo.functions";
+import { getRoomByCode, makeMove, sendMessage, rematch, forfeitMatch } from "@/lib/xo.functions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 type Search = { code?: string; quick?: boolean; mode?: string; bet?: number };
 
