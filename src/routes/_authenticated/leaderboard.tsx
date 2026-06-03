@@ -156,8 +156,8 @@ function LeaderboardPage() {
                     {isMe && " (You)"}
                   </p>
                 </div>
-                <p className={`text-sm font-bold ${isMe ? "text-on-primary" : "text-primary"}`}>
-                  {p.wins * 100} pts
+                <p className={`text-sm font-bold tabular-nums ${isMe ? "text-on-primary" : "text-primary"}`}>
+                  {p.wins}<span className="opacity-60"> / </span>{p.losses}<span className="opacity-60"> / </span>{p.draws}
                 </p>
               </div>
             );
