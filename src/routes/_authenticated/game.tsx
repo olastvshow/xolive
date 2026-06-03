@@ -149,8 +149,8 @@ function GameView(props: {
     if (introShownFor.current === key) return;
     introShownFor.current = key;
     setIntroPhase("show");
-    const t1 = setTimeout(() => setIntroPhase("out"), 2200);
-    const t2 = setTimeout(() => setIntroPhase("hidden"), 2600);
+    const t1 = setTimeout(() => setIntroPhase("out"), 4200);
+    const t2 = setTimeout(() => setIntroPhase("hidden"), 4700);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [props.guestId, props.roomId, props.round, props.finished]);
 
