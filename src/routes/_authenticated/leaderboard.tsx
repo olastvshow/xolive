@@ -30,7 +30,7 @@ function PodiumCard({
   rank,
   highlight,
 }: {
-  player: { username: string; wins: number };
+  player: { username: string; wins: number; avatar_url?: string | null };
   rank: 1 | 2 | 3;
   highlight?: boolean;
 }) {
@@ -43,7 +43,7 @@ function PodiumCard({
         {rank === 1 && (
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-3xl float-y">👑</div>
         )}
-        <Avatar name={player.username} size={size} ring="ring-4 ring-white" />
+        <Avatar name={player.username} url={player.avatar_url} size={size} ring="ring-4 ring-white" />
         <div
           className={`absolute -bottom-2 left-1/2 -translate-x-1/2 ${badgeColor} text-xs font-extrabold rounded-full w-7 h-7 flex items-center justify-center shadow-md`}
         >
