@@ -118,7 +118,8 @@ function QuickMatch() {
     try {
       const result = await invite({ data: { roomId, targetId: p.id } });
       if (!result?.targetId) {
-        setErr(result?.message ?? "That player is not available anymore.");
+        const message = result && "message" in result ? result.message : null;
+        setErr(message ?? "That player is not available anymore.");
         setTarget(null);
         setPhase("list");
         refetchOnline();
