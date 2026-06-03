@@ -360,11 +360,13 @@ export const getPendingInviteForMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const pendingSince = new Date(Date.now() - PENDING_INVITE_BUSY_SECONDS * 1000).toISOString();
     const { data: room } = await supabaseAdmin
       .from("rooms")
       .select("id, code, host_id, bet, mode")
       .eq("pending_guest_id", context.userId)
       .eq("status", "waiting")
+      .gte("updated_at", pendingSince)
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
