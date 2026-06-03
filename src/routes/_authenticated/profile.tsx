@@ -22,8 +22,8 @@ function ProfilePage() {
   const deleteFn = useServerFn(deleteMyAccount);
   const cancelDelFn = useServerFn(cancelAccountDeletion);
   const statusFn = useServerFn(checkAccountStatus);
-  const { data: p } = useQuery({ queryKey: ["profile"], queryFn: () => fn() });
-  const { data: status } = useQuery({ queryKey: ["account-status"], queryFn: () => statusFn() });
+  const { data: p } = useQuery({ queryKey: ["profile"], queryFn: () => fn(), retry: false });
+  const { data: status } = useQuery({ queryKey: ["account-status"], queryFn: () => statusFn(), retry: false });
   useEffect(() => {
     if (status?.purged) {
       supabase.auth.signOut().then(() => navigate({ to: "/auth", replace: true }));
