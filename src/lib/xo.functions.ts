@@ -406,3 +406,19 @@ export const getCoinHistory = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+
+export const deleteMyAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const uid = context.userId;
+    // Best-effort cleanup of user-owned data
+    await supabaseAdmin.from("user_cosmetics").delete().eq("user_id", uid);
+    await supabaseAdmin.from("coin_transactions").delete().eq("user_id", uid);
+    await supabaseAdmin.from("messages").delete().eq("user_id", uid);
+    await supabaseAdmin.from("rooms").delete().or(`host_id.eq.${uid},guest_id.eq.${uid}`);
+    await supabaseAdmin.from("profiles").delete().eq("id", uid);
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(uid);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
