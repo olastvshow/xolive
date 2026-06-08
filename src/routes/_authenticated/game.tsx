@@ -108,7 +108,16 @@ function GamePage() {
       hostId={room.host_id}
       guestId={room.guest_id}
       messages={messages ?? []}
-      onCell={(i) => moveFn({ data: { roomId: room.id, index: i } }).catch(() => {})}
+      onCell={(i) => {
+        // Optimistic — paint the move instantly, server reconciles via realtime
+        if (board[i] || finished) return;
+        const myMark = youMark;
+        if (!myMark || room.turn !== myMark) return;
+        const nextBoard = [...board];
+        nextBoard[i] = myMark;
+        qc.setQueryData(["room", code], (prev: typeof room | undefined) => prev ? { ...prev, board: nextBoard, turn: myMark === "X" ? "O" : "X" } : prev);
+        moveFn({ data: { roomId: room.id, index: i } }).catch(() => refetch());
+      }}
       onSend={(text, kind) => sendFn({ data: { roomId: room.id, text, kind } }).catch(() => {})}
       onRematch={() => rematchFn({ data: { roomId: room.id } }).catch(() => {})}
       onForfeit={() => forfeitFn({ data: { roomId: room.id } }).then(() => { toast.info("You forfeited the match"); navigate({ to: "/" }); }).catch((e) => toast.error(e?.message ?? "Forfeit failed"))}
@@ -523,17 +532,22 @@ function GameView(props: {
       )}
 
       <section className="flex-1 min-h-0 flex items-center justify-center px-4 py-2">
-        <div className="bg-inverse-surface p-3 rounded-2xl shadow-xl aspect-square" style={{ width: "min(100%, calc(100dvh - 360px), 360px)" }}>
+        <div className="bg-primary-container/60 p-3 rounded-3xl shadow-[0_10px_0_-2px_rgba(57,64,134,0.25)] border-2 border-primary/20 aspect-square" style={{ width: "min(100%, calc(100dvh - 360px), 360px)" }}>
           <div className="grid grid-cols-3 grid-rows-3 gap-2 w-full h-full">
             {props.board.map((c, i) => {
               const winning = line?.includes(i);
               const myTurn = props.youMark === props.turn && !props.finished;
+              const playable = myTurn && !c;
               return (
-                <button key={i} onClick={() => myTurn && props.onCell(i)} disabled={!myTurn || !!c}
-                  className={cn("rounded-xl flex items-center justify-center transition-transform active:scale-95 shadow-[inset_0_2px_4px_rgba(0,0,0,0.15)]",
-                    winning ? "bg-primary/40" : "bg-secondary/20", !myTurn && "cursor-not-allowed")}>
-                  {c === "X" && <Icon name="close" className="text-mint-blue glow-x" style={{ fontSize: "min(13vw, 56px)" }} />}
-                  {c === "O" && <Icon name="radio_button_unchecked" className="text-pastel-pink glow-o" style={{ fontSize: "min(12vw, 52px)" }} />}
+                <button key={i} onClick={() => playable && props.onCell(i)} disabled={!playable}
+                  className={cn(
+                    "rounded-2xl flex items-center justify-center transition-all active:scale-90 touch-manipulation",
+                    "bg-surface shadow-[inset_0_-3px_0_rgba(57,64,134,0.12),0_2px_0_rgba(57,64,134,0.08)]",
+                    winning && "bg-secondary-container ring-2 ring-secondary",
+                    !playable && !c && "opacity-70",
+                  )}>
+                  {c === "X" && <Icon name="close" className="text-primary" style={{ fontSize: "min(13vw, 56px)", fontVariationSettings: '"wght" 700' }} />}
+                  {c === "O" && <Icon name="radio_button_unchecked" className="text-tertiary" style={{ fontSize: "min(12vw, 52px)", fontVariationSettings: '"wght" 700' }} />}
                 </button>
               );
             })}

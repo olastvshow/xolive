@@ -15,6 +15,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSoloRouteImport } from './routes/_authenticated/solo'
 import { Route as AuthenticatedQuickMatchRouteImport } from './routes/_authenticated/quick-match'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
@@ -49,6 +50,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSoloRoute = AuthenticatedSoloRouteImport.update({
+  id: '/solo',
+  path: '/solo',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedQuickMatchRoute = AuthenticatedQuickMatchRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quick-match': typeof AuthenticatedQuickMatchRoute
+  '/solo': typeof AuthenticatedSoloRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quick-match': typeof AuthenticatedQuickMatchRoute
+  '/solo': typeof AuthenticatedSoloRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quick-match': typeof AuthenticatedQuickMatchRoute
+  '/_authenticated/solo': typeof AuthenticatedSoloRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/profile'
     | '/quick-match'
+    | '/solo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/profile'
     | '/quick-match'
+    | '/solo'
     | '/'
   id:
     | '__root__'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/_authenticated/leaderboard'
     | '/_authenticated/profile'
     | '/_authenticated/quick-match'
+    | '/_authenticated/solo'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -219,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/solo': {
+      id: '/_authenticated/solo'
+      path: '/solo'
+      fullPath: '/solo'
+      preLoaderRoute: typeof AuthenticatedSoloRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/quick-match': {
       id: '/_authenticated/quick-match'
       path: '/quick-match'
@@ -271,6 +290,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedQuickMatchRoute: typeof AuthenticatedQuickMatchRoute
+  AuthenticatedSoloRoute: typeof AuthenticatedSoloRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -281,6 +301,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedQuickMatchRoute: AuthenticatedQuickMatchRoute,
+  AuthenticatedSoloRoute: AuthenticatedSoloRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 

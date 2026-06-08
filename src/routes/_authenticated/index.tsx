@@ -41,12 +41,17 @@ function Home() {
           </Link>
         </section>
 
-        <section>
+        <section className="grid grid-cols-2 gap-3">
           <button onClick={startQuick}
-            className="w-full bubbly bg-tertiary-container text-on-tertiary-container py-5 rounded-2xl flex items-center justify-center gap-3 shadow-[0_6px_0_0_#56589b] text-xl font-semibold">
+            className="bubbly bg-tertiary-container text-on-tertiary-container py-5 rounded-2xl flex items-center justify-center gap-2 shadow-[0_6px_0_0_#56589b] text-lg font-semibold">
             <Icon name="bolt" filled />
             Quick Play
           </button>
+          <Link to="/solo"
+            className="bubbly bg-primary-container text-on-primary-container py-5 rounded-2xl flex items-center justify-center gap-2 shadow-[0_6px_0_0_#5158a0] text-lg font-semibold">
+            <Icon name="smart_toy" filled />
+            vs Computer
+          </Link>
         </section>
 
         <section className="space-y-3">
