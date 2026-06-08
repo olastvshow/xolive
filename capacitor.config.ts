@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
   appName: 'XO Live',
   webDir: 'dist',
   server: {
-    url: 'https://id-preview--84551768-2cd6-4320-805e-d84b422a62c3.lovable.app?forceHideBadge=true',
+    url: 'https://xolive.lovable.app?forceHideBadge=true',
     cleartext: true,
   },
   android: {
