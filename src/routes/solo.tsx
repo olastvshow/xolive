@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/solo")({
+export const Route = createFileRoute("/solo")({
   head: () => ({ meta: [{ title: "XO Live — Play vs Computer" }] }),
   component: SoloPage,
 });
