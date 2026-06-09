@@ -4,7 +4,13 @@ import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/solo")({
-  head: () => ({ meta: [{ title: "XO Live — Play vs Computer" }] }),
+  ssr: false,
+  head: () => ({
+    meta: [
+      { title: "XO Live — Play vs Computer" },
+      { name: "description", content: "Play Tic-Tac-Toe against a smart AI. No sign-in required." },
+    ],
+  }),
   component: SoloPage,
 });
 
