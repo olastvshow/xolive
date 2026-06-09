@@ -21,6 +21,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedJoinRoomRouteImport } from './routes/_authenticated/join-room'
 import { Route as AuthenticatedGameRouteImport } from './routes/_authenticated/game'
+import { Route as AuthenticatedDeleteAccountRouteImport } from './routes/_authenticated/delete-account'
 import { Route as AuthenticatedCreateRoomRouteImport } from './routes/_authenticated/create-room'
 
 const TermsRoute = TermsRouteImport.update({
@@ -83,6 +84,12 @@ const AuthenticatedGameRoute = AuthenticatedGameRouteImport.update({
   path: '/game',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDeleteAccountRoute =
+  AuthenticatedDeleteAccountRouteImport.update({
+    id: '/delete-account',
+    path: '/delete-account',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCreateRoomRoute = AuthenticatedCreateRoomRouteImport.update({
   id: '/create-room',
   path: '/create-room',
@@ -97,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/solo': typeof SoloRoute
   '/terms': typeof TermsRoute
   '/create-room': typeof AuthenticatedCreateRoomRoute
+  '/delete-account': typeof AuthenticatedDeleteAccountRoute
   '/game': typeof AuthenticatedGameRoute
   '/join-room': typeof AuthenticatedJoinRoomRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -110,6 +118,7 @@ export interface FileRoutesByTo {
   '/solo': typeof SoloRoute
   '/terms': typeof TermsRoute
   '/create-room': typeof AuthenticatedCreateRoomRoute
+  '/delete-account': typeof AuthenticatedDeleteAccountRoute
   '/game': typeof AuthenticatedGameRoute
   '/join-room': typeof AuthenticatedJoinRoomRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -126,6 +135,7 @@ export interface FileRoutesById {
   '/solo': typeof SoloRoute
   '/terms': typeof TermsRoute
   '/_authenticated/create-room': typeof AuthenticatedCreateRoomRoute
+  '/_authenticated/delete-account': typeof AuthenticatedDeleteAccountRoute
   '/_authenticated/game': typeof AuthenticatedGameRoute
   '/_authenticated/join-room': typeof AuthenticatedJoinRoomRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/solo'
     | '/terms'
     | '/create-room'
+    | '/delete-account'
     | '/game'
     | '/join-room'
     | '/leaderboard'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/solo'
     | '/terms'
     | '/create-room'
+    | '/delete-account'
     | '/game'
     | '/join-room'
     | '/leaderboard'
@@ -171,6 +183,7 @@ export interface FileRouteTypes {
     | '/solo'
     | '/terms'
     | '/_authenticated/create-room'
+    | '/_authenticated/delete-account'
     | '/_authenticated/game'
     | '/_authenticated/join-room'
     | '/_authenticated/leaderboard'
@@ -274,6 +287,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGameRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/delete-account': {
+      id: '/_authenticated/delete-account'
+      path: '/delete-account'
+      fullPath: '/delete-account'
+      preLoaderRoute: typeof AuthenticatedDeleteAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/create-room': {
       id: '/_authenticated/create-room'
       path: '/create-room'
@@ -286,6 +306,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreateRoomRoute: typeof AuthenticatedCreateRoomRoute
+  AuthenticatedDeleteAccountRoute: typeof AuthenticatedDeleteAccountRoute
   AuthenticatedGameRoute: typeof AuthenticatedGameRoute
   AuthenticatedJoinRoomRoute: typeof AuthenticatedJoinRoomRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
@@ -296,6 +317,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreateRoomRoute: AuthenticatedCreateRoomRoute,
+  AuthenticatedDeleteAccountRoute: AuthenticatedDeleteAccountRoute,
   AuthenticatedGameRoute: AuthenticatedGameRoute,
   AuthenticatedJoinRoomRoute: AuthenticatedJoinRoomRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
