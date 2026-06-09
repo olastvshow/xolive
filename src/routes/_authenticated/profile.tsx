@@ -250,13 +250,13 @@ function ProfilePage() {
             onClick={signOut}
           />
           {!scheduledAt && (
-            <ActionRow
-              icon="delete_forever"
-              label="Delete account"
-              hint={`Recoverable for ${graceDays} days`}
-              tone="error"
-              onClick={() => { setConfirmDelete(true); setDeleteText(""); setDeleteErr(null); }}
-            />
+          <ActionRow
+            icon="delete_forever"
+            label="Delete account"
+            hint={`Recoverable for ${graceDays} days`}
+            tone="error"
+            onClick={() => navigate({ to: "/delete-account" })}
+          />
           )}
         </section>
 
