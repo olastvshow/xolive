@@ -10,12 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SoloRouteImport } from './routes/solo'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedSoloRouteImport } from './routes/_authenticated/solo'
 import { Route as AuthenticatedQuickMatchRouteImport } from './routes/_authenticated/quick-match'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
@@ -26,6 +26,11 @@ import { Route as AuthenticatedCreateRoomRouteImport } from './routes/_authentic
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SoloRoute = SoloRouteImport.update({
+  id: '/solo',
+  path: '/solo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -50,11 +55,6 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSoloRoute = AuthenticatedSoloRouteImport.update({
-  id: '/solo',
-  path: '/solo',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedQuickMatchRoute = AuthenticatedQuickMatchRouteImport.update({
@@ -94,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
+  '/solo': typeof SoloRoute
   '/terms': typeof TermsRoute
   '/create-room': typeof AuthenticatedCreateRoomRoute
   '/game': typeof AuthenticatedGameRoute
@@ -101,12 +102,12 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quick-match': typeof AuthenticatedQuickMatchRoute
-  '/solo': typeof AuthenticatedSoloRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
+  '/solo': typeof SoloRoute
   '/terms': typeof TermsRoute
   '/create-room': typeof AuthenticatedCreateRoomRoute
   '/game': typeof AuthenticatedGameRoute
@@ -114,7 +115,6 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quick-match': typeof AuthenticatedQuickMatchRoute
-  '/solo': typeof AuthenticatedSoloRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
@@ -123,6 +123,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
+  '/solo': typeof SoloRoute
   '/terms': typeof TermsRoute
   '/_authenticated/create-room': typeof AuthenticatedCreateRoomRoute
   '/_authenticated/game': typeof AuthenticatedGameRoute
@@ -130,7 +131,6 @@ export interface FileRoutesById {
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quick-match': typeof AuthenticatedQuickMatchRoute
-  '/_authenticated/solo': typeof AuthenticatedSoloRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +140,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/onboarding'
     | '/privacy'
+    | '/solo'
     | '/terms'
     | '/create-room'
     | '/game'
@@ -147,12 +148,12 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/profile'
     | '/quick-match'
-    | '/solo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
     | '/onboarding'
     | '/privacy'
+    | '/solo'
     | '/terms'
     | '/create-room'
     | '/game'
@@ -160,7 +161,6 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/profile'
     | '/quick-match'
-    | '/solo'
     | '/'
   id:
     | '__root__'
@@ -168,6 +168,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/onboarding'
     | '/privacy'
+    | '/solo'
     | '/terms'
     | '/_authenticated/create-room'
     | '/_authenticated/game'
@@ -175,7 +176,6 @@ export interface FileRouteTypes {
     | '/_authenticated/leaderboard'
     | '/_authenticated/profile'
     | '/_authenticated/quick-match'
-    | '/_authenticated/solo'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -184,6 +184,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   OnboardingRoute: typeof OnboardingRoute
   PrivacyRoute: typeof PrivacyRoute
+  SoloRoute: typeof SoloRoute
   TermsRoute: typeof TermsRoute
 }
 
@@ -194,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solo': {
+      id: '/solo'
+      path: '/solo'
+      fullPath: '/solo'
+      preLoaderRoute: typeof SoloRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -229,13 +237,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/solo': {
-      id: '/_authenticated/solo'
-      path: '/solo'
-      fullPath: '/solo'
-      preLoaderRoute: typeof AuthenticatedSoloRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/quick-match': {
@@ -290,7 +291,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedQuickMatchRoute: typeof AuthenticatedQuickMatchRoute
-  AuthenticatedSoloRoute: typeof AuthenticatedSoloRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -301,7 +301,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedQuickMatchRoute: AuthenticatedQuickMatchRoute,
-  AuthenticatedSoloRoute: AuthenticatedSoloRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
@@ -313,18 +312,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   OnboardingRoute: OnboardingRoute,
   PrivacyRoute: PrivacyRoute,
+  SoloRoute: SoloRoute,
   TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
