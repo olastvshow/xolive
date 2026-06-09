@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
-import { getMyProfile, updateProfile, deleteMyAccount, cancelAccountDeletion, checkAccountStatus } from "@/lib/xo.functions";
+import { getMyProfile, updateProfile, cancelAccountDeletion, checkAccountStatus } from "@/lib/xo.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { AvatarPicker, Avatar } from "@/components/AvatarPicker";
 import { cn } from "@/lib/utils";
