@@ -19,7 +19,6 @@ function ProfilePage() {
   const qc = useQueryClient();
   const fn = useServerFn(getMyProfile);
   const updateFn = useServerFn(updateProfile);
-  const deleteFn = useServerFn(deleteMyAccount);
   const cancelDelFn = useServerFn(cancelAccountDeletion);
   const statusFn = useServerFn(checkAccountStatus);
   const { data: p } = useQuery({ queryKey: ["profile"], queryFn: () => fn(), retry: false });
