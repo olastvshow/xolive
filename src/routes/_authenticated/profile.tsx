@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
-import { getMyProfile, updateProfile, deleteMyAccount, cancelAccountDeletion, checkAccountStatus } from "@/lib/xo.functions";
+import { getMyProfile, updateProfile, cancelAccountDeletion, checkAccountStatus } from "@/lib/xo.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { AvatarPicker, Avatar } from "@/components/AvatarPicker";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,6 @@ function ProfilePage() {
   const qc = useQueryClient();
   const fn = useServerFn(getMyProfile);
   const updateFn = useServerFn(updateProfile);
-  const deleteFn = useServerFn(deleteMyAccount);
   const cancelDelFn = useServerFn(cancelAccountDeletion);
   const statusFn = useServerFn(checkAccountStatus);
   const { data: p } = useQuery({ queryKey: ["profile"], queryFn: () => fn(), retry: false });
@@ -34,10 +33,6 @@ function ProfilePage() {
   const daysLeft = scheduledAt
     ? Math.max(0, Math.ceil(graceDays - (Date.now() - new Date(scheduledAt).getTime()) / 86400000))
     : 0;
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [deleteText, setDeleteText] = useState("");
-  const [deleting, setDeleting] = useState(false);
-  const [deleteErr, setDeleteErr] = useState<string | null>(null);
   const total = (p?.wins ?? 0) + (p?.losses ?? 0) + (p?.draws ?? 0);
   const winRate = total ? Math.round(((p?.wins ?? 0) / total) * 100) : 0;
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -250,13 +245,13 @@ function ProfilePage() {
             onClick={signOut}
           />
           {!scheduledAt && (
-            <ActionRow
-              icon="delete_forever"
-              label="Delete account"
-              hint={`Recoverable for ${graceDays} days`}
-              tone="error"
-              onClick={() => { setConfirmDelete(true); setDeleteText(""); setDeleteErr(null); }}
-            />
+          <ActionRow
+            icon="delete_forever"
+            label="Delete account"
+            hint={`Recoverable for ${graceDays} days`}
+            tone="error"
+            onClick={() => navigate({ to: "/delete-account" })}
+          />
           )}
         </section>
 
@@ -266,57 +261,6 @@ function ProfilePage() {
           </p>
         )}
       </div>
-
-
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 overflow-y-auto" onClick={() => !deleting && setConfirmDelete(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm bg-surface rounded-3xl p-5 sm:p-6 shadow-2xl my-auto max-h-[calc(100dvh-2rem)] overflow-y-auto">
-            <div className="mx-auto w-14 h-14 rounded-full bg-error/10 text-error flex items-center justify-center mb-3">
-              <Icon name="warning" className="text-3xl" filled />
-            </div>
-            <h2 className="text-xl font-black text-center text-on-surface">Delete your account?</h2>
-            <p className="text-sm text-on-surface-variant text-center mt-2 leading-relaxed">
-              <span className="font-bold text-on-surface">@{p?.username}</span> will be deactivated immediately and permanently deleted after{" "}
-              <span className="font-bold text-on-surface">{graceDays} days</span>. Sign back in any time during that window to restore your account.
-            </p>
-            <label className="block text-xs font-bold text-on-surface-variant mt-5 mb-1.5">Type <span className="text-error">DELETE</span> to confirm</label>
-            <input
-              value={deleteText}
-              onChange={(e) => setDeleteText(e.target.value)}
-              placeholder="DELETE"
-              className="w-full h-12 px-3.5 rounded-2xl bg-surface-container ring-1 ring-outline-variant focus:ring-error outline-none font-bold tracking-widest text-center"
-            />
-            {deleteErr && <p className="text-xs text-error font-semibold mt-2 text-center">{deleteErr}</p>}
-            <div className="flex gap-2 mt-5">
-              <button
-                onClick={() => setConfirmDelete(false)}
-                disabled={deleting}
-                className="flex-1 py-3 rounded-2xl bg-surface-container-highest text-on-surface font-bold text-sm active:scale-[0.98] disabled:opacity-60"
-              >
-                Keep account
-              </button>
-              <button
-                disabled={deleteText !== "DELETE" || deleting}
-                onClick={async () => {
-                  setDeleting(true); setDeleteErr(null);
-                  try {
-                    await deleteFn();
-                    qc.clear();
-                    await supabase.auth.signOut();
-                    navigate({ to: "/auth", replace: true });
-                  } catch (e) {
-                    setDeleteErr(e instanceof Error ? e.message : "Could not delete account");
-                    setDeleting(false);
-                  }
-                }}
-                className="flex-1 py-3 rounded-2xl bg-error text-on-error font-bold text-sm active:scale-[0.98] disabled:opacity-50"
-              >
-                {deleting ? "Scheduling…" : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </Shell>
   );
 }
