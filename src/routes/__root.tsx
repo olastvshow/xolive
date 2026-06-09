@@ -85,8 +85,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "XO Live — Play Tic-Tac-Toe with Friends" },
       { name: "twitter:description", content: "A cozy social tic-tac-toe arena with voice chat, reactions, and global rankings." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/e04ebe8f-56b5-4f70-aef3-4ea9bc9c3514" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/e04ebe8f-56b5-4f70-aef3-4ea9bc9c3514" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/jjXy5zfbz8dvKpqXuCRiF84r99L2/social-images/social-1780967288926-WhatsApp_Image_2026-06-09_at_02.03.47.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/jjXy5zfbz8dvKpqXuCRiF84r99L2/social-images/social-1780967288926-WhatsApp_Image_2026-06-09_at_02.03.47.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
