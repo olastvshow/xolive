@@ -20,13 +20,12 @@ export const Route = createFileRoute("/_authenticated")({
   pendingComponent: Splash,
   pendingMs: 0,
   beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
-      const { data: anon, error: anonErr } = await supabase.auth.signInAnonymously();
-      if (anonErr || !anon.user) throw redirect({ to: "/auth" });
-      return { user: anon.user };
-    }
-    return { user: data.user };
+    // getSession reads from local storage — no network round-trip per navigation
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) return { user: session.user };
+    const { data: anon, error: anonErr } = await supabase.auth.signInAnonymously();
+    if (anonErr || !anon.user) throw redirect({ to: "/auth" });
+    return { user: anon.user };
   },
   component: AuthedLayout,
 });
