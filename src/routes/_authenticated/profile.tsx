@@ -234,6 +234,12 @@ function ProfilePage() {
             hint="Rules for using XO Live"
             onClick={() => navigate({ to: "/terms" })}
           />
+          <ActionRow
+            icon="contact_support"
+            label="Support"
+            hint="xolive.lovable.app"
+            onClick={() => window.open("https://xolive.lovable.app", "_blank")}
+          />
         </section>
 
         {/* Account list */}
