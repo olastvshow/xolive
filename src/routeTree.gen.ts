@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SoloRouteImport } from './routes/solo'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -27,6 +28,11 @@ import { Route as AuthenticatedCreateRoomRouteImport } from './routes/_authentic
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SoloRoute = SoloRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/solo': typeof SoloRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/create-room': typeof AuthenticatedCreateRoomRoute
   '/delete-account': typeof AuthenticatedDeleteAccountRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/solo': typeof SoloRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/create-room': typeof AuthenticatedCreateRoomRoute
   '/delete-account': typeof AuthenticatedDeleteAccountRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/solo': typeof SoloRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/_authenticated/create-room': typeof AuthenticatedCreateRoomRoute
   '/_authenticated/delete-account': typeof AuthenticatedDeleteAccountRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/solo'
+    | '/support'
     | '/terms'
     | '/create-room'
     | '/delete-account'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/solo'
+    | '/support'
     | '/terms'
     | '/create-room'
     | '/delete-account'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/solo'
+    | '/support'
     | '/terms'
     | '/_authenticated/create-room'
     | '/_authenticated/delete-account'
@@ -198,6 +210,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PrivacyRoute: typeof PrivacyRoute
   SoloRoute: typeof SoloRoute
+  SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
 }
 
@@ -208,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/solo': {
@@ -335,18 +355,9 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PrivacyRoute: PrivacyRoute,
   SoloRoute: SoloRoute,
+  SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
