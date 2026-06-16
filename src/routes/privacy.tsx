@@ -51,7 +51,7 @@ function PrivacyPage() {
         </Section>
 
         <Section title="Contact">
-          Questions about privacy? Visit <a href="https://xolive.lovable.app" className="underline text-primary font-medium">xolive.lovable.app</a>.
+          Questions about privacy? Email <a href="mailto:support@xolive.app" className="underline text-primary font-medium">support@xolive.app</a> or visit our <a href="/support" className="underline text-primary font-medium">Support page</a>.
         </Section>
       </main>
     </div>
