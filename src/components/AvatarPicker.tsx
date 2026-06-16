@@ -69,7 +69,7 @@ export function AvatarPicker({
           className="w-full bg-primary text-on-primary py-3 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-[0_5px_0_#394086] disabled:opacity-60 mb-2">
           <Icon name="upload" filled /> Upload your photo
         </button>
-        <input ref={fileRef} type="file" accept="image/*" className="hidden"
+        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ""; }} />
 
         <p className="text-center text-xs text-on-surface-variant my-3">or pick a preset</p>
