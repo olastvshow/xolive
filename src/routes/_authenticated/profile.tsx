@@ -238,7 +238,7 @@ function ProfilePage() {
             icon="contact_support"
             label="Support"
             hint="Help & contact"
-            onClick={() => window.open("https://xolive.lovable.app/support", "_blank")}
+            onClick={() => navigate({ to: "/support" })}
           />
         </section>
 
