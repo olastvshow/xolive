@@ -190,6 +190,13 @@ function AuthPage() {
             {tab === "signin" ? "Sign up" : "Sign in"}
           </button>
         </p>
+        <p className="text-center text-[12px] text-on-surface-variant mt-3">
+          Need help? <Link to="/support" className="underline font-medium">Visit Support</Link>
+          {" · "}
+          <Link to="/privacy" className="underline">Privacy</Link>
+          {" · "}
+          <Link to="/terms" className="underline">Terms</Link>
+        </p>
       </div>
     </div>
   );
