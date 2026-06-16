@@ -237,8 +237,8 @@ function ProfilePage() {
           <ActionRow
             icon="contact_support"
             label="Support"
-            hint="xolive.lovable.app"
-            onClick={() => window.open("https://xolive.lovable.app", "_blank")}
+            hint="Help & contact"
+            onClick={() => window.open("https://xolive.lovable.app/support", "_blank")}
           />
         </section>
 
