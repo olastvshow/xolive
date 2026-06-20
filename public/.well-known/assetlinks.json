@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.chowrun.app",
+      "sha256_cert_fingerprints": [
+        "05:07:B9:74:1F:C6:CA:27:44:8A:E7:5F:E5:CB:C1:70:56:43:37:02:99:5F:82:C8:12:30:35:B1:2E:06:91:FF"
+      ]
+    }
+  }
+]
