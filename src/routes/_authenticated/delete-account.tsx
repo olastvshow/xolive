@@ -104,8 +104,11 @@ function DeleteAccountPage() {
         </label>
         <input
           value={deleteText}
-          onChange={(e) => setDeleteText(e.target.value)}
-          placeholder="DELETE"
+          onChange={(e) => { setDeleteText(e.target.value); if (deleteErr) setDeleteErr(null); }}
+          placeholder="Type DELETE here"
+          autoCapitalize="characters"
+          autoCorrect="off"
+          spellCheck={false}
           className="w-full h-12 px-3.5 rounded-2xl bg-surface-container ring-1 ring-outline-variant focus:ring-error outline-none font-bold tracking-widest text-center"
         />
         {deleteErr && <p className="text-xs text-error font-semibold mt-2 text-center">{deleteErr}</p>}
@@ -119,8 +122,12 @@ function DeleteAccountPage() {
             Cancel
           </button>
           <button
-            disabled={deleteText !== "DELETE" || deleting}
+            disabled={deleting}
             onClick={async () => {
+              if (deleteText.trim().toUpperCase() !== "DELETE") {
+                setDeleteErr('Type DELETE in the box above to confirm.');
+                return;
+              }
               setDeleting(true); setDeleteErr(null);
               try {
                 await deleteFn();
@@ -137,6 +144,7 @@ function DeleteAccountPage() {
             {deleting ? "Scheduling…" : "Delete account"}
           </button>
         </div>
+
       </div>
     </Shell>
   );
