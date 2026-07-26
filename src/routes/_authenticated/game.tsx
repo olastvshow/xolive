@@ -161,6 +161,8 @@ function GameView(props: {
   const localStreamRef = useRef<MediaStream | null>(null);
   const [voiceState, setVoiceState] = useState<"off" | "connecting" | "live">("off");
   const [voiceAttempt, setVoiceAttempt] = useState(0);
+  const mutedRef = useRef(false);
+  const speakerRef = useRef(true);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // VS intro: show whenever both players are present at the start of round 1
