@@ -460,15 +460,22 @@ function GameView(props: {
     el.addEventListener("ended", resume);
     const onVis = () => { if (document.visibilityState === "visible") resume(); };
     const onFocus = () => resume();
+    // iOS/WKWebView blocks autoplay until a user gesture — unlock on first tap.
+    const onGesture = () => resume();
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onFocus);
+    document.addEventListener("pointerdown", onGesture);
+    document.addEventListener("touchstart", onGesture);
     return () => {
       el.removeEventListener("pause", resume);
       el.removeEventListener("ended", resume);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("pointerdown", onGesture);
+      document.removeEventListener("touchstart", onGesture);
     };
   }, []);
+
 
   const toggleMute = () => {
     setMuted((m) => {
