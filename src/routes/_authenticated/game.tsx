@@ -338,8 +338,21 @@ function GameView(props: {
             { urls: "stun:stun.l.google.com:19302" },
             { urls: "stun:stun1.l.google.com:19302" },
             { urls: "stun:stun.cloudflare.com:3478" },
+            // TURN relays — required when both players are on mobile data / strict NAT,
+            // where STUN-only peer-to-peer silently fails (connected UI, no audio).
+            {
+              urls: [
+                "turn:openrelay.metered.ca:80",
+                "turn:openrelay.metered.ca:443",
+                "turn:openrelay.metered.ca:443?transport=tcp",
+              ],
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
           ],
+          iceCandidatePoolSize: 4,
         });
+
         pcRef.current = pc;
 
         pc.ontrack = (e) => {
@@ -447,15 +460,22 @@ function GameView(props: {
     el.addEventListener("ended", resume);
     const onVis = () => { if (document.visibilityState === "visible") resume(); };
     const onFocus = () => resume();
+    // iOS/WKWebView blocks autoplay until a user gesture — unlock on first tap.
+    const onGesture = () => resume();
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onFocus);
+    document.addEventListener("pointerdown", onGesture);
+    document.addEventListener("touchstart", onGesture);
     return () => {
       el.removeEventListener("pause", resume);
       el.removeEventListener("ended", resume);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("pointerdown", onGesture);
+      document.removeEventListener("touchstart", onGesture);
     };
   }, []);
+
 
   const toggleMute = () => {
     setMuted((m) => {
@@ -617,12 +637,17 @@ function GameView(props: {
         ) : (
           <>
             <div className="flex items-center gap-2 bg-inverse-surface rounded-full px-3 py-2">
-              <div className="flex items-center gap-1.5 pl-1">
+              <button
+                onClick={() => { setVoiceState("connecting"); setVoiceAttempt((n) => n + 1); audioRef.current?.play().catch(() => {}); }}
+                aria-label="Reconnect voice"
+                className="flex items-center gap-1.5 pl-1 active:scale-95"
+              >
                 <span className={cn("w-2 h-2 rounded-full", voiceState === "live" ? "bg-green-400 animate-pulse" : voiceState === "connecting" ? "bg-yellow-400" : "bg-gray-500")} />
                 <span className="text-[11px] font-bold text-white/80 tracking-wider">
-                  {voiceState === "live" ? "LIVE VOICE" : voiceState === "connecting" ? "CONNECTING…" : "VOICE OFF"}
+                  {voiceState === "live" ? "LIVE VOICE" : voiceState === "connecting" ? "CONNECTING…" : "TAP TO RETRY"}
                 </span>
-              </div>
+              </button>
+
               <div className="flex-1" />
               <button onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}
                 className={cn("w-9 h-9 rounded-full flex items-center justify-center", muted ? "bg-error text-on-error" : "bg-white/15 text-white")}>
