@@ -205,6 +205,8 @@ function GameView(props: {
     if (!props.guestId || !props.youMark) return;
     let pc: RTCPeerConnection | null = null;
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let subscribed = false;
+    const outbox: { event: string; payload: Record<string, unknown> }[] = [];
     let cancelled = false;
     let healthTimer: ReturnType<typeof setInterval> | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -214,6 +216,17 @@ function GameView(props: {
     let makingOffer = false;
     let ignoreOffer = false;
     const pendingCandidates: RTCIceCandidateInit[] = [];
+
+    const signal = (event: string, payload: Record<string, unknown>) => {
+      if (!channel || !subscribed) { outbox.push({ event, payload }); return; }
+      channel.send({ type: "broadcast", event, payload });
+    };
+    const flushOutbox = () => {
+      while (outbox.length && channel && subscribed) {
+        const m = outbox.shift()!;
+        channel.send({ type: "broadcast", event: m.event, payload: m.payload });
+      }
+    };
 
     const scheduleReconnect = (delay = 2000) => {
       if (cancelled || reconnectTimer) return;
@@ -229,10 +242,84 @@ function GameView(props: {
       if (el && el.srcObject && el.paused) el.play().catch(() => {});
     };
 
+    const makeOffer = async () => {
+      if (!pc || makingOffer) return;
+      try {
+        makingOffer = true;
+        await pc.setLocalDescription();
+        signal("offer", { sdp: pc.localDescription });
+      } catch (err) {
+        console.warn("negotiation error", err);
+      } finally {
+        makingOffer = false;
+      }
+    };
+
     (async () => {
       try {
         setVoiceState("connecting");
-        // Reuse mic stream across reconnects to avoid permission re-prompts/glitches.
+
+        // 1) Signalling channel FIRST so no offer/candidate is ever dropped.
+        channel = supabase.channel(`voice-${props.roomId}`, { config: { broadcast: { self: false } } });
+
+        channel.on("broadcast", { event: "offer" }, async (msg) => {
+          if (!pc) return;
+          const desc = msg.payload.sdp as RTCSessionDescriptionInit;
+          const offerCollision = makingOffer || pc.signalingState !== "stable";
+          ignoreOffer = !polite && offerCollision;
+          if (ignoreOffer) return;
+          try {
+            if (offerCollision) await pc.setLocalDescription({ type: "rollback" } as RTCSessionDescriptionInit);
+            await pc.setRemoteDescription(desc);
+            await flushPending();
+            await pc.setLocalDescription();
+            signal("answer", { sdp: pc.localDescription });
+          } catch (err) { console.warn("offer apply error", err); }
+        });
+
+        channel.on("broadcast", { event: "answer" }, async (msg) => {
+          if (!pc) return;
+          try {
+            if (pc.signalingState !== "have-local-offer") return;
+            await pc.setRemoteDescription(msg.payload.sdp);
+            await flushPending();
+          } catch (err) { console.warn("answer apply error", err); }
+        });
+
+        channel.on("broadcast", { event: "ice" }, async (msg) => {
+          if (!pc) return;
+          const cand = msg.payload.candidate as RTCIceCandidateInit;
+          if (!pc.remoteDescription) { pendingCandidates.push(cand); return; }
+          try { await pc.addIceCandidate(cand); } catch (err) {
+            if (!ignoreOffer) console.warn("ice add error", err);
+          }
+        });
+
+        // A peer just (re)joined: the impolite side re-offers so late joiners connect.
+        channel.on("broadcast", { event: "hello" }, () => {
+          signal("ack", {});
+          if (!polite) makeOffer();
+        });
+        channel.on("broadcast", { event: "ack" }, () => {
+          if (!polite) makeOffer();
+        });
+
+        const flushPending = async () => {
+          while (pendingCandidates.length && pc?.remoteDescription) {
+            const c = pendingCandidates.shift();
+            try { await pc.addIceCandidate(c); } catch { /* ignore */ }
+          }
+        };
+
+        channel.subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            subscribed = true;
+            flushOutbox();
+            channel!.send({ type: "broadcast", event: "hello", payload: {} });
+          }
+        });
+
+        // 2) Mic — reuse across reconnects to avoid permission re-prompts/glitches.
         let stream = localStreamRef.current;
         if (!stream || stream.getAudioTracks().every((t) => t.readyState === "ended")) {
           stream = await navigator.mediaDevices.getUserMedia({
@@ -241,9 +328,9 @@ function GameView(props: {
           localStreamRef.current = stream;
         }
         if (cancelled) return;
-        // Reapply current mute state
-        stream.getAudioTracks().forEach((t) => (t.enabled = !muted));
+        stream.getAudioTracks().forEach((t) => (t.enabled = !mutedRef.current));
 
+        // 3) Peer connection
         pc = new RTCPeerConnection({
           iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
@@ -252,28 +339,20 @@ function GameView(props: {
           ],
         });
         pcRef.current = pc;
-        stream.getTracks().forEach((t) => pc!.addTrack(t, stream!));
 
         pc.ontrack = (e) => {
           if (audioRef.current) {
             audioRef.current.srcObject = e.streams[0];
-            audioRef.current.muted = !speakerOn;
+            audioRef.current.muted = !speakerRef.current;
             audioRef.current.play().catch(() => {});
             setVoiceState("live");
           }
         };
 
-        pc.onnegotiationneeded = async () => {
-          if (!pc || !channel) return;
-          try {
-            makingOffer = true;
-            await pc.setLocalDescription();
-            channel.send({ type: "broadcast", event: "offer", payload: { sdp: pc.localDescription } });
-          } catch (err) {
-            console.warn("negotiation error", err);
-          } finally {
-            makingOffer = false;
-          }
+        pc.onnegotiationneeded = () => { makeOffer(); };
+
+        pc.onicecandidate = (e) => {
+          if (e.candidate) signal("ice", { candidate: e.candidate.toJSON() });
         };
 
         pc.oniceconnectionstatechange = () => {
@@ -282,7 +361,6 @@ function GameView(props: {
             setVoiceState("live");
             ensureAudioPlaying();
           } else if (st === "disconnected") {
-            // brief blip — give it a moment to self-heal before restarting
             setTimeout(() => {
               if (!cancelled && pcRef.current?.iceConnectionState === "disconnected") {
                 try { pcRef.current.restartIce(); } catch { /* not supported */ }
@@ -300,63 +378,16 @@ function GameView(props: {
           }
         };
 
-        channel = supabase.channel(`voice-${props.roomId}`, { config: { broadcast: { self: false } } });
-
-        pc.onicecandidate = (e) => {
-          if (e.candidate && channel) {
-            channel.send({ type: "broadcast", event: "ice", payload: { candidate: e.candidate.toJSON() } });
-          }
-        };
-
-        const flushPending = async () => {
-          while (pendingCandidates.length && pc?.remoteDescription) {
-            const c = pendingCandidates.shift();
-            try { await pc.addIceCandidate(c); } catch { /* ignore */ }
-          }
-        };
-
-        channel.on("broadcast", { event: "offer" }, async (msg) => {
-          if (!pc) return;
-          const desc = msg.payload.sdp as RTCSessionDescriptionInit;
-          const offerCollision = makingOffer || pc.signalingState !== "stable";
-          ignoreOffer = !polite && offerCollision;
-          if (ignoreOffer) return;
-          try {
-            await pc.setRemoteDescription(desc);
-            await flushPending();
-            await pc.setLocalDescription();
-            channel!.send({ type: "broadcast", event: "answer", payload: { sdp: pc.localDescription } });
-          } catch (err) { console.warn("offer apply error", err); }
+        // Always receive audio, then publish mic (fires onnegotiationneeded).
+        pc.addTransceiver("audio", { direction: "sendrecv" });
+        stream.getAudioTracks().forEach((t) => {
+          const sender = pc!.getSenders().find((s) => s.track === null);
+          if (sender) sender.replaceTrack(t);
+          else pc!.addTrack(t, stream!);
         });
 
-        channel.on("broadcast", { event: "answer" }, async (msg) => {
-          if (!pc) return;
-          try {
-            await pc.setRemoteDescription(msg.payload.sdp);
-            await flushPending();
-          } catch (err) { console.warn("answer apply error", err); }
-        });
-
-        channel.on("broadcast", { event: "ice" }, async (msg) => {
-          if (!pc) return;
-          const cand = msg.payload.candidate as RTCIceCandidateInit;
-          if (!pc.remoteDescription) { pendingCandidates.push(cand); return; }
-          try { await pc.addIceCandidate(cand); } catch (err) {
-            if (!ignoreOffer) console.warn("ice add error", err);
-          }
-        });
-
-        channel.on("broadcast", { event: "hello" }, () => {
-          // Re-announce so late joiners trigger negotiation
-          channel?.send({ type: "broadcast", event: "ack", payload: {} });
-        });
-
-        await channel.subscribe(async (status) => {
-          if (status === "SUBSCRIBED") {
-            channel!.send({ type: "broadcast", event: "hello", payload: {} });
-            // Impolite (host) kicks off the offer; onnegotiationneeded also fires once tracks added.
-          }
-        });
+        // Say hello again once media is ready so the other side re-offers if needed.
+        signal("hello", {});
 
         // Health check — recover from silent stalls (e.g. mobile sleep/wake)
         healthTimer = setInterval(() => {
@@ -364,6 +395,7 @@ function GameView(props: {
           if (!pc) return;
           const st = pc.iceConnectionState;
           if (st === "failed" || pc.connectionState === "failed") scheduleReconnect(1000);
+          else if (!polite && st === "new" && pc.signalingState === "stable") makeOffer();
         }, 5000);
       } catch (err) {
         console.warn("voice setup error", err);
@@ -380,7 +412,20 @@ function GameView(props: {
       pcRef.current = null;
       // NOTE: do NOT stop the mic stream here — we want to reuse it on reconnect.
     };
-  }, [props.roomId, props.guestId, props.youMark, voiceAttempt, muted, speakerOn]);
+  }, [props.roomId, props.guestId, props.youMark, voiceAttempt]);
+
+  // Mute / speaker applied live — never tear down the call for these
+  useEffect(() => {
+    mutedRef.current = muted;
+    localStreamRef.current?.getAudioTracks().forEach((t) => (t.enabled = !muted));
+  }, [muted]);
+  useEffect(() => {
+    speakerRef.current = speakerOn;
+    if (audioRef.current) {
+      audioRef.current.muted = !speakerOn;
+      if (speakerOn) audioRef.current.play().catch(() => {});
+    }
+  }, [speakerOn]);
 
   // Fully release mic only when leaving the game screen
   useEffect(() => {
@@ -389,6 +434,7 @@ function GameView(props: {
       localStreamRef.current = null;
     };
   }, []);
+
 
   // Keep remote audio playing if the browser pauses it (tab focus, autoplay policy, etc.)
   useEffect(() => {
