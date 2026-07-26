@@ -1,11 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { VoiceDiagnostics, type VoiceLogEntry } from "@/components/VoiceDiagnostics";
 import { getRoomByCode, makeMove, sendMessage, rematch, forfeitMatch } from "@/lib/xo.functions";
 import {
   AlertDialog,
@@ -162,14 +161,6 @@ function GameView(props: {
   const localStreamRef = useRef<MediaStream | null>(null);
   const [voiceState, setVoiceState] = useState<"off" | "connecting" | "live">("off");
   const [voiceAttempt, setVoiceAttempt] = useState(0);
-  const [diagOpen, setDiagOpen] = useState(false);
-  const [voiceLog, setVoiceLog] = useState<VoiceLogEntry[]>([]);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
-  const logId = useRef(0);
-  const logVoice = useCallback((msg: string, err = false) => {
-    setVoiceLog((l) => [...l.slice(-60), { id: ++logId.current, t: Date.now(), msg, err }]);
-    if (err) setVoiceError(msg);
-  }, []);
   const mutedRef = useRef(false);
   const speakerRef = useRef(true);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -579,22 +570,6 @@ function GameView(props: {
   return (
     <div className="h-[100dvh] bg-surface text-on-surface flex flex-col overflow-hidden relative">
       <audio ref={audioRef} autoPlay playsInline />
-      <VoiceDiagnostics
-        open={diagOpen}
-        onClose={() => setDiagOpen(false)}
-        pcRef={pcRef}
-        audioRef={audioRef}
-        localStreamRef={localStreamRef}
-        voiceState={voiceState}
-        log={voiceLog}
-        lastError={voiceError}
-        onRetry={() => {
-          setVoiceError(null);
-          setVoiceState("connecting");
-          setVoiceAttempt((n) => n + 1);
-          audioRef.current?.play().catch(() => {});
-        }}
-      />
 
       <header className="flex items-center justify-between px-3 pt-3 pb-2 shrink-0">
         <button onClick={props.onHome} className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center" aria-label="Leave game">
@@ -692,10 +667,6 @@ function GameView(props: {
               </button>
 
               <div className="flex-1" />
-              <button onClick={() => setDiagOpen(true)} aria-label="Voice diagnostics"
-                className={cn("w-9 h-9 rounded-full flex items-center justify-center", voiceError ? "bg-error text-on-error" : "bg-white/15 text-white")}>
-                <Icon name="monitor_heart" filled className="text-xl" />
-              </button>
               <button onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}
                 className={cn("w-9 h-9 rounded-full flex items-center justify-center", muted ? "bg-error text-on-error" : "bg-white/15 text-white")}>
                 <Icon name={muted ? "mic_off" : "mic"} filled className="text-xl" />
