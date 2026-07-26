@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { VoiceDiagnostics, type VoiceLogEntry } from "@/components/VoiceDiagnostics";
 import { getRoomByCode, makeMove, sendMessage, rematch, forfeitMatch } from "@/lib/xo.functions";
 import {
   AlertDialog,
