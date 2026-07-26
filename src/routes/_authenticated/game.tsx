@@ -211,7 +211,9 @@ function GameView(props: {
     if (chatOpen && chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
   }, [props.messages, chatOpen]);
 
-  // WebRTC voice — resilient: perfect negotiation, ICE restart, mic kept alive
+  // WebRTC voice — single-offerer model.
+  // Only the host (X) ever creates offers; the guest (O) only answers. This removes
+  // glare/rollback entirely, which is what produced the "m-line order" failures.
   useEffect(() => {
     if (!props.guestId || !props.youMark) return;
     let pc: RTCPeerConnection | null = null;
@@ -221,12 +223,26 @@ function GameView(props: {
     let cancelled = false;
     let healthTimer: ReturnType<typeof setInterval> | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let offerTimer: ReturnType<typeof setTimeout> | null = null;
     const isHost = props.youMark === "X";
-    // Perfect-negotiation: host is polite=false (impolite), guest is polite=true
-    const polite = !isHost;
     let makingOffer = false;
-    let ignoreOffer = false;
-    const pendingCandidates: RTCIceCandidateInit[] = [];
+    let pendingCandidates: RTCIceCandidateInit[] = [];
+
+    const ICE_SERVERS: RTCIceServer[] = [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun.cloudflare.com:3478" },
+      // TURN relays — required when both players are on mobile data / strict NAT.
+      {
+        urls: [
+          "turn:openrelay.metered.ca:80",
+          "turn:openrelay.metered.ca:443",
+          "turn:openrelay.metered.ca:443?transport=tcp",
+        ],
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+    ];
 
     const signal = (event: string, payload: Record<string, unknown>) => {
       if (!channel || !subscribed) { outbox.push({ event, payload }); return; }
@@ -253,79 +269,144 @@ function GameView(props: {
       if (el && el.srcObject && el.paused) el.play().catch(() => {});
     };
 
-    const makeOffer = async () => {
-      if (!pc || makingOffer) return;
+    const flushPending = async () => {
+      while (pendingCandidates.length && pc?.remoteDescription) {
+        const c = pendingCandidates.shift();
+        try { await pc.addIceCandidate(c); } catch { /* ignore */ }
+      }
+    };
+
+    // Build a fresh peer connection with exactly one audio m-line (sendrecv).
+    const createPeer = () => {
+      pc?.close();
+      pendingCandidates = [];
+      const next = new RTCPeerConnection({ iceServers: ICE_SERVERS, iceCandidatePoolSize: 4 });
+      pc = next;
+      pcRef.current = next;
+
+      next.ontrack = (e) => {
+        const el = audioRef.current;
+        if (!el) return;
+        el.srcObject = e.streams[0];
+        el.muted = !speakerRef.current;
+        el.play().catch(() => {});
+        setVoiceState("live");
+      };
+      next.onicecandidate = (e) => {
+        if (e.candidate) signal("ice", { from: isHost ? "host" : "guest", candidate: e.candidate.toJSON() });
+      };
+      next.oniceconnectionstatechange = () => {
+        const st = next.iceConnectionState;
+        if (st === "connected" || st === "completed") {
+          setVoiceState("live");
+          ensureAudioPlaying();
+        } else if (st === "disconnected") {
+          setTimeout(() => {
+            if (!cancelled && pcRef.current === next && next.iceConnectionState === "disconnected") {
+              try { next.restartIce(); } catch { /* ignore */ }
+              if (isHost) queueOffer(true);
+            }
+          }, 1500);
+        } else if (st === "failed") {
+          scheduleReconnect(2000);
+        }
+      };
+      next.onconnectionstatechange = () => {
+        if (next.connectionState === "failed") scheduleReconnect(2000);
+      };
+
+      // Exactly one audio track, added the same way on both sides so the
+      // m-line layout is always identical.
+      const stream = localStreamRef.current;
+      if (stream) {
+        const track = stream.getAudioTracks()[0];
+        if (track) next.addTrack(track, stream);
+        else next.addTransceiver("audio", { direction: "recvonly" });
+      } else {
+        next.addTransceiver("audio", { direction: "recvonly" });
+      }
+      return next;
+    };
+
+    const makeOffer = async (iceRestart = false) => {
+      if (!pc || !isHost || makingOffer) return;
+      const target = pc;
       try {
         makingOffer = true;
-        await pc.setLocalDescription();
-        signal("offer", { sdp: pc.localDescription });
+        if (target.signalingState !== "stable") return;
+        const offer = await target.createOffer({ iceRestart });
+        if (target !== pc) return;
+        await target.setLocalDescription(offer);
+        signal("offer", { sdp: target.localDescription });
       } catch (err) {
         console.warn("negotiation error", err);
-        logVoice(`negotiation error: ${String(err)}`, true);
       } finally {
         makingOffer = false;
       }
     };
 
+    // Debounced so repeated hello/ack pings can't fire a burst of offers.
+    const queueOffer = (iceRestart = false) => {
+      if (!isHost || cancelled) return;
+      if (offerTimer) clearTimeout(offerTimer);
+      offerTimer = setTimeout(() => { offerTimer = null; makeOffer(iceRestart); }, 250);
+    };
+
     (async () => {
       try {
         setVoiceState("connecting");
-        logVoice(`starting voice (attempt ${voiceAttempt + 1}, role ${isHost ? "host" : "guest"})`);
 
         // 1) Signalling channel FIRST so no offer/candidate is ever dropped.
         channel = supabase.channel(`voice-${props.roomId}`, { config: { broadcast: { self: false } } });
 
+        // Guest-only: apply the host's offer. If applying fails (stale/mismatched
+        // session), rebuild the peer from scratch and apply on the clean one.
         channel.on("broadcast", { event: "offer" }, async (msg) => {
-          if (!pc) return;
+          if (isHost) return;
           const desc = msg.payload.sdp as RTCSessionDescriptionInit;
-          const offerCollision = makingOffer || pc.signalingState !== "stable";
-          ignoreOffer = !polite && offerCollision;
-          if (ignoreOffer) return;
-          try {
-            if (offerCollision) await pc.setLocalDescription({ type: "rollback" } as RTCSessionDescriptionInit);
-            await pc.setRemoteDescription(desc);
+          const apply = async (target: RTCPeerConnection) => {
+            await target.setRemoteDescription(desc);
             await flushPending();
-            await pc.setLocalDescription();
-            signal("answer", { sdp: pc.localDescription });
-          } catch (err) { console.warn("offer apply error", err); logVoice(`offer apply error: ${String(err)}`, true); }
+            const answer = await target.createAnswer();
+            await target.setLocalDescription(answer);
+            signal("answer", { sdp: target.localDescription });
+          };
+          try {
+            if (!pc) return;
+            if (pc.signalingState !== "stable") throw new Error("not stable");
+            await apply(pc);
+          } catch {
+            try { await apply(createPeer()); }
+            catch (err2) { console.warn("offer apply error", err2); scheduleReconnect(2500); }
+          }
         });
 
+        // Host-only: accept the guest's answer.
         channel.on("broadcast", { event: "answer" }, async (msg) => {
-          if (!pc) return;
+          if (!isHost || !pc) return;
+          if (pc.signalingState !== "have-local-offer") return;
           try {
-            if (pc.signalingState !== "have-local-offer") return;
             await pc.setRemoteDescription(msg.payload.sdp);
             await flushPending();
-          } catch (err) { console.warn("answer apply error", err); logVoice(`answer apply error: ${String(err)}`, true); }
+          } catch (err) { console.warn("answer apply error", err); }
         });
 
         channel.on("broadcast", { event: "ice" }, async (msg) => {
           if (!pc) return;
+          if (msg.payload.from === (isHost ? "host" : "guest")) return;
           const cand = msg.payload.candidate as RTCIceCandidateInit;
           if (!pc.remoteDescription) { pendingCandidates.push(cand); return; }
-          try { await pc.addIceCandidate(cand); } catch (err) {
-            if (!ignoreOffer) { console.warn("ice add error", err); logVoice(`ice add error: ${String(err)}`, true); }
-          }
+          try { await pc.addIceCandidate(cand); } catch { /* ignore */ }
         });
 
-        // A peer just (re)joined: the impolite side re-offers so late joiners connect.
+        // A peer (re)joined: the host re-offers so late joiners connect.
         channel.on("broadcast", { event: "hello" }, () => {
           signal("ack", {});
-          if (!polite) makeOffer();
+          queueOffer();
         });
-        channel.on("broadcast", { event: "ack" }, () => {
-          if (!polite) makeOffer();
-        });
-
-        const flushPending = async () => {
-          while (pendingCandidates.length && pc?.remoteDescription) {
-            const c = pendingCandidates.shift();
-            try { await pc.addIceCandidate(c); } catch { /* ignore */ }
-          }
-        };
+        channel.on("broadcast", { event: "ack" }, () => queueOffer());
 
         channel.subscribe((status) => {
-          logVoice(`signalling channel: ${status}`, status === "CHANNEL_ERROR" || status === "TIMED_OUT");
           if (status === "SUBSCRIBED") {
             subscribed = true;
             flushOutbox();
@@ -333,91 +414,21 @@ function GameView(props: {
           }
         });
 
-        // 2) Mic — reuse across reconnects to avoid permission re-prompts/glitches.
+        // 2) Mic — reuse across reconnects to avoid permission re-prompts.
         let stream = localStreamRef.current;
         if (!stream || stream.getAudioTracks().every((t) => t.readyState === "ended")) {
           stream = await navigator.mediaDevices.getUserMedia({
             audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
           });
           localStreamRef.current = stream;
-          logVoice("microphone acquired");
         }
         if (cancelled) return;
         stream.getAudioTracks().forEach((t) => (t.enabled = !mutedRef.current));
 
-        // 3) Peer connection
-        pc = new RTCPeerConnection({
-          iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" },
-            { urls: "stun:stun.cloudflare.com:3478" },
-            // TURN relays — required when both players are on mobile data / strict NAT,
-            // where STUN-only peer-to-peer silently fails (connected UI, no audio).
-            {
-              urls: [
-                "turn:openrelay.metered.ca:80",
-                "turn:openrelay.metered.ca:443",
-                "turn:openrelay.metered.ca:443?transport=tcp",
-              ],
-              username: "openrelayproject",
-              credential: "openrelayproject",
-            },
-          ],
-          iceCandidatePoolSize: 4,
-        });
-
-        pcRef.current = pc;
-
-        pc.ontrack = (e) => {
-          if (audioRef.current) {
-            audioRef.current.srcObject = e.streams[0];
-            audioRef.current.muted = !speakerRef.current;
-            audioRef.current.play().catch(() => {});
-            setVoiceState("live");
-          }
-        };
-
-        pc.onnegotiationneeded = () => { makeOffer(); };
-
-        pc.onicecandidate = (e) => {
-          if (e.candidate) signal("ice", { candidate: e.candidate.toJSON() });
-        };
-
-        pc.oniceconnectionstatechange = () => {
-          const st = pc?.iceConnectionState;
-          logVoice(`ICE: ${st}`, st === "failed");
-          if (st === "connected" || st === "completed") {
-            setVoiceState("live");
-            ensureAudioPlaying();
-          } else if (st === "disconnected") {
-            setTimeout(() => {
-              if (!cancelled && pcRef.current?.iceConnectionState === "disconnected") {
-                try { pcRef.current.restartIce(); } catch { /* not supported */ }
-              }
-            }, 1500);
-          } else if (st === "failed") {
-            try { pc?.restartIce(); } catch { /* ignore */ }
-            scheduleReconnect(2500);
-          }
-        };
-
-        pc.onconnectionstatechange = () => {
-          logVoice(`connection: ${pc?.connectionState}`, pc?.connectionState === "failed");
-          if (pc?.connectionState === "failed" || pc?.connectionState === "closed") {
-            scheduleReconnect(2500);
-          }
-        };
-
-        // Always receive audio, then publish mic (fires onnegotiationneeded).
-        pc.addTransceiver("audio", { direction: "sendrecv" });
-        stream.getAudioTracks().forEach((t) => {
-          const sender = pc!.getSenders().find((s) => s.track === null);
-          if (sender) sender.replaceTrack(t);
-          else pc!.addTrack(t, stream!);
-        });
-
-        // Say hello again once media is ready so the other side re-offers if needed.
+        // 3) Peer connection + first offer (host only)
+        createPeer();
         signal("hello", {});
+        queueOffer();
 
         // Health check — recover from silent stalls (e.g. mobile sleep/wake)
         healthTimer = setInterval(() => {
@@ -425,11 +436,10 @@ function GameView(props: {
           if (!pc) return;
           const st = pc.iceConnectionState;
           if (st === "failed" || pc.connectionState === "failed") scheduleReconnect(1000);
-          else if (!polite && st === "new" && pc.signalingState === "stable") makeOffer();
+          else if (isHost && (st === "new" || st === "checking") && pc.signalingState === "stable") queueOffer();
         }, 5000);
       } catch (err) {
         console.warn("voice setup error", err);
-        logVoice(`voice setup failed: ${String(err)}`, true);
         setVoiceState("off");
       }
     })();
@@ -438,12 +448,13 @@ function GameView(props: {
       cancelled = true;
       if (healthTimer) clearInterval(healthTimer);
       if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (offerTimer) clearTimeout(offerTimer);
       if (channel) supabase.removeChannel(channel);
       pc?.close();
       pcRef.current = null;
       // NOTE: do NOT stop the mic stream here — we want to reuse it on reconnect.
     };
-  }, [props.roomId, props.guestId, props.youMark, voiceAttempt, logVoice]);
+  }, [props.roomId, props.guestId, props.youMark, voiceAttempt]);
 
   // Mute / speaker applied live — never tear down the call for these
   useEffect(() => {
