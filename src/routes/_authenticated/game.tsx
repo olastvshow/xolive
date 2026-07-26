@@ -261,6 +261,7 @@ function GameView(props: {
         signal("offer", { sdp: pc.localDescription });
       } catch (err) {
         console.warn("negotiation error", err);
+        logVoice(`negotiation error: ${String(err)}`, true);
       } finally {
         makingOffer = false;
       }
@@ -269,6 +270,7 @@ function GameView(props: {
     (async () => {
       try {
         setVoiceState("connecting");
+        logVoice(`starting voice (attempt ${voiceAttempt + 1}, role ${isHost ? "host" : "guest"})`);
 
         // 1) Signalling channel FIRST so no offer/candidate is ever dropped.
         channel = supabase.channel(`voice-${props.roomId}`, { config: { broadcast: { self: false } } });
@@ -285,7 +287,7 @@ function GameView(props: {
             await flushPending();
             await pc.setLocalDescription();
             signal("answer", { sdp: pc.localDescription });
-          } catch (err) { console.warn("offer apply error", err); }
+          } catch (err) { console.warn("offer apply error", err); logVoice(`offer apply error: ${String(err)}`, true); }
         });
 
         channel.on("broadcast", { event: "answer" }, async (msg) => {
@@ -294,7 +296,7 @@ function GameView(props: {
             if (pc.signalingState !== "have-local-offer") return;
             await pc.setRemoteDescription(msg.payload.sdp);
             await flushPending();
-          } catch (err) { console.warn("answer apply error", err); }
+          } catch (err) { console.warn("answer apply error", err); logVoice(`answer apply error: ${String(err)}`, true); }
         });
 
         channel.on("broadcast", { event: "ice" }, async (msg) => {
@@ -302,7 +304,7 @@ function GameView(props: {
           const cand = msg.payload.candidate as RTCIceCandidateInit;
           if (!pc.remoteDescription) { pendingCandidates.push(cand); return; }
           try { await pc.addIceCandidate(cand); } catch (err) {
-            if (!ignoreOffer) console.warn("ice add error", err);
+            if (!ignoreOffer) { console.warn("ice add error", err); logVoice(`ice add error: ${String(err)}`, true); }
           }
         });
 
@@ -323,6 +325,7 @@ function GameView(props: {
         };
 
         channel.subscribe((status) => {
+          logVoice(`signalling channel: ${status}`, status === "CHANNEL_ERROR" || status === "TIMED_OUT");
           if (status === "SUBSCRIBED") {
             subscribed = true;
             flushOutbox();
@@ -337,6 +340,7 @@ function GameView(props: {
             audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
           });
           localStreamRef.current = stream;
+          logVoice("microphone acquired");
         }
         if (cancelled) return;
         stream.getAudioTracks().forEach((t) => (t.enabled = !mutedRef.current));
@@ -381,6 +385,7 @@ function GameView(props: {
 
         pc.oniceconnectionstatechange = () => {
           const st = pc?.iceConnectionState;
+          logVoice(`ICE: ${st}`, st === "failed");
           if (st === "connected" || st === "completed") {
             setVoiceState("live");
             ensureAudioPlaying();
@@ -397,6 +402,7 @@ function GameView(props: {
         };
 
         pc.onconnectionstatechange = () => {
+          logVoice(`connection: ${pc?.connectionState}`, pc?.connectionState === "failed");
           if (pc?.connectionState === "failed" || pc?.connectionState === "closed") {
             scheduleReconnect(2500);
           }
@@ -423,6 +429,7 @@ function GameView(props: {
         }, 5000);
       } catch (err) {
         console.warn("voice setup error", err);
+        logVoice(`voice setup failed: ${String(err)}`, true);
         setVoiceState("off");
       }
     })();
@@ -436,7 +443,7 @@ function GameView(props: {
       pcRef.current = null;
       // NOTE: do NOT stop the mic stream here — we want to reuse it on reconnect.
     };
-  }, [props.roomId, props.guestId, props.youMark, voiceAttempt]);
+  }, [props.roomId, props.guestId, props.youMark, voiceAttempt, logVoice]);
 
   // Mute / speaker applied live — never tear down the call for these
   useEffect(() => {
@@ -561,6 +568,22 @@ function GameView(props: {
   return (
     <div className="h-[100dvh] bg-surface text-on-surface flex flex-col overflow-hidden relative">
       <audio ref={audioRef} autoPlay playsInline />
+      <VoiceDiagnostics
+        open={diagOpen}
+        onClose={() => setDiagOpen(false)}
+        pcRef={pcRef}
+        audioRef={audioRef}
+        localStreamRef={localStreamRef}
+        voiceState={voiceState}
+        log={voiceLog}
+        lastError={voiceError}
+        onRetry={() => {
+          setVoiceError(null);
+          setVoiceState("connecting");
+          setVoiceAttempt((n) => n + 1);
+          audioRef.current?.play().catch(() => {});
+        }}
+      />
 
       <header className="flex items-center justify-between px-3 pt-3 pb-2 shrink-0">
         <button onClick={props.onHome} className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center" aria-label="Leave game">
@@ -658,6 +681,10 @@ function GameView(props: {
               </button>
 
               <div className="flex-1" />
+              <button onClick={() => setDiagOpen(true)} aria-label="Voice diagnostics"
+                className={cn("w-9 h-9 rounded-full flex items-center justify-center", voiceError ? "bg-error text-on-error" : "bg-white/15 text-white")}>
+                <Icon name="monitor_heart" filled className="text-xl" />
+              </button>
               <button onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}
                 className={cn("w-9 h-9 rounded-full flex items-center justify-center", muted ? "bg-error text-on-error" : "bg-white/15 text-white")}>
                 <Icon name={muted ? "mic_off" : "mic"} filled className="text-xl" />
