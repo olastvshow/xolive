@@ -162,6 +162,14 @@ function GameView(props: {
   const localStreamRef = useRef<MediaStream | null>(null);
   const [voiceState, setVoiceState] = useState<"off" | "connecting" | "live">("off");
   const [voiceAttempt, setVoiceAttempt] = useState(0);
+  const [diagOpen, setDiagOpen] = useState(false);
+  const [voiceLog, setVoiceLog] = useState<VoiceLogEntry[]>([]);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const logId = useRef(0);
+  const logVoice = useCallback((msg: string, err = false) => {
+    setVoiceLog((l) => [...l.slice(-60), { id: ++logId.current, t: Date.now(), msg, err }]);
+    if (err) setVoiceError(msg);
+  }, []);
   const mutedRef = useRef(false);
   const speakerRef = useRef(true);
   const chatScrollRef = useRef<HTMLDivElement>(null);
