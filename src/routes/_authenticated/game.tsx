@@ -637,12 +637,17 @@ function GameView(props: {
         ) : (
           <>
             <div className="flex items-center gap-2 bg-inverse-surface rounded-full px-3 py-2">
-              <div className="flex items-center gap-1.5 pl-1">
+              <button
+                onClick={() => { setVoiceState("connecting"); setVoiceAttempt((n) => n + 1); audioRef.current?.play().catch(() => {}); }}
+                aria-label="Reconnect voice"
+                className="flex items-center gap-1.5 pl-1 active:scale-95"
+              >
                 <span className={cn("w-2 h-2 rounded-full", voiceState === "live" ? "bg-green-400 animate-pulse" : voiceState === "connecting" ? "bg-yellow-400" : "bg-gray-500")} />
                 <span className="text-[11px] font-bold text-white/80 tracking-wider">
-                  {voiceState === "live" ? "LIVE VOICE" : voiceState === "connecting" ? "CONNECTING…" : "VOICE OFF"}
+                  {voiceState === "live" ? "LIVE VOICE" : voiceState === "connecting" ? "CONNECTING…" : "TAP TO RETRY"}
                 </span>
-              </div>
+              </button>
+
               <div className="flex-1" />
               <button onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}
                 className={cn("w-9 h-9 rounded-full flex items-center justify-center", muted ? "bg-error text-on-error" : "bg-white/15 text-white")}>
