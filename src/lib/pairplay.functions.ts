@@ -171,7 +171,7 @@ export const redeemInvite = createServerFn({ method: "POST" })
     await supabaseAdmin.from("pair_invites")
       .update({ redeemed_by: context.userId, redeemed_at: new Date().toISOString() }).eq("code", code);
     await ensureRoom(supabaseAdmin, invite.pair_id, invite.created_by);
-    return { ok: true, pair_id: invite.pair_id };
+    return { ok: true, pair_id: invite.pair_id, already: false };
   });
 
 export const unpair = createServerFn({ method: "POST" })
