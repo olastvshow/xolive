@@ -73,9 +73,8 @@
 
 @layer base {
   html, body {
-    font-family: "Quicksand", ui-sans-serif, system-ui, sans-serif;
-    background-color: var(--color-surface);
-    color: var(--color-on-surface);
+    background-color: #0d0d0d;
+    color: #f2efe9;
     -webkit-tap-highlight-color: transparent;
   }
   * {
