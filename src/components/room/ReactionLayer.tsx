@@ -1,7 +1,7 @@
 import { useRoom } from "./RoomProvider";
 import { Glyph, type GlyphName } from "@/components/Glyph";
 
-const REACTIONS: { id: string; icon: GlyphName; label: string }[] = [
+export const REACTIONS: { id: string; icon: GlyphName; label: string }[] = [
   { id: "heart", icon: "heart", label: "Love" },
   { id: "smile", icon: "smile", label: "Funny" },
   { id: "surprise", icon: "surprise", label: "Wow" },
@@ -28,24 +28,6 @@ export function ReactionLayer() {
         >
           <Glyph name={iconFor(b.emoji)} size={30} strokeWidth={1.5} />
         </span>
-      ))}
-    </div>
-  );
-}
-
-export function ReactionBar() {
-  const { react } = useRoom();
-  return (
-    <div className="flex justify-between gap-1.5 px-4">
-      {REACTIONS.map((r) => (
-        <button
-          key={r.id}
-          aria-label={r.label}
-          onClick={() => react(r.id)}
-          className="flex-1 h-11 rounded-2xl bg-night-2 hairline text-ink/60 grid place-items-center press hover:text-them"
-        >
-          <Glyph name={r.icon} size={20} />
-        </button>
       ))}
     </div>
   );

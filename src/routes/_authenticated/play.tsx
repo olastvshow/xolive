@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -6,11 +6,19 @@ import {
   lobbyPing, invitePlayer, myInvites, respondInvite, cancelInvite, createCodeRoom, joinByCode, inviteStatus,
 } from "@/lib/online.functions";
 import { GAMES } from "@/games/registry";
-import type { GameKey } from "@/games/logic";
+import { GAME_KEYS, type GameKey } from "@/games/logic";
 import { cn } from "@/lib/utils";
 import { Glyph } from "@/components/Glyph";
+import { PageHeader } from "@/components/PageHeader";
+import { TabBar } from "@/components/TabBar";
 
 export const Route = createFileRoute("/_authenticated/play")({
+  validateSearch: (search: Record<string, unknown>): { game?: GameKey } => {
+    const g = search.game;
+    return typeof g === "string" && (GAME_KEYS as readonly string[]).includes(g)
+      ? { game: g as GameKey }
+      : {};
+  },
   head: () => ({
     meta: [
       { title: "Play online — Duet" },
@@ -30,6 +38,7 @@ type Player = { id: string; username: string; display_name: string | null; avata
 
 function PlayOnline() {
   const navigate = useNavigate();
+  const search = useSearch({ from: "/_authenticated/play" });
   const ping = useServerFn(lobbyPing);
   const invite = useServerFn(invitePlayer);
   const invites = useServerFn(myInvites);
@@ -39,7 +48,7 @@ function PlayOnline() {
   const openRoom = useServerFn(createCodeRoom);
   const join = useServerFn(joinByCode);
 
-  const [game, setGame] = useState<GameKey>("xo");
+  const [game, setGame] = useState<GameKey>(search.game ?? "xo");
   const [pending, setPending] = useState<{ inviteId: string; roomId: string; name: string } | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -100,25 +109,22 @@ function PlayOnline() {
   const firstInvite = incoming[0];
 
   return (
-    <div className="min-h-screen bg-night text-ink">
-      <div className="max-w-md mx-auto px-5 pt-8 pb-24">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="w-10 h-10 rounded-full bg-night-2 hairline grid place-items-center text-ink/60 press" aria-label="Back">
-            <Glyph name="left" size={18} />
-          </Link>
-          <h1 className="font-display text-2xl font-semibold">Play online</h1>
-        </div>
+    <div className="min-h-[100dvh] bg-night text-ink">
+      <TabBar />
+      <div className="mx-auto w-full max-w-2xl px-5 pt-7 pb-32 lg:pt-10">
+        <PageHeader title="Rooms" subtitle="Find someone online, or open a room with a code" back="/" />
 
-        <p className="mt-8 text-[11px] uppercase tracking-[0.3em] text-ink/30">pick the game first</p>
+        <p className="mt-7 text-[11px] font-bold uppercase tracking-[0.3em] text-ink/30">pick the game</p>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {GAMES.map((g) => (
             <button
               key={g.key}
               onClick={() => setGame(g.key)}
               className={cn(
-                "shrink-0 rounded-full px-4 h-11 font-semibold text-sm press inline-flex items-center gap-2",
-                game === g.key ? "bg-me text-night" : "bg-night-2 hairline text-ink/60",
+                "press inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-bold",
+                game === g.key ? "text-night" : "bg-night-2 text-ink/55",
               )}
+              style={game === g.key ? { background: g.accent } : undefined}
             >
               <Glyph name={g.icon} size={16} /> {g.name}
             </button>

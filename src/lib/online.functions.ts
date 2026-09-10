@@ -228,3 +228,25 @@ export const leaveMatchRoom = createServerFn({ method: "POST" })
     await supabaseAdmin.from("rooms").update({ status: "ended" }).eq("id", room.id);
     return { ok: true };
   });
+
+export type LeaderRow = {
+  user_id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  wins: number;
+  played: number;
+};
+
+/** Top players by finished-game wins across every game. */
+export const getLeaderboard = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async (): Promise<LeaderRow[]> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rpc = supabaseAdmin as unknown as {
+      rpc: (name: string, args: Record<string, unknown>) => Promise<{ data: LeaderRow[] | null; error: { message: string } | null }>;
+    };
+    const { data, error } = await rpc.rpc("leaderboard_top", { limit_n: 25 });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({ ...r, wins: Number(r.wins), played: Number(r.played) }));
+  });

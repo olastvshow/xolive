@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GAMES } from "@/games/registry";
 import { Glyph } from "@/components/Glyph";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/solo/")({
   head: () => ({
@@ -20,15 +21,9 @@ export const Route = createFileRoute("/solo/")({
 
 function SoloIndex() {
   return (
-    <div className="min-h-screen bg-night text-ink">
-      <div className="mx-auto max-w-6xl px-5 pb-24 pt-8 lg:px-8 lg:pt-12">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/10 bg-night-2 text-ink/60 press" aria-label="Back">
-            <Glyph name="left" size={18} />
-          </Link>
-          <h1 className="truncate font-display text-[28px] lg:text-4xl">vs Computer</h1>
-        </div>
-        <p className="mt-3 text-sm text-ink/45">Pick a game. Nothing to sign up for.</p>
+    <div className="min-h-[100dvh] bg-night text-ink">
+      <div className="mx-auto w-full max-w-6xl px-5 pb-24 pt-7 lg:px-8 lg:pt-10">
+        <PageHeader title="vs Computer" subtitle="Starts instantly. Nothing to sign up for." back="/games" />
 
         <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5">
           {GAMES.map((g) => (

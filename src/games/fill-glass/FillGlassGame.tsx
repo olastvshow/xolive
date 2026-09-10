@@ -182,7 +182,7 @@ export function FillGlassGame() {
           <p className="mt-3 text-center text-xs text-ink/35">
             Pour at least once, then pass. Whoever makes it overflow loses.
           </p>
-          <button onClick={() => leaveGame()} className="mt-3 w-full h-11 rounded-2xl bg-night-2 hairline text-ink/50 text-sm font-semibold press">
+          <button onClick={() => leaveGame()} className="mx-auto mt-5 block text-[11px] font-bold uppercase tracking-[0.2em] text-ink/30 press">
             Leave game
           </button>
         </>
