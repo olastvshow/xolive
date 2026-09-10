@@ -26,6 +26,7 @@ import { Route as AuthenticatedRoomRouteImport } from './routes/_authenticated/r
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlayRouteImport } from './routes/_authenticated/play'
 import { Route as AuthenticatedPairRouteImport } from './routes/_authenticated/pair'
+import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedDeleteAccountRouteImport } from './routes/_authenticated/delete-account'
 import { Route as AuthenticatedOnlineRoomIdRouteImport } from './routes/_authenticated/online.$roomId'
 
@@ -113,6 +114,12 @@ const AuthenticatedPairRoute = AuthenticatedPairRouteImport.update({
   path: '/pair',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLeaderboardRoute =
+  AuthenticatedLeaderboardRouteImport.update({
+    id: '/leaderboard',
+    path: '/leaderboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDeleteAccountRoute =
   AuthenticatedDeleteAccountRouteImport.update({
     id: '/delete-account',
@@ -136,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/delete-account': typeof AuthenticatedDeleteAccountRoute
+  '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/pair': typeof AuthenticatedPairRoute
   '/play': typeof AuthenticatedPlayRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -153,6 +161,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/delete-account': typeof AuthenticatedDeleteAccountRoute
+  '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/pair': typeof AuthenticatedPairRoute
   '/play': typeof AuthenticatedPlayRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -175,6 +184,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/_authenticated/delete-account': typeof AuthenticatedDeleteAccountRoute
+  '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/pair': typeof AuthenticatedPairRoute
   '/_authenticated/play': typeof AuthenticatedPlayRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/delete-account'
+    | '/leaderboard'
     | '/pair'
     | '/play'
     | '/profile'
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/delete-account'
+    | '/leaderboard'
     | '/pair'
     | '/play'
     | '/profile'
@@ -236,6 +248,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/_authenticated/delete-account'
+    | '/_authenticated/leaderboard'
     | '/_authenticated/pair'
     | '/_authenticated/play'
     | '/_authenticated/profile'
@@ -380,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPairRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/leaderboard': {
+      id: '/_authenticated/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/delete-account': {
       id: '/_authenticated/delete-account'
       path: '/delete-account'
@@ -399,6 +419,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDeleteAccountRoute: typeof AuthenticatedDeleteAccountRoute
+  AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedPairRoute: typeof AuthenticatedPairRoute
   AuthenticatedPlayRoute: typeof AuthenticatedPlayRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -409,6 +430,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDeleteAccountRoute: AuthenticatedDeleteAccountRoute,
+  AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedPairRoute: AuthenticatedPairRoute,
   AuthenticatedPlayRoute: AuthenticatedPlayRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
