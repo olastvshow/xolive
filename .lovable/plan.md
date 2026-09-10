@@ -1,137 +1,58 @@
+# PairPlay — rebuilding XO Live as a private room for two
 
-# XO Live — Monetization + Gap-closure Plan
+## What changes
 
-## TL;DR on your idea
+XO Live becomes **PairPlay**: instead of matching with strangers for coins, you pair permanently with one person. You both walk into the same private room, voice is already on, reactions fly, and games sit on a shelf inside the room — you start and swap them without ever leaving or dropping the call.
 
-Buying coins is fine. **Withdrawing coins as cash is real-money gambling** — it requires a gambling license, KYC/AML, age verification, and is banned by Stripe/Paddle/Apple/Google under standard terms. It would get the app shut down before it makes a dollar.
+Your decisions, locked in:
+- Full rebrand to PairPlay
+- Keep the voice we already have (no new service, no new cost)
+- Drop the public side: no leaderboard, no coins, no strangers
+- First new game after the room: **Guess Me**
 
-**Recommended path:** keep the coin-bet loop you already have (it's the fun part), let users **buy** coins with real money, and let them **spend** coins on cosmetics. No cashout. This is the proven model (Chess.com, Clash Royale, 8 Ball Pool) — app-store safe, processor-safe, ship-this-week safe.
+## What goes away
 
-If XO Live blows up later, we revisit licensed real-money tournaments in specific jurisdictions with a specialist lawyer. Not now.
+Coins and the coin balance, the cosmetics store, betting, the leaderboard, quick match with random players, and the invite/decline stranger flow. Solo-vs-computer stays (it's the thing to do when your partner is offline).
 
----
+## What gets built
 
-## How coins work today (audit)
+### Phase 1 — Pairing
+- Invite screen: generates a 6-character code plus a share message ("come play with me 🫶 [link] — code ABCDEF"). Codes expire in 24 hours.
+- Redeem screen: "I have a code."
+- Once paired, you land straight in your room. One partner at a time; unpairing is available and calm, with no guilt-trip.
+- New tables: pairs, pair members, invite codes, room, shared stats. Old coin/cosmetic tables get retired.
 
-From `src/lib/xo.functions.ts` + `profiles` schema:
+### Phase 2 — The room (the home screen)
+There is no separate home. The room is it.
+- Both avatars at the top with a live **voice ring** that moves when the other person talks.
+- Always-on voice using the current setup, carried up so it never disconnects when a game starts or ends.
+- Reaction bar (💛 😂 😮 🔥 😭 👏) — bursts on both screens, with a haptic buzz.
+- Comment strip: 140 characters, last 20 kept.
+- Game shelf when nothing is being played; proposing a game shows the partner a Play / Not now card that expires in 30 seconds.
+- Offline partner: dimmed avatar, "was here 3 hours ago", and a big **Knock** button.
 
-- New user starts with **1,250 coins**.
-- `Create Room` lets host pick bet: **0 / 50 / 100 / 250**. Quick Play & Join-by-code always = 0.
-- On game end (`makeMove` handler):
-  - **Winner:** `coins += 50 + bet`
-  - **Loser:** `coins -= bet` (floored at 0)
-  - **Draw:** no change
-- **Bug:** the bet is never escrowed and never actually transferred. The winner is paid by "the house" (50 + bet minted from nothing), and the loser pays bet to the void. This is harmless today, but the moment coins cost money it becomes free money printing.
-- No cap on bet vs. balance — a user with 10 coins can host a 250-coin bet and only lose 10.
+### Phase 3 — XO moves into the room
+The existing tic-tac-toe becomes the first game on the shelf: same rules, restyled to the new dark palette, rendered inside the room's stage so voice and reactions keep running around it. Result card with a one-tap **Rematch**.
 
-## What's missing in the app (prioritized)
+### Phase 4 — Guess Me
+Ten questions per round. Both answer at the same time and privately — one answers as themselves, the other guesses what they'll say. Cards flip together on reveal; a match scores for both. Roles swap each question. Multiple choice, four options, across Food / Habits / Past / Future / Silly. Ships with a starter question bank.
 
-**Must-fix before money is involved**
-1. True bet escrow + balance check (deduct both on game start, full pot to winner)
-2. Anti-collusion: block matches where both players share IP/device fingerprint (prevents 2-tab coin laundering)
-3. Per-action rate limits on `makeMove` and `sendMessage`
+### Phase 5 — Look and feel
+Dark-only, nighttime, one-handed. Deep indigo surfaces, **you** are cool blue, **they** are warm amber — the only warm colour in the app, so the person always reads as the warmest thing on screen. Spring motion, tabular numbers, haptics on every mutual event. Reduced-motion respected throughout.
 
-**Promised features still missing**
-4. WebRTC live voice between the 2 players (signaling via Supabase Realtime on `messages` with `kind='signal'`)
-5. Reaction emoji bar wired end-to-end (insert into `messages` with `kind='reaction'`, float on both clients)
-6. Blitz mode per-move timer (mode is stored but not enforced)
-
-**Polish gaps**
-7. Loading / empty / error / offline states on leaderboard, recent matches, game
-8. Edit-username UI on profile (server fn exists, no UI)
-9. Leaderboard tie-breakers (wins, then win-rate, then draws)
-10. Toasts for join errors / game-end states
-
-## Monetization design (cosmetics + coin store)
-
-**Coin Store** — Lovable's built-in Stripe payments (no Stripe account needed):
-- $0.99 → 500 coins
-- $4.99 → 3,000 coins (+20% bonus)
-- $9.99 → 7,000 coins (+40% bonus)
-- $19.99 → 16,000 coins (+60%)
-- $49.99 → 45,000 coins (+80%)
-
-**Spend coins on (no real-money withdrawal):**
-- Board skins (neon, wood, marble, retro CRT)
-- X/O piece styles (emoji, animated, neon)
-- Win animations (fireworks, confetti, dragon)
-- Avatar frames + name colors
-- Emote packs for reactions
-
-**Optional next step (out of scope for this turn):** "XO Pro" $4.99/month subscription — ranked mode, all skins, ad-free, 2× daily coin bonus.
-
----
-
-## Implementation plan
-
-### Phase 1 — Fix the economy (this turn)
-
-**1. Schema migration**
-- Add `rooms.pot` (int) — escrowed bet from both players at game start
-- Add `profiles.coins_spent_total`, `profiles.coins_purchased_total` (for analytics)
-- Add `cosmetics` table: `id`, `kind` (board/piece/frame/emote), `slug`, `name`, `price_coins`, `preview_url`
-- Add `user_cosmetics` table: `user_id`, `cosmetic_id`, `equipped` (bool), unique(user_id, cosmetic_id)
-- Add `profiles.equipped_board`, `equipped_piece`, `equipped_frame` (text slugs, default 'classic')
-- Plus GRANTs + RLS per template rules
-
-**2. Server fn changes in `src/lib/xo.functions.ts`**
-- `joinRoomByCode` / `quickPlay`: when 2nd player joins a betting room, deduct `bet` from BOTH players atomically (RPC `start_match(room_id)`), insert into `rooms.pot = bet * 2`. Reject if either balance < bet.
-- `createRoom`: validate host balance ≥ bet. (Don't deduct yet — wait for opponent.)
-- `makeMove` on game end: pay `rooms.pot` to winner. On draw, refund half to each. Remove the magic +50 win bonus (the bet IS the reward now). Optional: keep a small win bonus only for 0-coin matches to keep new users active.
-- New `cancelRoom` server fn: host cancels a waiting room — no refund needed (nothing deducted yet).
-
-**3. New server fns**
-- `getCosmetics()` — list catalog
-- `purchaseCosmetic({ id })` — deducts coins, inserts `user_cosmetics` row
-- `equipCosmetic({ id })` — sets `profiles.equipped_*`
-
-### Phase 2 — Coin Store (Stripe Payments)
-
-- Enable Lovable's built-in Stripe payments (no API key needed)
-- Create the 5 coin-pack products
-- Add `/coins` route: pack grid → Stripe checkout
-- Add webhook at `src/routes/api/public/stripe-webhook.ts` (signature-verified) that credits `profiles.coins` on `checkout.session.completed` and logs to a `coin_transactions` table (id, user_id, delta, source: purchase|win|loss|spend|refund, ref, created_at)
-- Add "Buy coins" CTA on TopBar when balance < 100, plus a "Store" tab in bottom nav
-
-### Phase 3 — Cosmetics UI
-
-- `/store` route: tabs for Boards / Pieces / Frames / Emotes. Each card shows preview, price, Buy / Equip / Equipped state
-- Profile shows owned cosmetics
-- Game board renders `equipped_board` skin and `equipped_piece` style
-- TopBar avatar uses `equipped_frame`
-
-### Phase 4 — Close the social gaps
-
-- **Reactions UI**: floating emoji bar above the board (👍 😂 🔥 😱 🤝 💀). Tap inserts `messages` row with `kind='reaction'`. Realtime subscriber on both clients animates emoji floating up from sender's side.
-- **WebRTC voice**: Mute/Unmute button in game header. Signaling (offer/answer/ICE) sent through `messages` with `kind='signal'` (not displayed in chat). Use STUN-only (Google public STUN); TURN can come later if NAT issues appear. Show mic-level indicator next to each avatar.
-- **Blitz timer**: server tracks `rooms.move_deadline` (timestamp). If `now() > deadline` on next `makeMove`, force-forfeit the slow player. Client shows countdown.
-- **Anti-collusion (basic)**: server fn rejects joining a betting room if both players share the same IP within the last hour (log IP hash in `messages` insert middleware).
-
-### Phase 5 — Polish
-
-- Toasts on every server-fn error/success via existing `sonner`
-- Loading skeletons on leaderboard, recent matches, game waiting state
-- Edit-username dialog on profile
-- Leaderboard sort: wins DESC, then (wins / (wins+losses)) DESC, then draws DESC
-
----
+### Later (not this run)
+Sudoku Duo, Bottle Rush, Air Hockey Live, push notifications, the "Us" stats page, and the Couple Pass subscription.
 
 ## Technical notes
 
-- All economy mutations go through `coin_transactions` ledger so we can audit, refund, and ban printers. Never update `profiles.coins` outside a server fn that also writes to the ledger.
-- `start_match` and `finish_match` should be Postgres functions (security definer) to keep both-sides balance updates atomic — JS-side multi-step updates race under realtime.
-- WebRTC: keep peer connection logic in a dedicated `src/hooks/useVoiceChat.ts`. Only initialize after the user explicitly taps "Join voice" (browser autoplay/permission rules).
-- Reactions: throttle to 1 per 500ms per user, server-side.
-- Stripe webhook MUST verify signature with `STRIPE_WEBHOOK_SECRET`; idempotent on `checkout.session.id`.
-- All coin display in TopBar already reads live profile via React Query — invalidating `["profile"]` after purchase/win is enough.
+- New schema per DATA_MODEL.md: `pairs`, `pair_members`, `pair_invites`, `rooms` (one per pair), `games`, `game_sessions`, `game_moves`, `messages`, `pair_stats`, `analytics_events`. RLS default-deny on all, gated through a `is_pair_member()` stable security-definer helper. Grants issued per table in the same migration. Includes the `one_active_pair_per_user` partial unique index and a negative-access test (a third account reads zero rows).
+- Existing `rooms` is match-scoped and conflicts with the pair-scoped room; it is replaced, along with `coin_transactions`, `cosmetics`, `user_cosmetics`, and the coin/cosmetic RPCs (`start_match`, `finish_match`, `purchase_cosmetic`). Coin columns drop off `profiles`; `display_name` and `timezone` are added.
+- `RoomProvider` owns one Supabase Realtime channel `room:{roomId}` (broadcast `self:false`, presence keyed by user id) plus the existing `RTCPeerConnection`. It sits above the game stage and must never remount when a game starts, ends, or is swapped. Signalling migrates from the `messages` table onto the room channel.
+- Games are `React.lazy` modules registered against a `GameModule` contract and mounted into a stage slot. Reducers are pure `(state, action, meta) => state` so replay, reconnect and server validation all work.
+- Tier A turn sync: moves go through a `submit_move` RPC with optimistic-concurrency on move count; `game_sessions.state` is the resume point. Local input renders immediately and reconciles after.
+- Server logic stays in `createServerFn` (no edge functions). Route tree flattens: `/` becomes the room, with `/onboarding`, `/pair`, `/solo`, `/profile`, and the legal pages beside it. `create-room`, `join-room`, `quick-match`, `leaderboard`, and `game` are removed.
+- Native shell, Capacitor config, delete-account and support routes are kept as-is.
 
-## What I will NOT build
+## Suggested order
 
-- Real-money withdrawals / cashout (legal blocker)
-- Sweepstakes / "free entry" lottery loophole (needs lawyer)
-- Tournaments with cash prizes
-- Skins gambling / loot boxes (regulated in many countries; cosmetics direct-purchase only)
-
-## Scope for the very next build turn
-
-Phase 1 only (fix the economy + ledger + escrow). That unblocks everything else and ships a correct, auditable coin system. Phases 2–5 follow in subsequent turns once you've confirmed Phase 1 works.
+Phase 1 and 2 in the first build (pairing plus the live room), then XO into the stage, then Guess Me, then the visual pass. Each phase is testable on two real phones before the next starts.
