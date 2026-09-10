@@ -33,8 +33,6 @@ function greeting() {
 function HomeHub() {
   const fn = useServerFn(getPairState);
   const { data } = useQuery({ queryKey: ["pair-state"], queryFn: () => fn(), retry: false });
-  const paired = Boolean(data?.partner && data?.room);
-  const partnerName = data?.partner?.display_name ?? data?.partner?.username ?? "your person";
   const myName = data?.me?.display_name ?? data?.me?.username ?? "you";
   const hero = GAMES[0];
 
@@ -84,33 +82,6 @@ function HomeHub() {
               height={768}
               className="pointer-events-none absolute -bottom-4 -right-6 w-[52%] max-w-[280px] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)] lg:right-10 lg:w-[34%]"
             />
-          </Link>
-        </section>
-
-        {/* Ways to play */}
-        <section className="mt-4 grid gap-3 sm:grid-cols-3">
-          <Link to={paired ? "/room" : "/pair"} className="tile bg-night-2 p-5">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-knowus/15 text-knowus">
-              <Glyph name="people" size={19} />
-            </span>
-            <p className="mt-3 font-display text-lg">{paired ? "Your room" : "Pair up"}</p>
-            <p className="mt-1 text-xs text-ink/45">
-              {paired ? `Walk in with ${partnerName}` : "One code, one person, one room"}
-            </p>
-          </Link>
-          <Link to="/play" className="tile bg-night-2 p-5">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-xo/15 text-xo">
-              <Glyph name="globe" size={19} />
-            </span>
-            <p className="mt-3 font-display text-lg">Play online</p>
-            <p className="mt-1 text-xs text-ink/45">Find someone, or use a code</p>
-          </Link>
-          <Link to="/solo" className="tile bg-night-2 p-5">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-hockey/15 text-hockey">
-              <Glyph name="cpu" size={19} />
-            </span>
-            <p className="mt-3 font-display text-lg">vs Computer</p>
-            <p className="mt-1 text-xs text-ink/45">No waiting, plays instantly</p>
           </Link>
         </section>
 

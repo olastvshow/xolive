@@ -577,6 +577,17 @@ export type Database = {
         Args: { _room_id: string; _user_id: string }
         Returns: boolean
       }
+      leaderboard_top: {
+        Args: { limit_n?: number }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          played: number
+          user_id: string
+          username: string
+          wins: number
+        }[]
+      }
       my_pair_id: { Args: never; Returns: string }
     }
     Enums: {
