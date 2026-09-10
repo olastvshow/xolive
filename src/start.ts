@@ -9,6 +9,10 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
     if (error != null && typeof error === "object" && "statusCode" in error) {
       throw error;
     }
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("JWT has expired") || message.startsWith("Unauthorized:")) {
+      throw new Response("Unauthorized", { status: 401 });
+    }
     console.error(error);
     return new Response(renderErrorPage(), {
       status: 500,
@@ -26,21 +30,9 @@ const attachFreshSupabaseAuth = createMiddleware({ type: "function" }).client(
   async ({ next }) => {
     if (typeof window === "undefined") return next();
 
-    const { supabase } = await import("@/integrations/supabase/client");
-    let token: string | undefined;
-    try {
-      const { data } = await supabase.auth.getSession();
-      let session = data.session;
-      const expiresAt = session?.expires_at ?? 0;
-      // refresh when it expires within the next 60 seconds
-      if (session && expiresAt * 1000 - Date.now() < 60_000) {
-        const { data: refreshed } = await supabase.auth.refreshSession();
-        session = refreshed.session ?? session;
-      }
-      token = session?.access_token;
-    } catch {
-      // fall through without a token; the server will answer 401
-    }
+    const { getFreshSession } = await import("@/lib/auth-session");
+    const session = await getFreshSession();
+    const token = session?.access_token;
 
     return token
       ? next({ headers: { Authorization: `Bearer ${token}` } })

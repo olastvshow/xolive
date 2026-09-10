@@ -1,14 +1,14 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { heartbeat } from "@/lib/pairplay.functions";
 import { useNativeShell } from "@/hooks/useNativeShell";
+import { getFreshSession } from "@/lib/auth-session";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const session = await getFreshSession();
     if (!session?.user) throw redirect({ to: "/auth" });
     return { user: session.user };
   },
