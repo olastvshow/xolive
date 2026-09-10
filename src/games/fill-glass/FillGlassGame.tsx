@@ -11,59 +11,69 @@ function Glass({ level, pouring, splashed, mine }: { level: number; pouring: boo
   return (
     <div className="relative mx-auto w-[190px] select-none">
       {/* faucet */}
-      <div className="relative h-[86px]">
-        <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[122px] h-[14px] rounded-full bg-gradient-to-b from-ink/25 to-ink/10 hairline" />
-        <div className="absolute left-[calc(50%+38px)] top-[12px] w-[16px] h-[34px] rounded-b-[7px] bg-gradient-to-b from-ink/22 to-ink/8" />
-        <div className="absolute left-[calc(50%+38px)] top-[42px] w-[16px] h-[10px] rounded-b-[8px] bg-them/70" />
+      <div className="relative h-[92px]">
+        <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[150px] h-[13px] rounded-full bg-gradient-to-b from-ink/25 to-ink/10 hairline" />
+        <div className="absolute left-1/2 -translate-x-1/2 top-[11px] w-[18px] h-[30px] rounded-b-[8px] bg-gradient-to-b from-ink/22 to-ink/8" />
+        <div className="absolute left-1/2 -translate-x-1/2 top-[39px] w-[22px] h-[9px] rounded-b-[10px] bg-them/70" />
         {/* stream */}
         <div
           className={cn(
-            "absolute left-[calc(50%+44px)] top-[52px] w-[4px] rounded-full transition-opacity duration-200",
+            "absolute left-1/2 -translate-x-1/2 top-[47px] w-[5px] rounded-full transition-opacity duration-150",
             pouring ? "opacity-100 pp-stream" : "opacity-0",
           )}
-          style={{ height: "34px", background: "linear-gradient(180deg, rgba(201,168,76,0.15), rgba(120,190,225,0.85))" }}
+          style={{ height: "45px", background: "linear-gradient(180deg, rgba(150,215,245,0.35), rgba(120,190,225,0.95))" }}
         />
       </div>
 
       {/* glass */}
       <div className="relative h-[230px]">
         <div
-          className={cn(
-            "absolute inset-0 rounded-b-[26px] rounded-t-[10px] overflow-hidden",
-            "border-[1.5px] border-ink/15 bg-gradient-to-b from-ink/[0.05] to-ink/[0.02]",
-            splashed && "pp-shake",
-          )}
-          style={{ boxShadow: "inset 0 0 40px rgba(255,255,255,0.05)" }}
+          className={cn("absolute inset-0", splashed && "pp-shake")}
+          style={{ clipPath: "polygon(3% 0, 97% 0, 88% 96%, 12% 96%)" }}
         >
-          {/* liquid */}
           <div
-            className="absolute inset-x-0 bottom-0 transition-[top] duration-500 ease-out"
-            style={{ top: `${liquidTop}%` }}
+            className="absolute inset-0 overflow-hidden"
+            style={{
+              clipPath: "polygon(3% 0, 97% 0, 88% 96%, 12% 96%)",
+              background: "linear-gradient(100deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.06))",
+            }}
           >
-            <div className="absolute -top-[10px] left-0 right-0 h-[20px] pp-wave"
-              style={{ background: "radial-gradient(60% 100% at 20% 100%, rgba(150,215,245,.95), transparent 70%), radial-gradient(60% 100% at 70% 100%, rgba(120,190,230,.95), transparent 70%)" }}
-            />
+            {/* liquid */}
             <div
-              className="absolute inset-0"
-              style={{
-                background: splashed
-                  ? "linear-gradient(180deg, rgba(220,120,90,.92), rgba(150,60,50,.95))"
-                  : "linear-gradient(180deg, rgba(140,205,240,.92), rgba(58,120,170,.95))",
-              }}
-            />
-            {/* bubbles */}
-            <span className="absolute left-[26%] bottom-3 w-1.5 h-1.5 rounded-full bg-white/40 pp-bubble" />
-            <span className="absolute left-[58%] bottom-6 w-1 h-1 rounded-full bg-white/30 pp-bubble" style={{ animationDelay: "0.8s" }} />
-            <span className="absolute left-[74%] bottom-2 w-1.5 h-1.5 rounded-full bg-white/25 pp-bubble" style={{ animationDelay: "1.6s" }} />
-          </div>
+              className="absolute inset-x-0 bottom-0 transition-[top] duration-500 ease-out"
+              style={{ top: `${liquidTop}%` }}
+            >
+              <div className="absolute -top-[10px] left-0 right-0 h-[20px] pp-wave"
+                style={{ background: "radial-gradient(60% 100% at 20% 100%, rgba(150,215,245,.95), transparent 70%), radial-gradient(60% 100% at 70% 100%, rgba(120,190,230,.95), transparent 70%)" }}
+              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: splashed
+                    ? "linear-gradient(180deg, rgba(220,120,90,.92), rgba(150,60,50,.95))"
+                    : "linear-gradient(180deg, rgba(140,205,240,.92), rgba(58,120,170,.95))",
+                }}
+              />
+              {/* bubbles */}
+              <span className="absolute left-[26%] bottom-3 w-1.5 h-1.5 rounded-full bg-white/40 pp-bubble" />
+              <span className="absolute left-[58%] bottom-6 w-1 h-1 rounded-full bg-white/30 pp-bubble" style={{ animationDelay: "0.8s" }} />
+              <span className="absolute left-[74%] bottom-2 w-1.5 h-1.5 rounded-full bg-white/25 pp-bubble" style={{ animationDelay: "1.6s" }} />
+            </div>
 
-          {/* glass shine */}
-          <div className="absolute left-[14px] top-[10px] bottom-[16px] w-[10px] rounded-full bg-white/10" />
-          <div className="absolute right-[16px] top-[24px] bottom-[40px] w-[4px] rounded-full bg-white/5" />
+            {/* glass shine */}
+            <div className="absolute left-[16px] top-[10px] bottom-[26px] w-[9px] rounded-full bg-white/12" />
+            <div className="absolute right-[22px] top-[24px] bottom-[46px] w-[4px] rounded-full bg-white/6" />
+          </div>
+          {/* wall outlines */}
+          <div className="absolute inset-y-0 left-[3%] w-px bg-ink/20 origin-top" style={{ transform: "rotate(2.4deg)" }} />
+          <div className="absolute inset-y-0 right-[3%] w-px bg-ink/20 origin-top" style={{ transform: "rotate(-2.4deg)" }} />
         </div>
 
         {/* rim */}
-        <div className="absolute -top-[3px] left-[-6px] right-[-6px] h-[10px] rounded-full border-[1.5px] border-ink/20 bg-night-2/60" />
+        <div className="absolute -top-[4px] left-[2px] right-[2px] h-[9px] rounded-[50%] border-[1.5px] border-ink/25 bg-night-2/70" />
+        {/* base */}
+        <div className="absolute bottom-[4px] left-[11%] right-[11%] h-[7px] rounded-[50%] border-[1.5px] border-t-0 border-ink/20 bg-night-2/50" />
+
 
         {splashed && (
           <>
