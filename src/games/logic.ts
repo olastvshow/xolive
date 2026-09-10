@@ -232,12 +232,11 @@ export function applyAction(
 ): unknown {
   if (gameKey === "xo") return xoReduce(state as XoState, action, meta);
   if (gameKey === "guess-me") return gmReduce(state as GmState, action, meta);
-  if (gameKey === "sudoku") return sudokuReduce(state as SudokuState, action, meta);
-  if (gameKey === "bottle-rush") return rushReduce(state as RushState, action, meta);
+  if (gameKey === "fill-glass") return glassReduce(state as GlassState, action, meta);
   if (gameKey === "air-hockey") return hockeyReduce(state as HockeyState, action, meta);
   throw new Error("Unknown game");
 }
 
-export const GAME_KEYS = ["xo", "guess-me", "sudoku", "bottle-rush", "air-hockey"] as const;
+export const GAME_KEYS = ["xo", "guess-me", "fill-glass", "air-hockey"] as const;
 export type GameKey = (typeof GAME_KEYS)[number];
 
