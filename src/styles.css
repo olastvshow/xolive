@@ -394,3 +394,52 @@
   .pp-float { animation-duration: 0.01ms; }
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- Fill the Glass + XO board motion ---------- */
+@keyframes pp-wave-slide {
+  0% { transform: translateX(-12%) scaleY(1); }
+  50% { transform: translateX(6%) scaleY(1.25); }
+  100% { transform: translateX(-12%) scaleY(1); }
+}
+.pp-wave { animation: pp-wave-slide 2.6s ease-in-out infinite; }
+
+@keyframes pp-bubble-rise {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: translateY(-70px) scale(1); opacity: 0; }
+}
+.pp-bubble { animation: pp-bubble-rise 2.8s ease-in infinite; }
+
+@keyframes pp-stream-flow {
+  0% { opacity: 0.2; transform: scaleY(0.4); }
+  30% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0.9; transform: scaleY(1); }
+}
+.pp-stream { transform-origin: top center; animation: pp-stream-flow 0.35s ease-out forwards; }
+
+@keyframes pp-splash-out {
+  0% { transform: translate(0,0) scale(0.4); opacity: 1; }
+  100% { transform: translate(var(--dx, 0px), -46px) scale(1); opacity: 0; }
+}
+.pp-splash { animation: pp-splash-out 0.9s ease-out forwards; }
+
+@keyframes pp-shake-glass {
+  0%,100% { transform: translateX(0) rotate(0deg); }
+  20% { transform: translateX(-4px) rotate(-1.5deg); }
+  40% { transform: translateX(4px) rotate(1.5deg); }
+  60% { transform: translateX(-3px) rotate(-1deg); }
+  80% { transform: translateX(2px) rotate(0.6deg); }
+}
+.pp-shake { animation: pp-shake-glass 0.5s ease-in-out; }
+
+@keyframes pp-draw-line {
+  from { stroke-dasharray: 96; stroke-dashoffset: 96; }
+  to { stroke-dasharray: 96; stroke-dashoffset: 0; }
+}
+.pp-draw { animation: pp-draw-line 0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+
+@keyframes pp-draw-circle {
+  from { stroke-dasharray: 202; stroke-dashoffset: 202; }
+  to { stroke-dasharray: 202; stroke-dashoffset: 0; }
+}
+.pp-draw-o { animation: pp-draw-circle 0.36s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
