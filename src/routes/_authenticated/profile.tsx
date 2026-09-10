@@ -1,9 +1,12 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, type LinkProps } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Shell } from "@/components/Shell";
 import { AvatarPicker, Avatar } from "@/components/AvatarPicker";
+import { PageHeader } from "@/components/PageHeader";
+import { TabBar } from "@/components/TabBar";
+import { Glyph } from "@/components/Glyph";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getPairState, updateProfile, cancelAccountDeletion, checkAccountStatus, unpair,
