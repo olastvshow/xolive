@@ -1,6 +1,17 @@
 import { useRoom } from "./RoomProvider";
+import { Glyph, type GlyphName } from "@/components/Glyph";
 
-const EMOJIS = ["💛", "😂", "😮", "🔥", "😭", "👏"];
+const REACTIONS: { id: string; icon: GlyphName; label: string }[] = [
+  { id: "heart", icon: "heart", label: "Love" },
+  { id: "smile", icon: "smile", label: "Funny" },
+  { id: "surprise", icon: "surprise", label: "Wow" },
+  { id: "flame", icon: "flame", label: "Fire" },
+  { id: "spark", icon: "spark", label: "Nice" },
+  { id: "clap", icon: "clap", label: "Applause" },
+];
+
+const iconFor = (id: string): GlyphName =>
+  (REACTIONS.find((r) => r.id === id)?.icon ?? "spark");
 
 export function ReactionLayer() {
   const { bursts, me } = useRoom();
@@ -9,13 +20,13 @@ export function ReactionLayer() {
       {bursts.map((b) => (
         <span
           key={b.id}
-          className="absolute text-4xl pp-float"
+          className={`absolute pp-float ${b.from === me.id ? "text-me" : "text-them"}`}
           style={{
             bottom: "8rem",
             left: b.from === me.id ? `${12 + Math.random() * 20}%` : `${68 - Math.random() * 20}%`,
           }}
         >
-          {b.emoji}
+          <Glyph name={iconFor(b.emoji)} size={30} strokeWidth={1.5} />
         </span>
       ))}
     </div>
@@ -25,14 +36,15 @@ export function ReactionLayer() {
 export function ReactionBar() {
   const { react } = useRoom();
   return (
-    <div className="flex justify-between gap-1 px-4">
-      {EMOJIS.map((e) => (
+    <div className="flex justify-between gap-1.5 px-4">
+      {REACTIONS.map((r) => (
         <button
-          key={e}
-          onClick={() => react(e)}
-          className="flex-1 h-12 rounded-2xl bg-night-3/70 text-2xl grid place-items-center active:scale-90 transition-transform"
+          key={r.id}
+          aria-label={r.label}
+          onClick={() => react(r.id)}
+          className="flex-1 h-11 rounded-2xl bg-night-2 hairline text-ink/60 grid place-items-center press hover:text-them"
         >
-          {e}
+          <Glyph name={r.icon} size={20} />
         </button>
       ))}
     </div>
