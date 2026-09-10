@@ -30,7 +30,7 @@ export function AvatarPicker({
     setBusy(true); setError(null);
     try {
       await update({ data: { avatar_url: url } });
-      await qc.invalidateQueries({ queryKey: ["profile"] });
+      await qc.invalidateQueries({ queryKey: ["pair-state"] });
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
