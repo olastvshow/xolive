@@ -23,6 +23,11 @@ export type GlyphName =
   | "smile"
   | "surprise"
   | "clap"
+  | "mic"
+  | "mic-off"
+  | "chat"
+  | "exit"
+  | "close"
   | "check";
 
 const P: Record<GlyphName, string> = {
