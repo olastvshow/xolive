@@ -62,7 +62,7 @@ function HomeHub() {
         {/* Hero */}
         <section className="mt-6">
           <Link
-            to="/solo/$game"
+            to="/games/$game"
             params={{ game: hero.key }}
             className="tile relative block overflow-hidden px-6 pb-6 pt-7 lg:px-10 lg:pb-10 lg:pt-9"
             style={{ background: hero.wash }}
@@ -118,7 +118,7 @@ function HomeHub() {
         <section className="mt-9">
           <div className="flex items-end justify-between">
             <h2 className="font-display text-2xl lg:text-3xl">All games</h2>
-            <Link to="/solo" className="text-xs font-bold uppercase tracking-[0.2em] text-pop">
+            <Link to="/games" className="text-xs font-bold uppercase tracking-[0.2em] text-pop">
               See all
             </Link>
           </div>
@@ -127,7 +127,7 @@ function HomeHub() {
             {GAMES.map((g) => (
               <Link
                 key={g.key}
-                to="/solo/$game"
+                to="/games/$game"
                 params={{ game: g.key }}
                 className="tile relative overflow-hidden p-4 pt-5"
                 style={{ background: g.wash }}
