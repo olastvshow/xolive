@@ -39,7 +39,7 @@ function SoloIndex() {
               className="tile relative overflow-hidden p-4 pt-5"
               style={{ background: g.wash }}
             >
-              <div className="grid h-[104px] place-items-center lg:h-[150px]">
+              <div className="grid h-[104px] place-items-center overflow-hidden lg:h-[150px]">
                 <img
                   src={g.character}
                   alt=""
@@ -49,8 +49,8 @@ function SoloIndex() {
                   className="h-full w-auto object-contain drop-shadow-[0_14px_26px_rgba(0,0,0,0.45)]"
                 />
               </div>
-              <p className="mt-3 font-display text-[17px] leading-tight lg:text-xl">{g.name}</p>
-              <p className="mt-1 line-clamp-2 text-[11px] text-white/60 lg:text-xs">{g.soloBlurb}</p>
+              <p className="relative z-10 mt-3 font-display text-[17px] leading-tight lg:text-xl">{g.name}</p>
+              <p className="relative z-10 mt-1 line-clamp-2 text-[11px] text-white/60 lg:text-xs">{g.soloBlurb}</p>
               <span
                 className="mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold text-night"
                 style={{ background: g.accent }}
