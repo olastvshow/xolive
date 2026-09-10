@@ -43,9 +43,12 @@ function PairPage() {
     mutationFn: () => redeemFn({ data: { code: code.trim().toUpperCase() } }),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["pair-state"] });
-      navigate({ to: "/" });
+      navigate({ to: "/room" });
     },
-    onError: (e: Error) => setErr(e.message),
+    onError: async (e: Error) => {
+      setErr(e.message);
+      await qc.invalidateQueries({ queryKey: ["pair-state"] });
+    },
   });
 
   const leave = useMutation({
