@@ -33,8 +33,6 @@ function greeting() {
 function HomeHub() {
   const fn = useServerFn(getPairState);
   const { data } = useQuery({ queryKey: ["pair-state"], queryFn: () => fn(), retry: false });
-  const paired = Boolean(data?.partner && data?.room);
-  const partnerName = data?.partner?.display_name ?? data?.partner?.username ?? "your person";
   const myName = data?.me?.display_name ?? data?.me?.username ?? "you";
   const hero = GAMES[0];
 
