@@ -9,13 +9,13 @@ export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Duet — five games, three ways to play" },
-      { name: "description", content: "Play XO, Guess Me, Sudoku Duo, Bottle Rush and Air Hockey — alone against the computer, online with anyone, or in your private room for two." },
+      { name: "description", content: "Play XO Arena, Fill the Glass, Know Us and Air Hockey — against the computer, online with anyone, or in your private room for two." },
       { property: "og:title", content: "Duet — five games, three ways to play" },
-      { property: "og:description", content: "Play XO, Guess Me, Sudoku Duo, Bottle Rush and Air Hockey — alone, online, or in your private room for two." },
+      { property: "og:description", content: "Play XO Arena, Fill the Glass, Know Us and Air Hockey — alone, online, or in your private room for two." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Duet — five games, three ways to play" },
-      { name: "twitter:description", content: "Play XO, Guess Me, Sudoku Duo, Bottle Rush and Air Hockey — alone, online, or in your private room for two." },
+      { name: "twitter:description", content: "Play XO Arena, Fill the Glass, Know Us and Air Hockey — alone, online, or in your private room for two." },
     ],
   }),
   component: HomeHub,
