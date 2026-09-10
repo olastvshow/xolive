@@ -2,8 +2,9 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { Icon } from "@/components/Icon";
-import logoAsset from "@/assets/logo.png.asset.json";
+import { Glyph, type GlyphName } from "@/components/Glyph";
+import charXo from "@/assets/char-xo.png";
+import charKnowUs from "@/assets/char-knowus.png";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
