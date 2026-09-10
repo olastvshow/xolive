@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -6,11 +6,19 @@ import {
   lobbyPing, invitePlayer, myInvites, respondInvite, cancelInvite, createCodeRoom, joinByCode, inviteStatus,
 } from "@/lib/online.functions";
 import { GAMES } from "@/games/registry";
-import type { GameKey } from "@/games/logic";
+import { GAME_KEYS, type GameKey } from "@/games/logic";
 import { cn } from "@/lib/utils";
 import { Glyph } from "@/components/Glyph";
+import { PageHeader } from "@/components/PageHeader";
+import { TabBar } from "@/components/TabBar";
 
 export const Route = createFileRoute("/_authenticated/play")({
+  validateSearch: (search: Record<string, unknown>): { game?: GameKey } => {
+    const g = search.game;
+    return typeof g === "string" && (GAME_KEYS as readonly string[]).includes(g)
+      ? { game: g as GameKey }
+      : {};
+  },
   head: () => ({
     meta: [
       { title: "Play online — Duet" },
@@ -30,6 +38,7 @@ type Player = { id: string; username: string; display_name: string | null; avata
 
 function PlayOnline() {
   const navigate = useNavigate();
+  const search = useSearch({ from: "/_authenticated/play" });
   const ping = useServerFn(lobbyPing);
   const invite = useServerFn(invitePlayer);
   const invites = useServerFn(myInvites);
@@ -39,7 +48,7 @@ function PlayOnline() {
   const openRoom = useServerFn(createCodeRoom);
   const join = useServerFn(joinByCode);
 
-  const [game, setGame] = useState<GameKey>("xo");
+  const [game, setGame] = useState<GameKey>(search.game ?? "xo");
   const [pending, setPending] = useState<{ inviteId: string; roomId: string; name: string } | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
