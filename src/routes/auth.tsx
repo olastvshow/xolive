@@ -80,36 +80,45 @@ function AuthPage() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] bg-surface flex flex-col px-6 pt-6 pb-8">
-      <div className="mx-auto w-full max-w-sm flex flex-col flex-1">
-        {/* Header */}
+    <div className="relative min-h-[100dvh] overflow-hidden bg-night text-ink px-6 pb-8 pt-6">
+      <div aria-hidden className="pointer-events-none absolute -top-28 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-violet/20 blur-[90px]" />
+      <div className="relative z-10 mx-auto flex w-full max-w-sm flex-1 flex-col">
         <div className="flex items-center justify-between">
-          <Link to="/onboarding"
-            className="h-10 w-10 grid place-items-center rounded-full bg-surface-container text-on-surface active:scale-95 transition">
-            <Icon name="arrow_back" />
+          <Link
+            to="/onboarding"
+            aria-label="Back"
+            className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/5 text-ink press"
+          >
+            <Glyph name="left" size={18} />
           </Link>
-          <div className="h-10 w-10 rounded-2xl bg-white overflow-hidden ring-1 ring-black/5 shadow-sm">
-            <img src={logoAsset.url} alt="Duet" className="w-full h-full object-cover" />
-          </div>
+          <span className="font-display text-lg">Duet<span className="text-pop">.</span></span>
           <span className="w-10" />
         </div>
 
-        {/* Heading */}
-        <div key={tab} className="mt-8 mb-6 animate-slide-in-up">
-          <h1 className="text-[28px] leading-tight font-bold tracking-tight text-on-surface">
+        <div className="mt-10 flex justify-center">
+          <img
+            src={tab === "signup" ? charKnowUs : charXo}
+            alt=""
+            width={768}
+            height={768}
+            className="float-y w-32 object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
+          />
+        </div>
+
+        <div key={tab} className="mt-6 mb-6 text-center animate-slide-in-up">
+          <h1 className="font-display text-[34px] leading-tight">
             {tab === "signin" ? "Welcome back" : "Create account"}
           </h1>
-          <p className="text-on-surface-variant text-[14px] mt-1.5">
-            {tab === "signin" ? "Sign in to continue." : "Sign up to start playing."}
+          <p className="mt-1.5 text-[14px] text-ink/50">
+            {tab === "signin" ? "Your games are waiting." : "Takes about ten seconds."}
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={submit} className="space-y-3">
           {tab === "signup" && (
             <Field
               label="Username"
-              icon="alternate_email"
+              icon="person"
               value={username}
               onChange={setUsername}
               autoComplete="username"
@@ -121,7 +130,7 @@ function AuthPage() {
           )}
           <Field
             label="Email"
-            icon="mail"
+            icon="globe"
             type="email"
             value={email}
             onChange={setEmail}
@@ -130,7 +139,7 @@ function AuthPage() {
           />
           <Field
             label="Password"
-            icon="lock"
+            icon="spark"
             type={showPw ? "text" : "password"}
             value={password}
             onChange={setPassword}
@@ -141,25 +150,16 @@ function AuthPage() {
               <button
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
-                className="text-on-surface-variant hover:text-on-surface p-1 rounded-full"
+                className="rounded-full p-1 text-ink/40 hover:text-ink"
                 aria-label={showPw ? "Hide password" : "Show password"}
               >
-                <Icon name={showPw ? "visibility_off" : "visibility"} />
+                <Glyph name={showPw ? "smile" : "surprise"} size={17} />
               </button>
             }
           />
 
-          {tab === "signin" && (
-            <div className="flex justify-end">
-              <button type="button" className="text-[13px] font-medium text-on-surface-variant hover:text-on-surface">
-                Forgot password?
-              </button>
-            </div>
-          )}
-
           {error && (
-            <div className="flex items-start gap-2 rounded-xl bg-error-container text-on-error-container px-3 py-2.5 text-sm animate-slide-in-up">
-              <Icon name="error" filled />
+            <div className="flex items-start gap-2 rounded-2xl border border-knowus/30 bg-knowus/10 px-3 py-2.5 text-sm text-ink animate-slide-in-up">
               <span className="font-medium leading-snug">{error}</span>
             </div>
           )}
@@ -167,31 +167,30 @@ function AuthPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 mt-2 rounded-2xl bg-on-surface text-surface font-semibold flex items-center justify-center gap-2 active:scale-[0.985] transition disabled:opacity-60"
+            className="btn-pop mt-2 flex h-14 w-full items-center justify-center gap-2 text-[16px] disabled:opacity-60"
           >
             {loading ? (
-              <span className="inline-block h-4 w-4 rounded-full border-2 border-surface/40 border-t-surface animate-spin" />
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-night/30 border-t-night" />
             ) : (
               <>
                 {tab === "signin" ? "Sign in" : "Create account"}
-                <Icon name="arrow_forward" />
+                <Glyph name="right" size={17} />
               </>
             )}
           </button>
         </form>
 
-        {/* Switch */}
-        <p className="text-center text-[13px] text-on-surface-variant mt-auto pt-8">
+        <p className="mt-auto pt-10 text-center text-[13px] text-ink/50">
           {tab === "signin" ? "New to Duet? " : "Already have an account? "}
           <button
             onClick={() => { setTab(tab === "signin" ? "signup" : "signin"); setError(null); }}
-            className="text-on-surface font-semibold"
+            className="font-bold text-pop"
           >
             {tab === "signin" ? "Sign up" : "Sign in"}
           </button>
         </p>
-        <p className="text-center text-[12px] text-on-surface-variant mt-3">
-          Need help? <Link to="/support" className="underline font-medium">Visit Support</Link>
+        <p className="mt-3 text-center text-[12px] text-ink/35">
+          <Link to="/support" className="underline">Support</Link>
           {" · "}
           <Link to="/privacy" className="underline">Privacy</Link>
           {" · "}
@@ -206,23 +205,23 @@ function Field({
   label, icon, value, onChange, trailing, ...rest
 }: {
   label: string;
-  icon: string;
+  icon: GlyphName;
   value: string;
   onChange: (v: string) => void;
   trailing?: React.ReactNode;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
   return (
     <div>
-      <label className="block text-[12px] font-semibold text-on-surface-variant mb-1.5 ml-1">
+      <label className="mb-1.5 ml-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-ink/40">
         {label}
       </label>
-      <div className="flex items-center gap-2.5 h-12 px-3.5 rounded-2xl bg-surface-container ring-1 ring-transparent focus-within:ring-on-surface focus-within:bg-surface-container-low transition-colors">
-        <Icon name={icon} className="text-on-surface-variant" />
+      <div className="flex h-14 items-center gap-2.5 rounded-2xl border border-white/10 bg-white/5 px-4 transition-colors focus-within:border-pop/60">
+        <span className="text-ink/40"><Glyph name={icon} size={17} /></span>
         <input
           {...rest}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="flex-1 bg-transparent outline-none text-[15px] text-on-surface placeholder:text-on-surface-variant/70"
+          className="flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink/30"
         />
         {trailing}
       </div>
