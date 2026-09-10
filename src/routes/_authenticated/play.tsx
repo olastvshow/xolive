@@ -108,68 +108,103 @@ function PlayOnline() {
 
   const firstInvite = incoming[0];
 
+  const active = GAMES.find((g) => g.key === game)!;
+
   return (
     <div className="min-h-[100dvh] bg-night text-ink">
       <TabBar />
       <div className="mx-auto w-full max-w-2xl px-5 pt-7 pb-32 lg:pt-10">
         <PageHeader title="Rooms" subtitle="Find someone online, or open a room with a code" back="/" />
 
-        <p className="mt-7 text-[11px] font-bold uppercase tracking-[0.3em] text-ink/30">pick the game</p>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        {/* selected game hero */}
+        <section
+          className="mt-6 relative overflow-hidden rounded-[30px] p-5"
+          style={{ background: active.wash }}
+        >
+          <div className="relative z-10 flex items-center gap-4">
+            <img src={active.character} alt="" className="h-20 w-20 shrink-0 object-contain drop-shadow-xl" />
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-ink/45">playing</p>
+              <h2 className="mt-1 truncate font-display text-2xl">{active.name}</h2>
+              <p className="mt-0.5 truncate text-xs text-ink/55">{active.tagline}</p>
+            </div>
+          </div>
+          <span
+            className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full opacity-25 blur-2xl"
+            style={{ background: active.accent }}
+          />
+        </section>
+
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           {GAMES.map((g) => (
             <button
               key={g.key}
               onClick={() => setGame(g.key)}
               className={cn(
-                "press inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-bold",
+                "press inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-bold transition-colors",
                 game === g.key ? "text-night" : "bg-night-2 text-ink/55",
               )}
               style={game === g.key ? { background: g.accent } : undefined}
             >
-              <Glyph name={g.icon} size={16} /> {g.name}
+              <Glyph name={g.icon} size={15} /> {g.name}
             </button>
           ))}
         </div>
 
-        <section className="mt-8">
-          <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-widest text-ink/35">who's around</p>
-            <span className="flex items-center gap-2 text-xs text-ink/35">
-              <span className="w-2 h-2 rounded-full bg-me animate-pulse" /> scanning
+        {/* lobby */}
+        <section className="mt-7 rounded-[28px] border border-white/5 bg-night-2/60 p-4">
+          <div className="flex items-center justify-between px-1">
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ink/35">who's around</p>
+            <span className="flex items-center gap-2 rounded-full bg-night-3/70 px-2.5 py-1 text-[11px] text-ink/45">
+              <span className="h-1.5 w-1.5 rounded-full bg-me animate-pulse" /> scanning
             </span>
           </div>
 
           <div className="mt-3 grid gap-2">
             {players.length === 0 && (
-              <p className="rounded-3xl bg-night-2 px-5 py-6 text-sm text-ink/45 text-center">
-                Nobody else is here yet. Keep this open — or share a room code below.
-              </p>
+              <div className="rounded-3xl border border-dashed border-white/10 px-5 py-8 text-center">
+                <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-night-3 text-ink/40">
+                  <Glyph name="person" size={20} />
+                </span>
+                <p className="mt-3 text-sm text-ink/45">
+                  Nobody else is here yet. Keep this open, or share a room code below.
+                </p>
+              </div>
             )}
             {players.map((p) => (
               <button
                 key={p.id}
                 disabled={busy || Boolean(pending)}
                 onClick={() => send(p)}
-                className="flex items-center gap-3 rounded-3xl bg-night-3/80 px-4 py-3.5 active:scale-[0.98] transition-transform disabled:opacity-40"
+                className="press flex items-center gap-3 rounded-3xl bg-night-3/80 px-4 py-3.5 text-left disabled:opacity-40"
               >
-                <span className="w-10 h-10 rounded-2xl bg-night-2 grid place-items-center overflow-hidden">
-                  {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : <Glyph name="person" size={18} />}
+                <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-night-2">
+                  {p.avatar_url ? <img src={p.avatar_url} alt="" className="h-full w-full object-cover" /> : <Glyph name="person" size={18} />}
                 </span>
-                <span className="font-semibold">{p.display_name ?? p.username}</span>
-                <span className="ml-auto text-xs uppercase tracking-widest text-me">invite</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold">{p.display_name ?? p.username}</span>
+                  <span className="block text-[11px] text-ink/35">online now</span>
+                </span>
+                <span
+                  className="shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-night"
+                  style={{ background: active.accent }}
+                >
+                  invite
+                </span>
               </button>
             ))}
           </div>
         </section>
 
-        <section className="mt-9">
-          <p className="text-xs uppercase tracking-widest text-ink/35">or use a code</p>
+        {/* code */}
+        <section className="mt-4 rounded-[28px] border border-white/5 bg-night-2/60 p-4">
+          <p className="px-1 text-[11px] font-bold uppercase tracking-[0.3em] text-ink/35">or use a code</p>
           <div className="mt-3 flex gap-2">
             <input
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))}
               placeholder="ABC123"
-              className="flex-1 h-12 rounded-2xl bg-night-2 px-4 font-bold tracking-[0.25em] text-ink placeholder:text-ink/20 outline-none focus:ring-2 focus:ring-me"
+              className="h-12 flex-1 rounded-2xl bg-night-3 px-4 text-center font-bold tracking-[0.35em] text-ink placeholder:text-ink/20 outline-none focus:ring-2 focus:ring-me"
             />
             <button
               disabled={code.length !== 6 || busy}
@@ -182,7 +217,7 @@ function PlayOnline() {
                   setError(e instanceof Error ? e.message : "Couldn't join");
                 } finally { setBusy(false); }
               }}
-              className="h-12 px-5 rounded-2xl bg-me text-night font-bold disabled:opacity-30 active:scale-95"
+              className="press h-12 rounded-2xl bg-me px-6 font-bold text-night disabled:opacity-30"
             >
               Join
             </button>
@@ -196,9 +231,9 @@ function PlayOnline() {
                 navigate({ to: "/online/$roomId", params: { roomId: res.roomId } });
               } finally { setBusy(false); }
             }}
-            className="mt-2 w-full h-12 rounded-2xl bg-night-3 text-ink font-semibold active:scale-95"
+            className="press mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-night-3/60 font-semibold text-ink"
           >
-            Open a room and get a code
+            <Glyph name="plus" size={16} /> Open a room and get a code
           </button>
         </section>
 
@@ -206,14 +241,18 @@ function PlayOnline() {
       </div>
 
       {pending && (
-        <div className="fixed inset-0 bg-night/90 grid place-items-center px-8 text-center">
+        <div className="fixed inset-0 grid place-items-center bg-night/92 px-8 text-center backdrop-blur-sm">
           <div>
-            <div className="w-24 h-24 mx-auto rounded-full border-2 border-me/40 border-t-me animate-spin" />
-            <p className="mt-6 text-xl font-bold">Ringing {pending.name}…</p>
+            <div className="relative mx-auto h-28 w-28">
+              <span className="absolute inset-0 rounded-full border-2 border-me/25" />
+              <span className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-me" />
+              <img src={active.character} alt="" className="absolute inset-0 m-auto h-16 w-16 object-contain" />
+            </div>
+            <p className="mt-6 font-display text-2xl">Ringing {pending.name}</p>
             <p className="mt-1 text-sm text-ink/45">They have 45 seconds to answer.</p>
             <button
               onClick={async () => { await cancel({ data: { inviteId: pending.inviteId } }); setPending(null); }}
-              className="mt-7 h-12 px-6 rounded-2xl bg-night-2 text-ink/60 font-semibold active:scale-95"
+              className="press mt-7 h-12 rounded-2xl bg-night-2 px-6 font-semibold text-ink/60"
             >
               Cancel
             </button>
@@ -222,27 +261,36 @@ function PlayOnline() {
       )}
 
       {firstInvite && !pending && (
-        <div className="fixed inset-0 bg-night/90 grid place-items-center px-8 text-center">
-          <div className="w-full max-w-sm rounded-[28px] bg-night-3 p-7">
-            <span className="w-14 h-14 mx-auto rounded-full bg-them/15 text-them grid place-items-center"><Glyph name="bell" size={24} /></span>
-            <p className="mt-4 text-xl font-bold">
-              {firstInvite.from?.display_name ?? firstInvite.from?.username ?? "Someone"} wants to play
-            </p>
-            <p className="mt-1 text-sm text-ink/50">
-              {GAMES.find((g) => g.key === firstInvite.game_key)?.name ?? "a game"}
-            </p>
-            <div className="mt-6 flex gap-2">
+        <div className="fixed inset-0 grid place-items-center bg-night/92 px-8 text-center backdrop-blur-sm">
+          <div className="w-full max-w-sm overflow-hidden rounded-[30px] border border-white/8 bg-night-3">
+            <div
+              className="px-7 pt-7 pb-6"
+              style={{ background: GAMES.find((g) => g.key === firstInvite.game_key)?.wash }}
+            >
+              <img
+                src={GAMES.find((g) => g.key === firstInvite.game_key)?.character ?? active.character}
+                alt=""
+                className="mx-auto h-20 w-20 object-contain drop-shadow-xl"
+              />
+              <p className="mt-3 font-display text-xl">
+                {firstInvite.from?.display_name ?? firstInvite.from?.username ?? "Someone"} wants to play
+              </p>
+              <p className="mt-1 text-sm text-ink/55">
+                {GAMES.find((g) => g.key === firstInvite.game_key)?.name ?? "a game"}
+              </p>
+            </div>
+            <div className="flex gap-2 p-5">
               <button
                 disabled={busy}
                 onClick={() => accept(firstInvite.id, true)}
-                className="flex-1 h-12 rounded-2xl bg-me text-night font-bold active:scale-95"
+                className="press h-12 flex-1 rounded-2xl bg-me font-bold text-night"
               >
                 Play
               </button>
               <button
                 disabled={busy}
                 onClick={() => accept(firstInvite.id, false)}
-                className="h-12 px-5 rounded-2xl bg-night-2 text-ink/60 font-semibold active:scale-95"
+                className="press h-12 rounded-2xl bg-night-2 px-5 font-semibold text-ink/60"
               >
                 Not now
               </button>
