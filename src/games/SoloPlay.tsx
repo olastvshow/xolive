@@ -1,34 +1,28 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  applyAction, gmInit, xoInit, sudokuInit, makeSudoku, rushInit, makeRushRounds, hockeyInit,
-  type GameAction, type GameKey, type GmQuestion, type GmState, type RushState, type SudokuState, type XoState,
+  applyAction, gmInit, xoInit, glassInit, hockeyInit,
+  type GameAction, type GameKey, type GlassState, type GmQuestion, type GmState, type XoState,
 } from "@/games/logic";
 import { PlayProvider, type PlayValue, type Profile } from "@/games/play-context";
 import { GAMES, gameByKey } from "@/games/registry";
 import { SOLO_QUESTIONS } from "@/games/guess-me/bank";
 import { xoBotMove } from "@/games/xo/bot";
 import { gmBotAction } from "@/games/guess-me/bot";
-import { sudokuBotAction, sudokuBotTempo } from "@/games/sudoku/bot";
-import { rushBotReaction } from "@/games/bottle-rush/bot";
+import { glassBotAction, glassBotDelay } from "@/games/fill-glass/bot";
 import { botDelay, type Difficulty } from "@/games/difficulty";
 
 export const ME: Profile = { id: "me", username: "you", display_name: "You", avatar_url: null };
 export const BOT: Profile = { id: "bot", username: "computer", display_name: "Computer", avatar_url: null };
 const PLAYERS = [ME.id, BOT.id];
 
-function initialState(gameKey: GameKey, difficulty: Difficulty): unknown {
+function initialState(gameKey: GameKey, _difficulty: Difficulty): unknown {
   if (gameKey === "xo") return xoInit(PLAYERS);
   if (gameKey === "guess-me") {
     const pool = [...SOLO_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10);
     const questions: GmQuestion[] = pool.map((q, i) => ({ ...q, subject: i % 2 === 0 ? ME.id : BOT.id }));
     return gmInit(questions);
   }
-  if (gameKey === "sudoku") {
-    const holes = difficulty === "hard" ? 54 : difficulty === "medium" ? 46 : 36;
-    const { given, solution } = makeSudoku(holes);
-    return sudokuInit(given, solution);
-  }
-  if (gameKey === "bottle-rush") return rushInit(makeRushRounds(7), PLAYERS);
+  if (gameKey === "fill-glass") return glassInit(PLAYERS);
   return hockeyInit(PLAYERS, 7);
 }
 
@@ -74,24 +68,10 @@ export function SoloPlay({
       if (action && action.type === "answer") act(action, botDelay(difficulty, 1100));
     }
 
-    if (gameKey === "sudoku") {
-      const s = stateRef.current as SudokuState;
-      if (!s.done) {
-        const action = sudokuBotAction(s, BOT.id);
-        if (action) act(action, sudokuBotTempo[difficulty]);
-      }
-    }
-
-    if (gameKey === "bottle-rush") {
-      const s = stateRef.current as RushState;
-      if (s.phase === "live" && !s.locked.includes(BOT.id) && !s.winner) {
-        const { ms, slipChance } = rushBotReaction(difficulty);
-        const round = s.rounds[s.idx];
-        const idx = Math.random() < slipChance
-          ? (round.target + 1 + Math.floor(Math.random() * 3)) % 4
-          : round.target;
-        act({ type: "tap", idx }, ms);
-      }
+    if (gameKey === "fill-glass") {
+      const s = stateRef.current as GlassState;
+      const action = glassBotAction(s, BOT.id, difficulty);
+      if (action) act(action, glassBotDelay(difficulty));
     }
 
     return () => { if (timer) clearTimeout(timer); };
