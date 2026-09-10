@@ -14,11 +14,14 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as SoloRouteImport } from './routes/solo'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as GamesRouteImport } from './routes/games'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as SoloIndexRouteImport } from './routes/solo.index'
+import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as SoloGameRouteImport } from './routes/solo.$game'
+import { Route as GamesGameRouteImport } from './routes/games.$game'
 import { Route as AuthenticatedRoomRouteImport } from './routes/_authenticated/room'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlayRouteImport } from './routes/_authenticated/play'
@@ -51,6 +54,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -65,6 +73,11 @@ const SoloIndexRoute = SoloIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SoloRoute,
 } as any)
+const GamesIndexRoute = GamesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GamesRoute,
+} as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -74,6 +87,11 @@ const SoloGameRoute = SoloGameRouteImport.update({
   id: '/$game',
   path: '/$game',
   getParentRoute: () => SoloRoute,
+} as any)
+const GamesGameRoute = GamesGameRouteImport.update({
+  id: '/$game',
+  path: '/$game',
+  getParentRoute: () => GamesRoute,
 } as any)
 const AuthenticatedRoomRoute = AuthenticatedRoomRouteImport.update({
   id: '/room',
@@ -111,6 +129,7 @@ const AuthenticatedOnlineRoomIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/games': typeof GamesRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/solo': typeof SoloRouteWithChildren
@@ -121,7 +140,9 @@ export interface FileRoutesByFullPath {
   '/play': typeof AuthenticatedPlayRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/room': typeof AuthenticatedRoomRoute
+  '/games/$game': typeof GamesGameRoute
   '/solo/$game': typeof SoloGameRoute
+  '/games/': typeof GamesIndexRoute
   '/solo/': typeof SoloIndexRoute
   '/online/$roomId': typeof AuthenticatedOnlineRoomIdRoute
 }
@@ -136,8 +157,10 @@ export interface FileRoutesByTo {
   '/play': typeof AuthenticatedPlayRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/room': typeof AuthenticatedRoomRoute
+  '/games/$game': typeof GamesGameRoute
   '/solo/$game': typeof SoloGameRoute
   '/': typeof AuthenticatedIndexRoute
+  '/games': typeof GamesIndexRoute
   '/solo': typeof SoloIndexRoute
   '/online/$roomId': typeof AuthenticatedOnlineRoomIdRoute
 }
@@ -145,6 +168,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/games': typeof GamesRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/solo': typeof SoloRouteWithChildren
@@ -155,8 +179,10 @@ export interface FileRoutesById {
   '/_authenticated/play': typeof AuthenticatedPlayRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/room': typeof AuthenticatedRoomRoute
+  '/games/$game': typeof GamesGameRoute
   '/solo/$game': typeof SoloGameRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/games/': typeof GamesIndexRoute
   '/solo/': typeof SoloIndexRoute
   '/_authenticated/online/$roomId': typeof AuthenticatedOnlineRoomIdRoute
 }
@@ -165,6 +191,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/games'
     | '/onboarding'
     | '/privacy'
     | '/solo'
@@ -175,7 +202,9 @@ export interface FileRouteTypes {
     | '/play'
     | '/profile'
     | '/room'
+    | '/games/$game'
     | '/solo/$game'
+    | '/games/'
     | '/solo/'
     | '/online/$roomId'
   fileRoutesByTo: FileRoutesByTo
@@ -190,14 +219,17 @@ export interface FileRouteTypes {
     | '/play'
     | '/profile'
     | '/room'
+    | '/games/$game'
     | '/solo/$game'
     | '/'
+    | '/games'
     | '/solo'
     | '/online/$roomId'
   id:
     | '__root__'
     | '/_authenticated'
     | '/auth'
+    | '/games'
     | '/onboarding'
     | '/privacy'
     | '/solo'
@@ -208,8 +240,10 @@ export interface FileRouteTypes {
     | '/_authenticated/play'
     | '/_authenticated/profile'
     | '/_authenticated/room'
+    | '/games/$game'
     | '/solo/$game'
     | '/_authenticated/'
+    | '/games/'
     | '/solo/'
     | '/_authenticated/online/$roomId'
   fileRoutesById: FileRoutesById
@@ -217,6 +251,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  GamesRoute: typeof GamesRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   PrivacyRoute: typeof PrivacyRoute
   SoloRoute: typeof SoloRouteWithChildren
@@ -261,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -282,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SoloIndexRouteImport
       parentRoute: typeof SoloRoute
     }
+    '/games/': {
+      id: '/games/'
+      path: '/'
+      fullPath: '/games/'
+      preLoaderRoute: typeof GamesIndexRouteImport
+      parentRoute: typeof GamesRoute
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
@@ -295,6 +344,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/solo/$game'
       preLoaderRoute: typeof SoloGameRouteImport
       parentRoute: typeof SoloRoute
+    }
+    '/games/$game': {
+      id: '/games/$game'
+      path: '/$game'
+      fullPath: '/games/$game'
+      preLoaderRoute: typeof GamesGameRouteImport
+      parentRoute: typeof GamesRoute
     }
     '/_authenticated/room': {
       id: '/_authenticated/room'
@@ -364,6 +420,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface GamesRouteChildren {
+  GamesGameRoute: typeof GamesGameRoute
+  GamesIndexRoute: typeof GamesIndexRoute
+}
+
+const GamesRouteChildren: GamesRouteChildren = {
+  GamesGameRoute: GamesGameRoute,
+  GamesIndexRoute: GamesIndexRoute,
+}
+
+const GamesRouteWithChildren = GamesRoute._addFileChildren(GamesRouteChildren)
+
 interface SoloRouteChildren {
   SoloGameRoute: typeof SoloGameRoute
   SoloIndexRoute: typeof SoloIndexRoute
@@ -379,6 +447,7 @@ const SoloRouteWithChildren = SoloRoute._addFileChildren(SoloRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  GamesRoute: GamesRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   PrivacyRoute: PrivacyRoute,
   SoloRoute: SoloRouteWithChildren,
