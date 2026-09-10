@@ -49,7 +49,7 @@ export function XoGame() {
       {over && (
         <div className="mt-5 rounded-3xl bg-night-3/70 p-5 text-center">
           <p className="text-lg font-bold text-ink">
-            {s.draw ? "Dead even." : s.winner === me.id ? "You got it 💙" : `${displayName(partner)} got it 🧡`}
+            {s.draw ? "Dead even." : s.winner === me.id ? "You got it." : `${displayName(partner)} got it.`}
           </p>
           <div className="mt-4 flex gap-2">
             <button onClick={() => restart()} className="flex-1 h-12 rounded-2xl bg-me text-night font-bold active:scale-95">

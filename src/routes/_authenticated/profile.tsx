@@ -12,14 +12,14 @@ import {
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "PairPlay — you" },
-      { name: "description", content: "Your PairPlay name, photo, pairing and account settings." },
-      { property: "og:title", content: "PairPlay — you" },
-      { property: "og:description", content: "Your PairPlay name, photo, pairing and account settings." },
+      { title: "Duet — you" },
+      { name: "description", content: "Your Duet name, photo, pairing and account settings." },
+      { property: "og:title", content: "Duet — you" },
+      { property: "og:description", content: "Your Duet name, photo, pairing and account settings." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "PairPlay — you" },
-      { name: "twitter:description", content: "Your PairPlay name, photo, pairing and account settings." },
+      { name: "twitter:title", content: "Duet — you" },
+      { name: "twitter:description", content: "Your Duet name, photo, pairing and account settings." },
     ],
   }),
   component: ProfilePage,

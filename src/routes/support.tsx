@@ -3,11 +3,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/support")({
   head: () => ({
     meta: [
-      { title: "PairPlay — Support & Help Center" },
+      { title: "Duet — Support & Help Center" },
       {
         name: "description",
         content:
-          "Get help with PairPlay. Contact support, report issues, view FAQs, or read our privacy policy and terms.",
+          "Get help with Duet. Contact support, report issues, view FAQs, or read our privacy policy and terms.",
       },
     ],
   }),
@@ -21,7 +21,7 @@ function SupportPage() {
     <div className="min-h-[100dvh] bg-surface text-on-surface px-5 py-8">
       <div className="mx-auto w-full max-w-2xl">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">PairPlay Support</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Duet Support</h1>
           <p className="mt-2 text-on-surface-variant">
             We're here to help. Reach out anytime — we usually reply within 24 hours.
           </p>
@@ -83,7 +83,7 @@ function SupportPage() {
 
         <footer className="text-center text-sm text-on-surface-variant mt-10">
           <Link to="/auth" className="underline">Back to app</Link>
-          <p className="mt-2">© {new Date().getFullYear()} PairPlay</p>
+          <p className="mt-2">© {new Date().getFullYear()} Duet</p>
         </footer>
       </div>
     </div>

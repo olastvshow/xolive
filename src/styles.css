@@ -73,9 +73,8 @@
 
 @layer base {
   html, body {
-    font-family: "Quicksand", ui-sans-serif, system-ui, sans-serif;
-    background-color: var(--color-surface);
-    color: var(--color-on-surface);
+    background-color: #0d0d0d;
+    color: #f2efe9;
     -webkit-tap-highlight-color: transparent;
   }
   * {
@@ -333,14 +332,52 @@
 .wiggle { animation: wiggle 2.2s ease-in-out infinite; }
 
 
-/* ================= PairPlay night palette ================= */
+/* ================= Duet — noir & gold ================= */
 @theme {
-  --color-night: #0a0b18;
-  --color-night-2: #12142a;
-  --color-night-3: #1b1e3d;
-  --color-ink: #e9eaf7;
-  --color-me: #7aa7ff;
-  --color-them: #ffb469;
+  --font-sans: "Manrope", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+
+  --color-night: #0d0d0d;
+  --color-night-2: #151515;
+  --color-night-3: #1e1e1e;
+  --color-hair: #2a2a2a;
+  --color-ink: #f2efe9;
+  --color-me: #f0ece3;
+  --color-them: #c9a84c;
+  --color-gold: #c9a84c;
+  --color-gold-soft: #f0d78c;
+}
+
+@layer base {
+  html, body {
+    font-family: "Manrope", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.011em;
+  }
+  h1, h2, h3, .font-display {
+    font-family: "Sora", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.03em;
+  }
+}
+
+@utility hairline {
+  border: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+}
+
+@utility card-noir {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-ink) 5%, transparent),
+    color-mix(in oklab, var(--color-ink) 2%, transparent)
+  );
+  border: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+  border-radius: 22px;
+}
+
+@utility press {
+  transition: transform 180ms cubic-bezier(0.32, 0.72, 0, 1), opacity 180ms ease;
+  &:active { transform: scale(0.975); }
 }
 
 @keyframes pp-float-up {

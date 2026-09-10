@@ -4,8 +4,8 @@ import { Icon } from "@/components/Icon";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — PairPlay" },
-      { name: "description", content: "The rules for using PairPlay." },
+      { title: "Terms of Service — Duet" },
+      { name: "description", content: "The rules for using Duet." },
     ],
   }),
   component: TermsPage,
@@ -23,7 +23,7 @@ function TermsPage() {
       <main className="max-w-2xl mx-auto px-5 py-6 space-y-5 text-sm leading-relaxed">
         <p className="text-xs text-on-surface-variant">Last updated: June 2026</p>
 
-        <Section title="Using PairPlay">
+        <Section title="Using Duet">
           You must be at least 13 years old to create an account. Pick a respectful username and
           keep your password secret — you're responsible for activity under your account.
         </Section>
@@ -44,7 +44,7 @@ function TermsPage() {
         </Section>
 
         <Section title="Service availability">
-          We work hard to keep PairPlay up, but we don't guarantee uninterrupted service. Features
+          We work hard to keep Duet up, but we don't guarantee uninterrupted service. Features
           may change as the game evolves.
         </Section>
 

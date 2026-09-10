@@ -8,17 +8,18 @@ import {
 import { GAMES } from "@/games/registry";
 import type { GameKey } from "@/games/logic";
 import { cn } from "@/lib/utils";
+import { Glyph } from "@/components/Glyph";
 
 export const Route = createFileRoute("/_authenticated/play")({
   head: () => ({
     meta: [
-      { title: "Play online — PairPlay" },
+      { title: "Play online — Duet" },
       { name: "description", content: "Find someone online, send an invite, or open a room with a six-character code." },
-      { property: "og:title", content: "Play online — PairPlay" },
+      { property: "og:title", content: "Play online — Duet" },
       { property: "og:description", content: "Find someone online, send an invite, or open a room with a six-character code." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Play online — PairPlay" },
+      { name: "twitter:title", content: "Play online — Duet" },
       { name: "twitter:description", content: "Find someone online, send an invite, or open a room with a code." },
     ],
   }),
@@ -102,22 +103,24 @@ function PlayOnline() {
     <div className="min-h-screen bg-night text-ink">
       <div className="max-w-md mx-auto px-5 pt-8 pb-24">
         <div className="flex items-center gap-3">
-          <Link to="/" className="w-10 h-10 rounded-2xl bg-night-3 grid place-items-center" aria-label="Back">‹</Link>
-          <h1 className="text-2xl font-black">Play online</h1>
+          <Link to="/" className="w-10 h-10 rounded-full bg-night-2 hairline grid place-items-center text-ink/60 press" aria-label="Back">
+            <Glyph name="left" size={18} />
+          </Link>
+          <h1 className="font-display text-2xl font-semibold">Play online</h1>
         </div>
 
-        <p className="mt-6 text-xs uppercase tracking-widest text-ink/35">pick the game first</p>
+        <p className="mt-8 text-[11px] uppercase tracking-[0.3em] text-ink/30">pick the game first</p>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {GAMES.map((g) => (
             <button
               key={g.key}
               onClick={() => setGame(g.key)}
               className={cn(
-                "shrink-0 rounded-2xl px-4 h-11 font-semibold text-sm active:scale-95 transition-transform",
-                game === g.key ? "bg-me text-night" : "bg-night-3 text-ink/60",
+                "shrink-0 rounded-full px-4 h-11 font-semibold text-sm press inline-flex items-center gap-2",
+                game === g.key ? "bg-me text-night" : "bg-night-2 hairline text-ink/60",
               )}
             >
-              {g.emoji} {g.name}
+              <Glyph name={g.icon} size={16} /> {g.name}
             </button>
           ))}
         </div>
@@ -144,7 +147,7 @@ function PlayOnline() {
                 className="flex items-center gap-3 rounded-3xl bg-night-3/80 px-4 py-3.5 active:scale-[0.98] transition-transform disabled:opacity-40"
               >
                 <span className="w-10 h-10 rounded-2xl bg-night-2 grid place-items-center overflow-hidden">
-                  {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : "🙂"}
+                  {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : <Glyph name="person" size={18} />}
                 </span>
                 <span className="font-semibold">{p.display_name ?? p.username}</span>
                 <span className="ml-auto text-xs uppercase tracking-widest text-me">invite</span>
@@ -215,7 +218,7 @@ function PlayOnline() {
       {firstInvite && !pending && (
         <div className="fixed inset-0 bg-night/90 grid place-items-center px-8 text-center">
           <div className="w-full max-w-sm rounded-[28px] bg-night-3 p-7">
-            <p className="text-5xl">🔔</p>
+            <span className="w-14 h-14 mx-auto rounded-full bg-them/15 text-them grid place-items-center"><Glyph name="bell" size={24} /></span>
             <p className="mt-4 text-xl font-bold">
               {firstInvite.from?.display_name ?? firstInvite.from?.username ?? "Someone"} wants to play
             </p>

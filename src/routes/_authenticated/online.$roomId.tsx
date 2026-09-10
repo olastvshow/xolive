@@ -5,18 +5,19 @@ import { useEffect } from "react";
 import { getMatchRoom, leaveMatchRoom } from "@/lib/online.functions";
 import { RoomScreen } from "@/components/room/RoomScreen";
 import type { Profile } from "@/games/play-context";
+import { Glyph } from "@/components/Glyph";
 
 export const Route = createFileRoute("/_authenticated/online/$roomId")({
   head: () => ({
     meta: [
-      { title: "Online match — PairPlay" },
-      { name: "description", content: "A live PairPlay match room with voice, reactions and five games." },
-      { property: "og:title", content: "Online match — PairPlay" },
-      { property: "og:description", content: "A live PairPlay match room with voice, reactions and five games." },
+      { title: "Online match — Duet" },
+      { name: "description", content: "A live Duet match room with voice, reactions and five games." },
+      { property: "og:title", content: "Online match — Duet" },
+      { property: "og:description", content: "A live Duet match room with voice, reactions and five games." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Online match — PairPlay" },
-      { name: "twitter:description", content: "A live PairPlay match room with voice, reactions and five games." },
+      { name: "twitter:title", content: "Online match — Duet" },
+      { name: "twitter:description", content: "A live Duet match room with voice, reactions and five games." },
     ],
   }),
   component: OnlineRoom,
@@ -66,7 +67,7 @@ function OnlineRoom() {
     return (
       <div className="min-h-screen bg-night grid place-items-center px-8 text-center">
         <div>
-          <p className="text-6xl animate-pulse">🕰️</p>
+          <span className="w-16 h-16 mx-auto rounded-full bg-night-2 hairline text-them grid place-items-center animate-pulse"><Glyph name="clock" size={26} /></span>
           <p className="mt-4 text-xl font-bold text-ink">Waiting for someone to join</p>
           {data.room.code && (
             <p className="mt-3 text-4xl font-black tracking-[0.3em] text-me tabular-nums">{data.room.code}</p>

@@ -6,6 +6,7 @@ import { CommentStrip } from "@/components/room/CommentStrip";
 import { PlayProvider, displayName, type PlayValue, type Profile } from "@/games/play-context";
 import { GAMES, gameByKey } from "@/games/registry";
 import type { GameKey } from "@/games/logic";
+import { Glyph } from "@/components/Glyph";
 
 export function RoomScreen({
   roomId, me, partner, isHost, banner, onLeaveRoom, leaveLabel,
@@ -72,8 +73,9 @@ function RoomBody({
       )}
 
       {knockToast && (
-        <div className="mx-5 mb-2 rounded-2xl bg-them/20 px-4 py-3 text-sm text-them font-semibold">
-          {partnerName} knocked 👋
+        <div className="mx-5 mb-2 flex items-center gap-2 rounded-2xl bg-them/15 px-4 py-3 text-sm text-them font-semibold">
+          <Glyph name="knock" size={17} />
+          {partnerName} knocked
         </div>
       )}
 
@@ -127,7 +129,9 @@ function RoomBody({
                     className="w-full text-left rounded-3xl bg-night-3/70 p-5 active:scale-[0.98] transition-transform disabled:opacity-40"
                   >
                     <div className="flex items-center gap-4">
-                      <span className="text-3xl">{g.emoji}</span>
+                      <span className="w-10 h-10 rounded-full bg-night-2 grid place-items-center text-them shrink-0">
+                        <Glyph name={g.icon} size={19} />
+                      </span>
                       <span>
                         <span className="block text-lg font-bold text-ink">{g.name}</span>
                         <span className="block text-sm text-ink/45">{g.tagline}</span>
