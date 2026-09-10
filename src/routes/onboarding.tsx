@@ -8,7 +8,7 @@ export const Route = createFileRoute("/onboarding")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "PairPlay — Welcome" },
+      { title: "Duet — Welcome" },
       { name: "description", content: "Two people, one private room, always-on voice and small games." },
     ],
   }),
@@ -36,16 +36,16 @@ function OnboardingPage() {
         {/* Brand */}
         <div className="flex items-center justify-center gap-2 animate-slide-in-up">
           <div className="h-10 w-10 rounded-2xl bg-white overflow-hidden ring-1 ring-black/5 shadow-sm">
-            <img src={logoAsset.url} alt="PairPlay" className="w-full h-full object-cover" />
+            <img src={logoAsset.url} alt="Duet" className="w-full h-full object-cover" />
           </div>
-          <span className="font-bold tracking-tight text-on-surface">PairPlay</span>
+          <span className="font-bold tracking-tight text-on-surface">Duet</span>
         </div>
 
         {/* Illustration */}
         <div className="flex-1 flex items-center justify-center my-6">
           <img
             src={arenaAsset.url}
-            alt="PairPlay game arena"
+            alt="Duet game arena"
             width={1024}
             height={1024}
             className="w-[82%] max-w-[340px] aspect-square object-contain float-bob animate-pop-in drop-shadow-[0_20px_40px_rgba(57,64,134,0.25)]"
@@ -55,7 +55,7 @@ function OnboardingPage() {
         {/* Copy */}
         <div className="text-center animate-slide-in-up">
           <h1 className="text-[32px] leading-[1.1] font-bold tracking-tight text-on-surface">
-            Welcome to PairPlay
+            Welcome to Duet
           </h1>
           <p className="mt-3 text-[15px] text-on-surface-variant leading-relaxed max-w-[300px] mx-auto">
             Play tic-tac-toe with friends, climb the leaderboard and have fun.

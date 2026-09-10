@@ -11,16 +11,16 @@ export const Route = createFileRoute("/solo/$game")({
   head: ({ params }) => {
     const entry = gameByKey(params.game);
     const name = entry?.name ?? "Solo game";
-    const desc = entry ? `${entry.tagline} Play ${entry.name} against the computer — no sign-in needed.` : "Play against the computer on PairPlay.";
+    const desc = entry ? `${entry.tagline} Play ${entry.name} against the computer — no sign-in needed.` : "Play against the computer on Duet.";
     return {
       meta: [
-        { title: `${name} vs Computer — PairPlay` },
+        { title: `${name} vs Computer — Duet` },
         { name: "description", content: desc },
-        { property: "og:title", content: `${name} vs Computer — PairPlay` },
+        { property: "og:title", content: `${name} vs Computer — Duet` },
         { property: "og:description", content: desc },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary" },
-        { name: "twitter:title", content: `${name} vs Computer — PairPlay` },
+        { name: "twitter:title", content: `${name} vs Computer — Duet` },
         { name: "twitter:description", content: desc },
       ],
     };
