@@ -2,9 +2,7 @@ import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-r
 import { useState } from "react";
 import { SoloPlay } from "@/games/SoloPlay";
 import { gameByKey } from "@/games/registry";
-import { DIFFICULTIES, type Difficulty } from "@/games/difficulty";
 import type { GameKey } from "@/games/logic";
-import { cn } from "@/lib/utils";
 import { Glyph } from "@/components/Glyph";
 
 export const Route = createFileRoute("/solo/$game")({
@@ -32,76 +30,55 @@ function SoloGame() {
   const { game } = useParams({ from: "/solo/$game" });
   const navigate = useNavigate();
   const entry = gameByKey(game);
-  const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [round, setRound] = useState(0);
 
   if (!entry) {
     return (
-      <div className="min-h-screen bg-night grid place-items-center text-center px-8">
+      <div className="grid min-h-[100dvh] place-items-center bg-night px-8 text-center">
         <div>
-          <p className="text-xl font-bold text-ink">That game doesn't exist.</p>
-          <Link to="/solo" className="mt-5 inline-grid h-12 px-6 rounded-2xl bg-me text-night font-bold place-items-center">
-            See the games
-          </Link>
+          <p className="font-display text-xl text-ink">That game doesn't exist.</p>
+          <Link to="/games" className="btn-pop mt-5 inline-flex h-12 items-center px-6">See the games</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-night text-ink">
-      <div className="max-w-md mx-auto px-1 pt-8 pb-16">
+    <div className="min-h-[100dvh] bg-night text-ink">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-56 opacity-40"
+        style={{ background: entry.wash }}
+      />
+      <div className="relative mx-auto w-full max-w-md px-1 pb-16 pt-7">
         <div className="flex items-center gap-3 px-4">
-          <Link to="/solo" className="w-10 h-10 rounded-full bg-night-2 hairline grid place-items-center text-ink/60 press shrink-0" aria-label="Back">
+          <Link
+            to="/games/$game"
+            params={{ game: entry.key }}
+            aria-label="Go back"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 bg-night-2 text-ink/70 press"
+          >
             <Glyph name="left" size={18} />
           </Link>
-          <div className="min-w-0 flex items-center gap-2.5">
-            <span className="text-them shrink-0"><Glyph name={entry.icon} size={20} /></span>
-            <div className="min-w-0">
-              <h1 className="font-display text-xl font-semibold truncate">{entry.name}</h1>
-              <p className="text-xs text-ink/40 truncate">vs Computer{difficulty ? ` · ${difficulty}` : ""}</p>
-            </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-display text-xl">{entry.name}</h1>
+            <p className="truncate text-xs text-ink/40">vs Computer</p>
           </div>
+          <button
+            onClick={() => setRound((r) => r + 1)}
+            className="h-10 shrink-0 rounded-full border border-white/10 bg-night-2 px-4 text-xs font-bold uppercase tracking-[0.15em] text-ink/60 press"
+          >
+            New round
+          </button>
         </div>
 
-        {!difficulty ? (
-          <div className="mt-9 px-4 grid gap-3">
-            <p className="text-xs uppercase tracking-widest text-ink/35">how hard?</p>
-            {DIFFICULTIES.map((d) => (
-              <button
-                key={d.key}
-                onClick={() => setDifficulty(d.key)}
-                className="rounded-3xl bg-night-3/80 px-5 py-5 text-left active:scale-[0.98] transition-transform"
-              >
-                <span className="block text-lg font-bold">{d.label}</span>
-                <span className="block text-sm text-ink/45">{d.blurb}</span>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6">
-            <SoloPlay
-              key={`${game}-${difficulty}-${round}`}
-              gameKey={game as GameKey}
-              difficulty={difficulty}
-              onExit={() => navigate({ to: "/solo" })}
-            />
-            <div className="mt-5 px-4 flex gap-2">
-              {DIFFICULTIES.map((d) => (
-                <button
-                  key={d.key}
-                  onClick={() => { setDifficulty(d.key); setRound((r) => r + 1); }}
-                  className={cn(
-                    "flex-1 h-10 rounded-xl text-sm font-semibold active:scale-95 transition-transform",
-                    difficulty === d.key ? "bg-me/20 text-me" : "bg-night-2 text-ink/45",
-                  )}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="mt-6">
+          <SoloPlay
+            key={`${game}-${round}`}
+            gameKey={game as GameKey}
+            difficulty="medium"
+            onExit={() => navigate({ to: "/games" })}
+          />
+        </div>
       </div>
     </div>
   );
