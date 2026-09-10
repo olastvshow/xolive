@@ -46,7 +46,7 @@ function SoloIndex() {
                   width={768}
                   height={768}
                   loading="lazy"
-                  className="h-full w-auto object-contain drop-shadow-[0_14px_26px_rgba(0,0,0,0.45)]"
+                  className="max-h-full w-full object-contain drop-shadow-[0_14px_26px_rgba(0,0,0,0.45)]"
                 />
               </div>
               <p className="relative z-10 mt-3 font-display text-[17px] leading-tight lg:text-xl">{g.name}</p>
