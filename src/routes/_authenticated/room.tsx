@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPairState } from "@/lib/pairplay.functions";
 import { RoomScreen } from "@/components/room/RoomScreen";
 import type { Profile } from "@/games/play-context";
+import { Glyph } from "@/components/Glyph";
 
 export const Route = createFileRoute("/_authenticated/room")({
   head: () => ({
@@ -36,7 +37,7 @@ function PairRoom() {
   if (!data?.partner || !data.room || !data.me) {
     return (
       <div className="min-h-screen bg-night flex flex-col items-center justify-center gap-6 px-8 text-center">
-        <div className="text-5xl">🫂</div>
+        <span className="w-16 h-16 rounded-full bg-night-2 hairline text-them grid place-items-center"><Glyph name="people" size={26} /></span>
         <div>
           <h1 className="text-2xl font-bold text-ink">Your room is waiting</h1>
           <p className="mt-2 text-sm text-ink/50">This room only works with one other person. Invite them, or enter their code.</p>
