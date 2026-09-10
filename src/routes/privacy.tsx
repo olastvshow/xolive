@@ -4,8 +4,8 @@ import { Icon } from "@/components/Icon";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — XO Live" },
-      { name: "description", content: "How XO Live collects, uses, and protects your data." },
+      { title: "Privacy Policy — PairPlay" },
+      { name: "description", content: "How PairPlay collects, uses, and protects your data." },
     ],
   }),
   component: PrivacyPage,

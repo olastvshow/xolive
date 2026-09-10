@@ -8,7 +8,7 @@ import { getMyProfile, deleteMyAccount, checkAccountStatus } from "@/lib/pairpla
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/delete-account")({
-  head: () => ({ meta: [{ title: "XO Live — Delete Account" }] }),
+  head: () => ({ meta: [{ title: "PairPlay — Delete Account" }] }),
   component: DeleteAccountPage,
 });
 
@@ -77,7 +77,7 @@ function DeleteAccountPage() {
         <div className="text-center">
           <h1 className="text-2xl font-black text-on-surface">Delete account</h1>
           <p className="text-sm text-on-surface-variant mt-2 leading-relaxed">
-            Permanently remove <span className="font-bold text-on-surface">@{p?.username ?? "your account"}</span> from XO Live.
+            Permanently remove <span className="font-bold text-on-surface">@{p?.username ?? "your account"}</span> from PairPlay.
           </p>
         </div>
 

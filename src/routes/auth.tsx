@@ -14,8 +14,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "XO Live — Sign in" },
-      { name: "description", content: "Sign in or create an account to play XO Live." },
+      { title: "PairPlay — Sign in" },
+      { name: "description", content: "Sign in or create an account to play PairPlay." },
     ],
   }),
   component: AuthPage,
@@ -89,7 +89,7 @@ function AuthPage() {
             <Icon name="arrow_back" />
           </Link>
           <div className="h-10 w-10 rounded-2xl bg-white overflow-hidden ring-1 ring-black/5 shadow-sm">
-            <img src={logoAsset.url} alt="XO Live" className="w-full h-full object-cover" />
+            <img src={logoAsset.url} alt="PairPlay" className="w-full h-full object-cover" />
           </div>
           <span className="w-10" />
         </div>
@@ -182,7 +182,7 @@ function AuthPage() {
 
         {/* Switch */}
         <p className="text-center text-[13px] text-on-surface-variant mt-auto pt-8">
-          {tab === "signin" ? "New to XO Live? " : "Already have an account? "}
+          {tab === "signin" ? "New to PairPlay? " : "Already have an account? "}
           <button
             onClick={() => { setTab(tab === "signin" ? "signup" : "signin"); setError(null); }}
             className="text-on-surface font-semibold"

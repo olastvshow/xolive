@@ -7,7 +7,7 @@ export const Route = createFileRoute("/solo")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "XO Live — Play vs Computer" },
+      { title: "PairPlay — Play vs Computer" },
       { name: "description", content: "Play Tic-Tac-Toe against a smart AI. No sign-in required." },
     ],
   }),
