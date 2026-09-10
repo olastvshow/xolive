@@ -1,0 +1,23 @@
+/** Local question bank used for solo play (no sign-in, no database). */
+export const SOLO_QUESTIONS: { category: string; prompt: string; options: string[] }[] = [
+  { category: "Food", prompt: "Last meal on earth?", options: ["Jollof rice", "Pizza", "Suya", "Pasta"] },
+  { category: "Food", prompt: "Coffee or tea, honestly?", options: ["Coffee", "Tea", "Neither", "Whatever's free"] },
+  { category: "Food", prompt: "Best midnight snack?", options: ["Noodles", "Ice cream", "Bread", "Leftovers"] },
+  { category: "Habits", prompt: "Phone battery right now?", options: ["Under 20%", "Around half", "Almost full", "Plugged in"] },
+  { category: "Habits", prompt: "Alarms set for tomorrow?", options: ["One", "Three or more", "None", "I never sleep"] },
+  { category: "Habits", prompt: "Reply speed to texts?", options: ["Instantly", "Within an hour", "Next day", "Read, never replied"] },
+  { category: "Past", prompt: "Childhood dream job?", options: ["Doctor", "Footballer", "Musician", "Pilot"] },
+  { category: "Past", prompt: "First thing you ever saved money for?", options: ["A phone", "Sneakers", "A game", "Nothing, I spent it"] },
+  { category: "Past", prompt: "Worst haircut era?", options: ["Primary school", "Secondary school", "Last year", "Right now"] },
+  { category: "Future", prompt: "Where would you move tomorrow?", options: ["Somewhere warm", "Big city", "Quiet village", "Nowhere, I'm fine"] },
+  { category: "Future", prompt: "Dream way to spend a free Saturday?", options: ["Sleep", "Outside all day", "Games", "Cook something long"] },
+  { category: "Future", prompt: "Pick a superpower", options: ["Teleport", "Read minds", "Stop time", "Never get tired"] },
+  { category: "Silly", prompt: "Which animal are you at 6am?", options: ["Sloth", "Rooster", "Cat", "Bear"] },
+  { category: "Silly", prompt: "Would you eat a whole lemon for money?", options: ["Absolutely", "For a lot", "Never", "Already did"] },
+  { category: "Silly", prompt: "Choose a haunted house companion", options: ["A dog", "A loud friend", "A quiet friend", "Nobody"] },
+  { category: "Silly", prompt: "Pick a ringtone personality", options: ["Silent", "Vibrate only", "Full volume", "Custom song"] },
+  { category: "Habits", prompt: "How do you queue a playlist?", options: ["Shuffle everything", "Same five songs", "One album", "Whatever plays"] },
+  { category: "Food", prompt: "Pineapple on pizza?", options: ["Yes", "No", "Depends", "Never tried"] },
+  { category: "Future", prompt: "First big purchase after a windfall?", options: ["A car", "A house", "A trip", "Save it all"] },
+  { category: "Past", prompt: "Most embarrassing childhood fear?", options: ["The dark", "Dogs", "Deep water", "Being alone"] },
+];

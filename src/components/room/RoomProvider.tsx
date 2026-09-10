@@ -3,16 +3,11 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useVoice, type SignalBus, type VoicePayload } from "@/hooks/useVoice";
-import { applyAction, type GameAction } from "@/games/logic";
+import { applyAction, type GameAction, type GameKey } from "@/games/logic";
+import type { Profile } from "@/games/play-context";
 import { getComments, getSession, proposeGame, respondProposal, sendComment, submitMove, endSession, restartSession } from "@/lib/pairplay.functions";
 
-export type Profile = {
-  id: string;
-  username: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  last_seen_at?: string | null;
-};
+export type { Profile };
 
 export type Session = {
   id: string;
@@ -44,11 +39,14 @@ type Ctx = {
   knockReceived: number;
   say: (text: string) => void;
   setTyping: (on: boolean) => void;
-  propose: (gameKey: "xo" | "guess-me") => Promise<void>;
+  propose: (gameKey: GameKey) => Promise<void>;
   respond: (accept: boolean) => Promise<void>;
   play: (action: GameAction) => void;
   restart: () => Promise<void>;
   leaveGame: () => Promise<void>;
+  isHost: boolean;
+  sendStream: (payload: unknown) => void;
+  onStream: (cb: (payload: unknown) => void) => () => void;
   busy: boolean;
 };
 
@@ -65,6 +63,7 @@ export function RoomProvider({
   roomId, me, partner, isHost, children,
 }: { roomId: string; me: Profile; partner: Profile; isHost: boolean; children: ReactNode }) {
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const streamListeners = useRef<Set<(payload: unknown) => void>>(new Set());
   const [partnerOnline, setPartnerOnline] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -130,6 +129,9 @@ export function RoomProvider({
         setKnockReceived((n) => n + 1);
         if (navigator.vibrate) navigator.vibrate([30, 60, 30]);
       })
+      .on("broadcast", { event: "stream" }, ({ payload }) => {
+        streamListeners.current.forEach((cb) => cb(payload));
+      })
       .on("postgres_changes",
         { event: "*", schema: "public", table: "game_sessions", filter: `room_id=eq.${roomId}` },
         (payload) => {
@@ -186,7 +188,7 @@ export function RoomProvider({
       .catch(() => setComments((c) => c.filter((x) => x.id !== optimistic.id)));
   }, [me.id, roomId, sendCommentFn]);
 
-  const propose = useCallback(async (gameKey: "xo" | "guess-me") => {
+  const propose = useCallback(async (gameKey: GameKey) => {
     setBusy(true);
     try {
       const row = await proposeFn({ data: { roomId, gameKey } });
@@ -235,11 +237,22 @@ export function RoomProvider({
     setSession(null);
   }, [endFn, session]);
 
+  const sendStream = useCallback((payload: unknown) => {
+    channelRef.current?.send({ type: "broadcast", event: "stream", payload });
+  }, []);
+
+  const onStream = useCallback((cb: (payload: unknown) => void) => {
+    streamListeners.current.add(cb);
+    return () => { streamListeners.current.delete(cb); };
+  }, []);
+
   const value = useMemo<Ctx>(() => ({
-    roomId, me, partner, partnerOnline, session, bursts, comments, typingPartner,
-    voice, react, knock, knockReceived, say, setTyping, propose, respond, play, restart, leaveGame, busy,
-  }), [roomId, me, partner, partnerOnline, session, bursts, comments, typingPartner, voice,
-    react, knock, knockReceived, say, setTyping, propose, respond, play, restart, leaveGame, busy]);
+    roomId, me, partner, partnerOnline, session, bursts, comments, typingPartner, isHost,
+    voice, react, knock, knockReceived, say, setTyping, propose, respond, play, restart, leaveGame,
+    sendStream, onStream, busy,
+  }), [roomId, me, partner, partnerOnline, session, bursts, comments, typingPartner, voice, isHost,
+    react, knock, knockReceived, say, setTyping, propose, respond, play, restart, leaveGame,
+    sendStream, onStream, busy]);
 
   return <RoomCtx.Provider value={value}>{children}</RoomCtx.Provider>;
 }

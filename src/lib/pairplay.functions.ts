@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { applyAction, gmInit, xoInit, type GmQuestion, type Meta } from "@/games/logic";
+import {
+  applyAction, gmInit, xoInit, sudokuInit, makeSudoku, rushInit, makeRushRounds, hockeyInit,
+  GAME_KEYS, type GmQuestion, type Meta,
+} from "@/games/logic";
 
 const GRACE_DAYS = 30;
 
@@ -187,13 +190,20 @@ export const unpair = createServerFn({ method: "POST" })
 async function requireRoom(admin: Admin, userId: string, roomId: string) {
   const { data: room } = await admin.from("rooms").select("*").eq("id", roomId).maybeSingle();
   if (!room) throw new Error("Room not found");
-  const { data: member } = await admin.from("pair_members")
-    .select("user_id").eq("pair_id", room.pair_id).eq("user_id", userId).eq("active", true).maybeSingle();
-  if (!member) throw new Error("Not your room");
-  const { data: members } = await admin.from("pair_members")
-    .select("user_id").eq("pair_id", room.pair_id).eq("active", true);
-  return { room, players: (members ?? []).map((m) => m.user_id) };
+
+  if (room.pair_id) {
+    const { data: members } = await admin.from("pair_members")
+      .select("user_id").eq("pair_id", room.pair_id).eq("active", true);
+    const ids = (members ?? []).map((m) => m.user_id);
+    if (!ids.includes(userId)) throw new Error("Not your room");
+    return { room, players: ids };
+  }
+
+  const ids = [room.host_id, room.guest_id].filter((x): x is string => Boolean(x));
+  if (!ids.includes(userId)) throw new Error("Not your room");
+  return { room, players: ids };
 }
+
 
 export const getComments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -259,6 +269,12 @@ async function buildInitialState(admin: Admin, gameKey: string, players: string[
     }));
     return gmInit(questions);
   }
+  if (gameKey === "sudoku") {
+    const { given, solution } = makeSudoku(46);
+    return sudokuInit(given, solution);
+  }
+  if (gameKey === "bottle-rush") return rushInit(makeRushRounds(7), players);
+  if (gameKey === "air-hockey") return hockeyInit(players, 7);
   throw new Error("Unknown game");
 }
 
@@ -266,7 +282,7 @@ export const proposeGame = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     roomId: z.string().uuid(),
-    gameKey: z.enum(["xo", "guess-me"]),
+    gameKey: z.enum(GAME_KEYS),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -370,13 +386,30 @@ function isFinished(gameKey: string, state: unknown): { ended: boolean; winnerId
     const s = state as { done: boolean };
     return { ended: s.done, winnerId: null };
   }
+  if (gameKey === "sudoku") {
+    const s = state as { done: boolean };
+    return { ended: s.done, winnerId: null };
+  }
+  if (gameKey === "bottle-rush") {
+    const s = state as { done: boolean; scores: Record<string, number> };
+    if (!s.done) return { ended: false, winnerId: null };
+    const ranked = Object.entries(s.scores).sort((a, b) => b[1] - a[1]);
+    const winnerId = ranked.length > 1 && ranked[0][1] === ranked[1][1] ? null : (ranked[0]?.[0] ?? null);
+    return { ended: true, winnerId };
+  }
+  if (gameKey === "air-hockey") {
+    const s = state as { done: boolean; winner: string | null };
+    return { ended: s.done, winnerId: s.winner };
+  }
   return { ended: false, winnerId: null };
 }
 
 async function bumpStats(admin: Admin, roomId: string, gameKey: string) {
   const { data: room } = await admin.from("rooms").select("pair_id").eq("id", roomId).maybeSingle();
-  if (!room) return;
-  const { data: stats } = await admin.from("pair_stats").select("*").eq("pair_id", room.pair_id).maybeSingle();
+  if (!room?.pair_id) return;
+  const pairId = room.pair_id;
+  const { data: stats } = await admin.from("pair_stats").select("*").eq("pair_id", pairId).maybeSingle();
+
   const today = new Date().toISOString().slice(0, 10);
   const played = { ...((stats?.games_played ?? {}) as Record<string, number>) };
   played[gameKey] = (played[gameKey] ?? 0) + 1;
@@ -386,7 +419,7 @@ async function bumpStats(admin: Admin, roomId: string, gameKey: string) {
     ? (stats?.streak ?? 1)
     : stats?.last_played_on === yesterday ? (stats?.streak ?? 0) + 1 : 1;
   await admin.from("pair_stats").upsert({
-    pair_id: room.pair_id,
+    pair_id: pairId,
     streak,
     last_played_on: today,
     nights_played: (stats?.nights_played ?? 0) + (sameDay ? 0 : 1),

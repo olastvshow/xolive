@@ -181,6 +181,103 @@ export type Database = {
         }
         Relationships: []
       }
+      lobby_presence: {
+        Row: {
+          available: boolean
+          created_at: string
+          game_key: string | null
+          last_seen_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available?: boolean
+          created_at?: string
+          game_key?: string | null
+          last_seen_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available?: boolean
+          created_at?: string
+          game_key?: string | null
+          last_seen_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lobby_presence_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_invites: {
+        Row: {
+          created_at: string
+          expires_at: string
+          from_user: string
+          game_key: string | null
+          id: string
+          room_id: string
+          status: string
+          to_user: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          from_user: string
+          game_key?: string | null
+          id?: string
+          room_id: string
+          status?: string
+          to_user: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          from_user?: string
+          game_key?: string | null
+          id?: string
+          room_id?: string
+          status?: string
+          to_user?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_invites_from_user_fkey"
+            columns: ["from_user"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_invites_game_key_fkey"
+            columns: ["game_key"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "match_invites_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_invites_to_user_fkey"
+            columns: ["to_user"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           created_at: string
@@ -408,27 +505,49 @@ export type Database = {
       }
       rooms: {
         Row: {
+          code: string | null
           created_at: string
+          guest_id: string | null
           host_id: string | null
           id: string
-          pair_id: string
+          kind: string
+          last_active_at: string
+          pair_id: string | null
+          status: string
           theme: string
         }
         Insert: {
+          code?: string | null
           created_at?: string
+          guest_id?: string | null
           host_id?: string | null
           id?: string
-          pair_id: string
+          kind?: string
+          last_active_at?: string
+          pair_id?: string | null
+          status?: string
           theme?: string
         }
         Update: {
+          code?: string | null
           created_at?: string
+          guest_id?: string | null
           host_id?: string | null
           id?: string
-          pair_id?: string
+          kind?: string
+          last_active_at?: string
+          pair_id?: string | null
+          status?: string
           theme?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rooms_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rooms_host_id_fkey"
             columns: ["host_id"]
@@ -452,6 +571,10 @@ export type Database = {
     Functions: {
       is_pair_member: {
         Args: { _pair_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_room_member: {
+        Args: { _room_id: string; _user_id: string }
         Returns: boolean
       }
       my_pair_id: { Args: never; Returns: string }
