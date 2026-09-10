@@ -1,14 +1,14 @@
-import { Link } from "@tanstack/react-router";
+import { Link, type LinkProps } from "@tanstack/react-router";
 import { Glyph, type GlyphName } from "@/components/Glyph";
 
-type Tab = { to: string; label: string; icon: GlyphName };
+type Tab = { to: LinkProps["to"]; label: string; icon: GlyphName };
 
 const TABS: Tab[] = [
   { to: "/", label: "Home", icon: "home" },
-  { to: "/play", label: "Online", icon: "globe" },
-  { to: "/solo", label: "Solo", icon: "cpu" },
-  { to: "/room", label: "Room", icon: "people" },
-  { to: "/profile", label: "You", icon: "settings" },
+  { to: "/games", label: "Games", icon: "xo" },
+  { to: "/play", label: "Rooms", icon: "people" },
+  { to: "/leaderboard", label: "Ranks", icon: "trophy" },
+  { to: "/profile", label: "You", icon: "person" },
 ];
 
 /** Bottom tab bar on phones, top navigation rail on wide screens. */
@@ -18,15 +18,15 @@ export function TabBar() {
       {/* phone: floating bottom bar */}
       <nav
         aria-label="Main"
-        className="lg:hidden fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom))] pt-2 bg-gradient-to-t from-night via-night/90 to-transparent"
+        className="lg:hidden fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom))] pt-3 bg-gradient-to-t from-night via-night/92 to-transparent"
       >
-        <ul className="mx-auto flex max-w-md items-center justify-between rounded-[26px] border border-white/10 bg-night-2/95 px-2 py-1.5 backdrop-blur">
+        <ul className="mx-auto flex max-w-md items-center justify-between rounded-[26px] border border-white/10 bg-night-2/95 px-1.5 py-1.5 backdrop-blur">
           {TABS.map((t) => (
-            <li key={t.to} className="flex-1">
+            <li key={t.label} className="flex-1">
               <Link
                 to={t.to}
                 activeOptions={{ exact: t.to === "/" }}
-                className="group flex h-[52px] flex-col items-center justify-center gap-1 rounded-[20px] text-ink/45 data-[status=active]:bg-white/8 data-[status=active]:text-pop"
+                className="flex h-[54px] flex-col items-center justify-center gap-1 rounded-[20px] text-ink/45 transition-colors data-[status=active]:bg-white/8 data-[status=active]:text-pop"
               >
                 <Glyph name={t.icon} size={19} />
                 <span className="text-[10px] font-semibold tracking-wide">{t.label}</span>
@@ -44,7 +44,7 @@ export function TabBar() {
           </Link>
           <ul className="flex items-center gap-1">
             {TABS.map((t) => (
-              <li key={t.to}>
+              <li key={t.label}>
                 <Link
                   to={t.to}
                   activeOptions={{ exact: t.to === "/" }}
