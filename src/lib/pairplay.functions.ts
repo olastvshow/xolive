@@ -146,7 +146,8 @@ export const redeemInvite = createServerFn({ method: "POST" })
     const code = data.code.toUpperCase();
 
     const mine = await livePairFor(supabaseAdmin, context.userId);
-    if (mine?.status === "active") throw new Error("You are already paired with someone");
+    // Already in a live pair: don't blow up, just send them to their room.
+    if (mine?.status === "active") return { ok: true, pair_id: mine.id, already: true };
 
     const { data: invite } = await supabaseAdmin
       .from("pair_invites").select("*").eq("code", code).maybeSingle();
