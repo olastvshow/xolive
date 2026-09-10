@@ -3,7 +3,7 @@ import { usePlay, displayName } from "@/games/play-context";
 import type { RushState } from "@/games/logic";
 import { cn } from "@/lib/utils";
 
-const BOTTLES = ["🍾", "🥤", "🍼", "🧴"];
+const BOTTLES = ["A", "B", "C", "D"];
 
 export function BottleRushGame() {
   const { state, me, partner, isHost, play, restart, leaveGame } = usePlay();
@@ -47,9 +47,9 @@ export function BottleRushGame() {
     return (
       <div className="px-4">
         <div className="rounded-3xl bg-night-3/70 p-7 text-center">
-          <p className="text-5xl">{iWon ? "⚡" : "🐢"}</p>
+          
           <p className="mt-3 text-xl font-bold text-ink">
-            {myScore === theirScore ? "Dead heat." : iWon ? "Fastest hands 💙" : `${partnerName} was quicker 🧡`}
+            {myScore === theirScore ? "Dead heat." : iWon ? "Fastest hands." : `${partnerName} was quicker.`}
           </p>
           <p className="mt-1 text-sm tabular-nums text-ink/50">{myScore} — {theirScore}</p>
           <div className="mt-5 flex gap-2">
@@ -82,7 +82,7 @@ export function BottleRushGame() {
         )}
         {s.phase === "result" && (
           <p className="text-lg font-bold text-ink">
-            {s.winner === me.id ? "Yours 💙" : s.winner === partner.id ? `${partnerName} got it 🧡` : "Nobody moved"}
+            {s.winner === me.id ? "Yours" : s.winner === partner.id ? `${partnerName} got it` : "Nobody moved"}
           </p>
         )}
       </div>

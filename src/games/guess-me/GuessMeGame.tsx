@@ -23,7 +23,7 @@ export function GuessMeGame() {
             {s.score}<span className="text-ink/30 text-2xl">/{s.questions.length}</span>
           </p>
           <p className="mt-2 text-sm text-ink/50">
-            {s.score >= 7 ? "You two are frightening." : s.score >= 4 ? "Not bad. Room to learn." : "You barely know each other 😅"}
+            {s.score >= 7 ? "You two are frightening." : s.score >= 4 ? "Not bad. Room to learn." : "You barely know each other."}
           </p>
           <div className="mt-5 flex gap-2">
             <button onClick={() => restart()} className="flex-1 h-12 rounded-2xl bg-me text-night font-bold active:scale-95">
@@ -90,7 +90,7 @@ export function GuessMeGame() {
 
       {s.revealed && (
         <button onClick={() => play({ type: "next" })} className="mt-4 w-full h-12 rounded-2xl bg-me text-night font-bold active:scale-95">
-          {myAnswer === theirAnswer ? "Matched 💫 next" : "Missed it — next"}
+          {myAnswer === theirAnswer ? "Matched — next" : "Missed it — next"}
         </button>
       )}
 

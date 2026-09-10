@@ -198,9 +198,9 @@ export function AirHockeyGame({ difficulty = "medium" }: { difficulty?: Difficul
         {s.done && (
           <div className="absolute inset-0 bg-night/85 grid place-items-center px-6 text-center">
             <div>
-              <p className="text-4xl">{s.winner === me.id ? "🏆" : "🧊"}</p>
+              
               <p className="mt-2 text-xl font-bold text-ink">
-                {s.winner === me.id ? "You took it 💙" : `${displayName(partner)} took it 🧡`}
+                {s.winner === me.id ? "You took it." : `${displayName(partner)} took it.`}
               </p>
               <div className="mt-5 flex gap-2">
                 <button onClick={() => restart()} className="h-12 px-6 rounded-2xl bg-me text-night font-bold active:scale-95">

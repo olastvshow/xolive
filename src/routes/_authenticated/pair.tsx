@@ -59,7 +59,7 @@ function PairPage() {
   const myCode = data?.invite?.code ?? null;
   const partner = data?.partner ?? null;
   const shareText = myCode
-    ? `come play with me 🫶 https://xolive.lovable.app — code ${myCode}`
+    ? `Come play with me on Duet — https://xolive.lovable.app, code ${myCode}`
     : "";
 
   const share = async () => {

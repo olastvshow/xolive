@@ -69,7 +69,7 @@ export function SudokuGame() {
 
       {s.done && (
         <div className="mt-5 rounded-3xl bg-night-3/70 p-5 text-center">
-          <p className="text-lg font-bold text-ink">Solved it. Together 💫</p>
+          <p className="text-lg font-bold text-ink">Solved it. Together.</p>
           <p className="mt-1 text-sm text-ink/50 tabular-nums">{myMistakes + theirMistakes} slips between you</p>
           <div className="mt-4 flex gap-2">
             <button onClick={() => restart()} className="flex-1 h-12 rounded-2xl bg-me text-night font-bold active:scale-95">
