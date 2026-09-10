@@ -1,6 +1,7 @@
 import type { SVGProps } from "react";
 
 export type GlyphName =
+  | "home"
   | "xo"
   | "guess-me"
   | "glass"
@@ -26,6 +27,7 @@ export type GlyphName =
 
 const P: Record<GlyphName, string> = {
   // three-in-a-row grid
+  home: "M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z",
   xo: "M4 9h16M4 15h16M9 4v16M15 4v16",
   // two overlapping profiles — "how well do you know them"
   "guess-me": "M9 11a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 9 11Zm-5.5 8.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5M16 5.2a3.2 3.2 0 0 1 0 6M18 14.8c1.8.7 3 2.4 3 4.7",
