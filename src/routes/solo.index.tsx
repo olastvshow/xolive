@@ -6,7 +6,7 @@ export const Route = createFileRoute("/solo/")({
   head: () => ({
     meta: [
       { title: "Play against the computer — Duet" },
-      { name: "description", content: "Five quick games against a computer opponent: XO, Guess Me, Sudoku Duo, Bottle Rush and Air Hockey. No sign-in needed." },
+      { name: "description", content: "Four quick games against a computer opponent: XO Arena, Fill the Glass, Know Us and Air Hockey. No sign-in needed." },
       { property: "og:title", content: "Play against the computer — Duet" },
       { property: "og:description", content: "Five quick games against a computer opponent. No sign-in needed." },
       { property: "og:type", content: "website" },

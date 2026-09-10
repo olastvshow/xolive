@@ -3,8 +3,7 @@ import type { SVGProps } from "react";
 export type GlyphName =
   | "xo"
   | "guess-me"
-  | "sudoku"
-  | "bottle-rush"
+  | "glass"
   | "air-hockey"
   | "settings"
   | "globe"
@@ -31,9 +30,8 @@ const P: Record<GlyphName, string> = {
   // two overlapping profiles — "how well do you know them"
   "guess-me": "M9 11a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 9 11Zm-5.5 8.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5M16 5.2a3.2 3.2 0 0 1 0 6M18 14.8c1.8.7 3 2.4 3 4.7",
   // numbered grid
-  sudoku: "M4 4h16v16H4zM4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16",
+  glass: "M7.2 3.5h9.6l-1.1 12.2a3.6 3.6 0 0 1-7.4 0zM7.8 10h8.4M9.5 20.5h5",
   // reflex bolt
-  "bottle-rush": "M13.5 3 5.8 13.2h5.1L10.5 21l7.7-10.2h-5.1z",
   // puck and paddle
   "air-hockey": "M4 4h16v16H4zM4 12h16M12 8.4a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2Z",
   settings:

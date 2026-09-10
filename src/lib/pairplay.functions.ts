@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
-  applyAction, gmInit, xoInit, sudokuInit, makeSudoku, rushInit, makeRushRounds, hockeyInit,
+  applyAction, gmInit, xoInit, glassInit, hockeyInit,
   GAME_KEYS, type GmQuestion, type Meta,
 } from "@/games/logic";
 
@@ -270,11 +270,7 @@ async function buildInitialState(admin: Admin, gameKey: string, players: string[
     }));
     return gmInit(questions);
   }
-  if (gameKey === "sudoku") {
-    const { given, solution } = makeSudoku(46);
-    return sudokuInit(given, solution);
-  }
-  if (gameKey === "bottle-rush") return rushInit(makeRushRounds(7), players);
+  if (gameKey === "fill-glass") return glassInit(players, subjectFirst);
   if (gameKey === "air-hockey") return hockeyInit(players, 7);
   throw new Error("Unknown game");
 }
@@ -387,16 +383,9 @@ function isFinished(gameKey: string, state: unknown): { ended: boolean; winnerId
     const s = state as { done: boolean };
     return { ended: s.done, winnerId: null };
   }
-  if (gameKey === "sudoku") {
-    const s = state as { done: boolean };
-    return { ended: s.done, winnerId: null };
-  }
-  if (gameKey === "bottle-rush") {
-    const s = state as { done: boolean; scores: Record<string, number> };
-    if (!s.done) return { ended: false, winnerId: null };
-    const ranked = Object.entries(s.scores).sort((a, b) => b[1] - a[1]);
-    const winnerId = ranked.length > 1 && ranked[0][1] === ranked[1][1] ? null : (ranked[0]?.[0] ?? null);
-    return { ended: true, winnerId };
+  if (gameKey === "fill-glass") {
+    const s = state as { loser: string | null; winner: string | null };
+    return { ended: false, winnerId: s.winner };
   }
   if (gameKey === "air-hockey") {
     const s = state as { done: boolean; winner: string | null };

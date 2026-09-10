@@ -17,19 +17,19 @@ export function GuessMeGame() {
   if (s.done) {
     return (
       <div className="px-4">
-        <div className="rounded-3xl bg-night-3/70 p-7 text-center">
-          <p className="text-xs uppercase tracking-widest text-ink/40">round over</p>
+        <div className="card-noir p-7 text-center">
+          <p className="text-xs uppercase tracking-widest text-ink/40">how well you know each other</p>
           <p className="mt-2 text-5xl font-black text-me tabular-nums">
             {s.score}<span className="text-ink/30 text-2xl">/{s.questions.length}</span>
           </p>
           <p className="mt-2 text-sm text-ink/50">
-            {s.score >= 7 ? "You two are frightening." : s.score >= 4 ? "Not bad. Room to learn." : "You barely know each other."}
+            {s.score >= 7 ? "You two are frightening." : s.score >= 4 ? "Solid — still plenty to learn." : "Time to ask more questions."}
           </p>
           <div className="mt-5 flex gap-2">
-            <button onClick={() => restart()} className="flex-1 h-12 rounded-2xl bg-me text-night font-bold active:scale-95">
+            <button onClick={() => restart()} className="flex-1 h-12 rounded-2xl bg-me text-night font-bold press">
               Play again
             </button>
-            <button onClick={() => leaveGame()} className="h-12 px-5 rounded-2xl bg-night-2 text-ink/70 font-semibold active:scale-95">
+            <button onClick={() => leaveGame()} className="h-12 px-5 rounded-2xl bg-night-2 text-ink/70 font-semibold press">
               Done
             </button>
           </div>
@@ -48,9 +48,9 @@ export function GuessMeGame() {
         <span className="text-me">score {s.score}</span>
       </div>
 
-      <div className="rounded-3xl bg-night-3/70 p-5">
+      <div className="card-noir p-5">
         <p className="text-xs uppercase tracking-widest text-ink/40">
-          {iAmSubject ? "answer honestly" : `guess what ${partnerName} says`}
+          {iAmSubject ? "your honest answer" : `what would ${partnerName} say?`}
         </p>
         <p className="mt-2 text-xl font-bold text-ink leading-snug">{q.prompt}</p>
 
@@ -64,7 +64,7 @@ export function GuessMeGame() {
                 disabled={myAnswer !== undefined || s.revealed}
                 onClick={() => play({ type: "answer", option: i })}
                 className={cn(
-                  "w-full text-left rounded-2xl px-4 py-3.5 font-semibold transition-transform active:scale-[0.98]",
+                  "w-full text-left rounded-2xl px-4 py-3.5 font-semibold transition-transform press",
                   "bg-night-2 text-ink/80 disabled:active:scale-100",
                   chosenByMe && "ring-2 ring-me text-ink",
                   chosenByThem && "ring-2 ring-them",
@@ -89,12 +89,12 @@ export function GuessMeGame() {
       )}
 
       {s.revealed && (
-        <button onClick={() => play({ type: "next" })} className="mt-4 w-full h-12 rounded-2xl bg-me text-night font-bold active:scale-95">
+        <button onClick={() => play({ type: "next" })} className="mt-4 w-full h-12 rounded-2xl bg-me text-night font-bold press">
           {myAnswer === theirAnswer ? "Matched — next" : "Missed it — next"}
         </button>
       )}
 
-      <button onClick={() => leaveGame()} className="mt-3 w-full h-11 rounded-2xl bg-night-2 text-ink/50 text-sm font-semibold active:scale-95">
+      <button onClick={() => leaveGame()} className="mt-3 w-full h-11 rounded-2xl bg-night-2 text-ink/50 text-sm font-semibold press">
         Leave game
       </button>
     </div>
