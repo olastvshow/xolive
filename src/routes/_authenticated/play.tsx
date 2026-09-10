@@ -233,7 +233,7 @@ function PlayOnline() {
             }}
             className="press mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-night-3/60 font-semibold text-ink"
           >
-            <Glyph name="plus" size={16} /> Open a room and get a code
+            <Glyph name="spark" size={16} /> Open a room and get a code
           </button>
         </section>
 
