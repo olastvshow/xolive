@@ -83,7 +83,7 @@ function PairPage() {
           <p className="text-ink">
             You're paired with <span className="text-them font-bold">{partner.display_name ?? partner.username}</span>.
           </p>
-          <Link to="/" className="mt-5 h-12 rounded-2xl bg-me text-night font-bold grid place-items-center active:scale-95">
+          <Link to="/room" className="mt-5 h-12 rounded-2xl bg-me text-night font-bold grid place-items-center active:scale-95">�
             Go to your room
           </Link>
           <button
