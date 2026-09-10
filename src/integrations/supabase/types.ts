@@ -14,72 +14,170 @@ export type Database = {
   }
   public: {
     Tables: {
-      coin_transactions: {
+      game_moves: {
         Row: {
-          balance_after: number
+          action: Json
           created_at: string
-          delta: number
           id: string
-          ref: string | null
-          source: string
+          idx: number
+          session_id: string
           user_id: string
         }
         Insert: {
-          balance_after: number
+          action: Json
           created_at?: string
-          delta: number
           id?: string
-          ref?: string | null
-          source: string
+          idx: number
+          session_id: string
           user_id: string
         }
         Update: {
-          balance_after?: number
+          action?: Json
           created_at?: string
-          delta?: number
           id?: string
-          ref?: string | null
-          source?: string
+          idx?: number
+          session_id?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_moves_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "game_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_moves_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_sessions: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          game_key: string
+          id: string
+          move_count: number
+          players: string[]
+          proposed_by: string | null
+          room_id: string
+          scores: Json
+          state: Json
+          status: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          game_key: string
+          id?: string
+          move_count?: number
+          players?: string[]
+          proposed_by?: string | null
+          room_id: string
+          scores?: Json
+          state?: Json
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          game_key?: string
+          id?: string
+          move_count?: number
+          players?: string[]
+          proposed_by?: string | null
+          room_id?: string
+          scores?: Json
+          state?: Json
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_sessions_game_key_fkey"
+            columns: ["game_key"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "game_sessions_proposed_by_fkey"
+            columns: ["proposed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_sessions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_sessions_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          active: boolean
+          key: string
+          name: string
+          sort_order: number
+          tagline: string | null
+        }
+        Insert: {
+          active?: boolean
+          key: string
+          name: string
+          sort_order?: number
+          tagline?: string | null
+        }
+        Update: {
+          active?: boolean
+          key?: string
+          name?: string
+          sort_order?: number
+          tagline?: string | null
         }
         Relationships: []
       }
-      cosmetics: {
+      guess_me_questions: {
         Row: {
           active: boolean
-          created_at: string
-          description: string | null
+          category: string
           id: string
-          kind: string
-          name: string
-          preview_url: string | null
-          price_coins: number
-          slug: string
-          sort_order: number
+          options: string[]
+          prompt: string
         }
         Insert: {
           active?: boolean
-          created_at?: string
-          description?: string | null
+          category: string
           id?: string
-          kind: string
-          name: string
-          preview_url?: string | null
-          price_coins?: number
-          slug: string
-          sort_order?: number
+          options: string[]
+          prompt: string
         }
         Update: {
           active?: boolean
-          created_at?: string
-          description?: string | null
+          category?: string
           id?: string
-          kind?: string
-          name?: string
-          preview_url?: string | null
-          price_coins?: number
-          slug?: string
-          sort_order?: number
+          options?: string[]
+          prompt?: string
         }
         Relationships: []
       }
@@ -87,7 +185,6 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          kind: string
           room_id: string
           text: string
           user_id: string
@@ -95,7 +192,6 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          kind?: string
           room_id: string
           text: string
           user_id: string
@@ -103,7 +199,6 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          kind?: string
           room_id?: string
           text?: string
           user_id?: string
@@ -116,156 +211,236 @@ export type Database = {
             referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      pair_invites: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          pair_id: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          pair_id: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          pair_id?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pair_invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pair_invites_pair_id_fkey"
+            columns: ["pair_id"]
+            isOneToOne: false
+            referencedRelation: "pairs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pair_invites_redeemed_by_fkey"
+            columns: ["redeemed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pair_members: {
+        Row: {
+          active: boolean
+          joined_at: string
+          pair_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          joined_at?: string
+          pair_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          joined_at?: string
+          pair_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pair_members_pair_id_fkey"
+            columns: ["pair_id"]
+            isOneToOne: false
+            referencedRelation: "pairs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pair_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pair_stats: {
+        Row: {
+          games_played: Json
+          last_played_on: string | null
+          nights_played: number
+          pair_id: string
+          streak: number
+          total_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          games_played?: Json
+          last_played_on?: string | null
+          nights_played?: number
+          pair_id: string
+          streak?: number
+          total_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          games_played?: Json
+          last_played_on?: string | null
+          nights_played?: number
+          pair_id?: string
+          streak?: number
+          total_seconds?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pair_stats_pair_id_fkey"
+            columns: ["pair_id"]
+            isOneToOne: true
+            referencedRelation: "pairs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pairs: {
+        Row: {
+          anniversary: string | null
+          created_at: string
+          id: string
+          status: string
+          unpaired_at: string | null
+        }
+        Insert: {
+          anniversary?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          unpaired_at?: string | null
+        }
+        Update: {
+          anniversary?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          unpaired_at?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
           avatar_url: string | null
-          coins: number
-          coins_purchased_total: number
-          coins_spent_total: number
           created_at: string
           deletion_scheduled_at: string | null
-          draws: number
-          equipped_board: string
-          equipped_frame: string
-          equipped_piece: string
+          display_name: string | null
           id: string
           last_seen_at: string | null
-          losses: number
+          timezone: string
           username: string
-          wins: number
         }
         Insert: {
           avatar_url?: string | null
-          coins?: number
-          coins_purchased_total?: number
-          coins_spent_total?: number
           created_at?: string
           deletion_scheduled_at?: string | null
-          draws?: number
-          equipped_board?: string
-          equipped_frame?: string
-          equipped_piece?: string
+          display_name?: string | null
           id: string
           last_seen_at?: string | null
-          losses?: number
+          timezone?: string
           username: string
-          wins?: number
         }
         Update: {
           avatar_url?: string | null
-          coins?: number
-          coins_purchased_total?: number
-          coins_spent_total?: number
           created_at?: string
           deletion_scheduled_at?: string | null
-          draws?: number
-          equipped_board?: string
-          equipped_frame?: string
-          equipped_piece?: string
+          display_name?: string | null
           id?: string
           last_seen_at?: string | null
-          losses?: number
+          timezone?: string
           username?: string
-          wins?: number
         }
         Relationships: []
       }
       rooms: {
         Row: {
-          bet: number
-          board: Json
-          code: string
           created_at: string
-          guest_id: string | null
-          guest_score: number
-          host_id: string
-          host_score: number
+          host_id: string | null
           id: string
-          is_draw: boolean
-          is_quick: boolean
-          mode: string
-          pending_guest_id: string | null
-          pot: number
-          round: number
-          status: string
-          turn: string
-          updated_at: string
-          winner_id: string | null
-          winning_line: Json | null
+          pair_id: string
+          theme: string
         }
         Insert: {
-          bet?: number
-          board?: Json
-          code: string
           created_at?: string
-          guest_id?: string | null
-          guest_score?: number
-          host_id: string
-          host_score?: number
+          host_id?: string | null
           id?: string
-          is_draw?: boolean
-          is_quick?: boolean
-          mode?: string
-          pending_guest_id?: string | null
-          pot?: number
-          round?: number
-          status?: string
-          turn?: string
-          updated_at?: string
-          winner_id?: string | null
-          winning_line?: Json | null
+          pair_id: string
+          theme?: string
         }
         Update: {
-          bet?: number
-          board?: Json
-          code?: string
           created_at?: string
-          guest_id?: string | null
-          guest_score?: number
-          host_id?: string
-          host_score?: number
+          host_id?: string | null
           id?: string
-          is_draw?: boolean
-          is_quick?: boolean
-          mode?: string
-          pending_guest_id?: string | null
-          pot?: number
-          round?: number
-          status?: string
-          turn?: string
-          updated_at?: string
-          winner_id?: string | null
-          winning_line?: Json | null
-        }
-        Relationships: []
-      }
-      user_cosmetics: {
-        Row: {
-          acquired_at: string
-          cosmetic_id: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          acquired_at?: string
-          cosmetic_id: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          acquired_at?: string
-          cosmetic_id?: string
-          id?: string
-          user_id?: string
+          pair_id?: string
+          theme?: string
         }
         Relationships: [
           {
-            foreignKeyName: "user_cosmetics_cosmetic_id_fkey"
-            columns: ["cosmetic_id"]
+            foreignKeyName: "rooms_host_id_fkey"
+            columns: ["host_id"]
             isOneToOne: false
-            referencedRelation: "cosmetics"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rooms_pair_id_fkey"
+            columns: ["pair_id"]
+            isOneToOne: true
+            referencedRelation: "pairs"
             referencedColumns: ["id"]
           },
         ]
@@ -275,12 +450,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      finish_match: { Args: { _room_id: string }; Returns: undefined }
-      purchase_cosmetic: {
-        Args: { _cosmetic_id: string; _user_id: string }
-        Returns: Json
+      is_pair_member: {
+        Args: { _pair_id: string; _user_id: string }
+        Returns: boolean
       }
-      start_match: { Args: { _room_id: string }; Returns: undefined }
+      my_pair_id: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
