@@ -17,9 +17,11 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedRoomRouteImport } from './routes/_authenticated/room'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPairRouteImport } from './routes/_authenticated/pair'
 import { Route as AuthenticatedDeleteAccountRouteImport } from './routes/_authenticated/delete-account'
+import { Route as AuthenticatedOnlineRoomIdRouteImport } from './routes/_authenticated/online.$roomId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -60,6 +62,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRoomRoute = AuthenticatedRoomRouteImport.update({
+  id: '/room',
+  path: '/room',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -76,6 +83,12 @@ const AuthenticatedDeleteAccountRoute =
     path: '/delete-account',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOnlineRoomIdRoute =
+  AuthenticatedOnlineRoomIdRouteImport.update({
+    id: '/online/$roomId',
+    path: '/online/$roomId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -88,6 +101,8 @@ export interface FileRoutesByFullPath {
   '/delete-account': typeof AuthenticatedDeleteAccountRoute
   '/pair': typeof AuthenticatedPairRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/room': typeof AuthenticatedRoomRoute
+  '/online/$roomId': typeof AuthenticatedOnlineRoomIdRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -99,7 +114,9 @@ export interface FileRoutesByTo {
   '/delete-account': typeof AuthenticatedDeleteAccountRoute
   '/pair': typeof AuthenticatedPairRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/room': typeof AuthenticatedRoomRoute
   '/': typeof AuthenticatedIndexRoute
+  '/online/$roomId': typeof AuthenticatedOnlineRoomIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,7 +130,9 @@ export interface FileRoutesById {
   '/_authenticated/delete-account': typeof AuthenticatedDeleteAccountRoute
   '/_authenticated/pair': typeof AuthenticatedPairRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/room': typeof AuthenticatedRoomRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/online/$roomId': typeof AuthenticatedOnlineRoomIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -128,6 +147,8 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/pair'
     | '/profile'
+    | '/room'
+    | '/online/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -139,7 +160,9 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/pair'
     | '/profile'
+    | '/room'
     | '/'
+    | '/online/$roomId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -152,7 +175,9 @@ export interface FileRouteTypes {
     | '/_authenticated/delete-account'
     | '/_authenticated/pair'
     | '/_authenticated/profile'
+    | '/_authenticated/room'
     | '/_authenticated/'
+    | '/_authenticated/online/$roomId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/room': {
+      id: '/_authenticated/room'
+      path: '/room'
+      fullPath: '/room'
+      preLoaderRoute: typeof AuthenticatedRoomRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -244,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDeleteAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/online/$roomId': {
+      id: '/_authenticated/online/$roomId'
+      path: '/online/$roomId'
+      fullPath: '/online/$roomId'
+      preLoaderRoute: typeof AuthenticatedOnlineRoomIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -251,14 +290,18 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDeleteAccountRoute: typeof AuthenticatedDeleteAccountRoute
   AuthenticatedPairRoute: typeof AuthenticatedPairRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedRoomRoute: typeof AuthenticatedRoomRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedOnlineRoomIdRoute: typeof AuthenticatedOnlineRoomIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDeleteAccountRoute: AuthenticatedDeleteAccountRoute,
   AuthenticatedPairRoute: AuthenticatedPairRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedRoomRoute: AuthenticatedRoomRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedOnlineRoomIdRoute: AuthenticatedOnlineRoomIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
