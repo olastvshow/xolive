@@ -116,162 +116,84 @@ export function gmReduce(state: GmState, action: GameAction, meta: Meta): GmStat
   return state;
 }
 
-// ===================== Sudoku Duo (co-op) =====================
+// ===================== Fill the Glass (nerve duel) =====================
 
-export type SudokuState = {
-  given: (number | null)[];
-  solution: number[];
-  cells: (number | null)[];
-  owner: (string | null)[];
-  mistakes: Record<string, number>;
-  done: boolean;
+export const GLASS_MAX = 100;
+export const GLASS_MIN_POUR = 7;
+export const GLASS_MAX_POUR = 19;
+
+export type GlassState = {
+  /** 0 – 100, where anything above 100 has splashed over the rim. */
+  level: number;
+  turn: string;
+  /** pours the current player has made this turn */
+  poured: number;
+  lastPour: number;
+  lastPourBy: string | null;
+  splashed: boolean;
+  loser: string | null;
+  winner: string | null;
+  scores: Record<string, number>;
 };
 
-function shuffled<T>(arr: T[]): T[] {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+function pourAmount() {
+  return GLASS_MIN_POUR + Math.floor(Math.random() * (GLASS_MAX_POUR - GLASS_MIN_POUR + 1));
 }
 
-function fillGrid(g: number[]): boolean {
-  const i = g.indexOf(0);
-  if (i === -1) return true;
-  const r = Math.floor(i / 9), c = i % 9;
-  for (const v of shuffled([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
-    let ok = true;
-    for (let k = 0; k < 9; k++) {
-      if (g[r * 9 + k] === v || g[k * 9 + c] === v) { ok = false; break; }
-    }
-    if (ok) {
-      const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
-      for (let a = 0; a < 3 && ok; a++) for (let b = 0; b < 3; b++) {
-        if (g[(br + a) * 9 + bc + b] === v) { ok = false; break; }
-      }
-    }
-    if (!ok) continue;
-    g[i] = v;
-    if (fillGrid(g)) return true;
-    g[i] = 0;
-  }
-  return false;
-}
-
-export function makeSudoku(holes = 44): { given: (number | null)[]; solution: number[] } {
-  const grid = Array<number>(81).fill(0);
-  fillGrid(grid);
-  const solution = grid.slice();
-  const given: (number | null)[] = solution.slice();
-  const order = shuffled(Array.from({ length: 81 }, (_, i) => i));
-  for (let n = 0; n < holes; n++) given[order[n]] = null;
-  return { given, solution };
-}
-
-export function sudokuInit(given: (number | null)[], solution: number[]): SudokuState {
+export function glassInit(players: string[], starter?: string, scores?: Record<string, number>): GlassState {
+  const [a, b] = players;
+  const first = starter && players.includes(starter) ? starter : a;
   return {
-    given,
-    solution,
-    cells: given.slice(),
-    owner: Array(81).fill(null),
-    mistakes: {},
-    done: false,
+    level: 0,
+    turn: first,
+    poured: 0,
+    lastPour: 0,
+    lastPourBy: null,
+    splashed: false,
+    loser: null,
+    winner: null,
+    scores: scores ?? { [a]: 0, [b]: 0 },
   };
 }
 
-export function sudokuReduce(state: SudokuState, action: GameAction, meta: Meta): SudokuState {
-  if (action.type !== "fill") return state;
-  if (state.done) throw new Error("Puzzle is finished");
-  const cell = Number(action.cell);
-  const value = Number(action.value);
-  if (!Number.isInteger(cell) || cell < 0 || cell > 80) throw new Error("Bad cell");
-  if (!Number.isInteger(value) || value < 1 || value > 9) throw new Error("Bad value");
-  if (state.given[cell] !== null || state.cells[cell] !== null) throw new Error("Cell already set");
-
-  if (state.solution[cell] !== value) {
-    const mistakes = { ...state.mistakes };
-    mistakes[meta.userId] = (mistakes[meta.userId] ?? 0) + 1;
-    return { ...state, mistakes };
+export function glassReduce(state: GlassState, action: GameAction, meta: Meta): GlassState {
+  if (action.type === "rematch") {
+    // The player who splashed pours first next round.
+    return glassInit(meta.players, state.loser ?? state.turn, state.scores);
   }
-  const cells = state.cells.slice();
-  const owner = state.owner.slice();
-  cells[cell] = value;
-  owner[cell] = meta.userId;
-  return { ...state, cells, owner, done: cells.every((c) => c !== null) };
-}
+  if (state.loser) throw new Error("Round is over");
+  if (!meta.players.includes(meta.userId)) throw new Error("Not a player in this game");
+  if (state.turn !== meta.userId) throw new Error("Not your turn");
+  const other = meta.players.find((p) => p !== meta.userId) ?? meta.userId;
 
-// ===================== Bottle Rush (reaction duel) =====================
-
-export type RushRound = { target: number; delay: number };
-
-export type RushState = {
-  rounds: RushRound[];
-  idx: number;
-  phase: "spin" | "live" | "result";
-  scores: Record<string, number>;
-  winner: string | null;
-  locked: string[];
-  done: boolean;
-};
-
-export function makeRushRounds(count = 7): RushRound[] {
-  return Array.from({ length: count }, () => ({
-    target: Math.floor(Math.random() * 4),
-    delay: 900 + Math.floor(Math.random() * 2200),
-  }));
-}
-
-export function rushInit(rounds: RushRound[], players: string[]): RushState {
-  const scores: Record<string, number> = {};
-  players.forEach((p) => { scores[p] = 0; });
-  return { rounds, idx: 0, phase: "spin", scores, winner: null, locked: [], done: false };
-}
-
-export function rushReduce(state: RushState, action: GameAction, meta: Meta): RushState {
-  if (state.done) throw new Error("Match is over");
-
-  if (action.type === "go") {
-    if (state.phase !== "spin") return state;
-    return { ...state, phase: "live" };
-  }
-
-  if (action.type === "tap") {
-    if (state.phase !== "live") return state;
-    if (state.locked.includes(meta.userId)) return state;
-    const idx = Number(action.idx);
-    const round = state.rounds[state.idx];
-    if (idx !== round.target) {
-      return { ...state, locked: [...state.locked, meta.userId] };
+  if (action.type === "pour") {
+    const amount = pourAmount();
+    const level = state.level + amount;
+    if (level > GLASS_MAX) {
+      const scores = { ...state.scores };
+      scores[other] = (scores[other] ?? 0) + 1;
+      return {
+        ...state,
+        level: GLASS_MAX + 6,
+        lastPour: amount,
+        lastPourBy: meta.userId,
+        splashed: true,
+        loser: meta.userId,
+        winner: other,
+        scores,
+      };
     }
-    const scores = { ...state.scores };
-    scores[meta.userId] = (scores[meta.userId] ?? 0) + 1;
-    const needed = Math.floor(state.rounds.length / 2) + 1;
-    const done = scores[meta.userId] >= needed;
-    return { ...state, phase: "result", scores, winner: meta.userId, done };
+    return { ...state, level, poured: state.poured + 1, lastPour: amount, lastPourBy: meta.userId };
   }
 
-  if (action.type === "next") {
-    if (state.phase !== "result") return state;
-    const nextIdx = state.idx + 1;
-    if (nextIdx >= state.rounds.length) return { ...state, done: true };
-    return { ...state, idx: nextIdx, phase: "spin", winner: null, locked: [] };
-  }
-
-  if (action.type === "miss") {
-    if (state.phase !== "live") return state;
-    return { ...state, phase: "result", winner: null };
+  if (action.type === "pass") {
+    if (state.poured < 1) throw new Error("Pour at least once before passing");
+    return { ...state, turn: other, poured: 0 };
   }
 
   return state;
 }
 
-export function rushLeader(state: RushState, players: string[]): string | null {
-  const [a, b] = players;
-  const sa = state.scores[a] ?? 0, sb = state.scores[b] ?? 0;
-  if (sa === sb) return null;
-  return sa > sb ? a : b;
-}
 
 // ===================== Air Hockey Live =====================
 
