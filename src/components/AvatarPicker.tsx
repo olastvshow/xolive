@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { updateProfile } from "@/lib/xo.functions";
+import { updateProfile } from "@/lib/pairplay.functions";
 import { Icon } from "@/components/Icon";
 
 const PRESETS = {
@@ -30,7 +30,7 @@ export function AvatarPicker({
     setBusy(true); setError(null);
     try {
       await update({ data: { avatar_url: url } });
-      await qc.invalidateQueries({ queryKey: ["profile"] });
+      await qc.invalidateQueries({ queryKey: ["pair-state"] });
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");

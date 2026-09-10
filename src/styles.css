@@ -332,3 +332,28 @@
 }
 .wiggle { animation: wiggle 2.2s ease-in-out infinite; }
 
+
+/* ================= PairPlay night palette ================= */
+@theme {
+  --color-night: #0a0b18;
+  --color-night-2: #12142a;
+  --color-night-3: #1b1e3d;
+  --color-ink: #e9eaf7;
+  --color-me: #7aa7ff;
+  --color-them: #ffb469;
+}
+
+@keyframes pp-float-up {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 1; transform: translateY(-10px) scale(1.1); }
+  100% { transform: translateY(-160px) scale(1); opacity: 0; }
+}
+
+.pp-float {
+  animation: pp-float-up 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-float { animation-duration: 0.01ms; }
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

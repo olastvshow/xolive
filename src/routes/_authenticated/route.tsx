@@ -2,9 +2,8 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { heartbeat } from "@/lib/xo.functions";
+import { heartbeat } from "@/lib/pairplay.functions";
 import { useNativeShell } from "@/hooks/useNativeShell";
-import { IncomingInviteModal } from "@/components/IncomingInviteModal";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -23,7 +22,7 @@ function AuthedLayout() {
     let alive = true;
     const tick = () => { if (alive) beat().catch(() => {}); };
     tick();
-    const id = setInterval(tick, 20_000);
+    const id = setInterval(tick, 30_000);
     const onVisible = () => { if (document.visibilityState === "visible") tick(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
@@ -32,5 +31,5 @@ function AuthedLayout() {
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [beat]);
-  return (<><Outlet /><IncomingInviteModal /></>);
+  return <Outlet />;
 }

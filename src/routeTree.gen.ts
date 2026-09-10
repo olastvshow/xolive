@@ -17,13 +17,9 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedQuickMatchRouteImport } from './routes/_authenticated/quick-match'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
-import { Route as AuthenticatedJoinRoomRouteImport } from './routes/_authenticated/join-room'
-import { Route as AuthenticatedGameRouteImport } from './routes/_authenticated/game'
+import { Route as AuthenticatedPairRouteImport } from './routes/_authenticated/pair'
 import { Route as AuthenticatedDeleteAccountRouteImport } from './routes/_authenticated/delete-account'
-import { Route as AuthenticatedCreateRoomRouteImport } from './routes/_authenticated/create-room'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -64,30 +60,14 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedQuickMatchRoute = AuthenticatedQuickMatchRouteImport.update({
-  id: '/quick-match',
-  path: '/quick-match',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedLeaderboardRoute =
-  AuthenticatedLeaderboardRouteImport.update({
-    id: '/leaderboard',
-    path: '/leaderboard',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedJoinRoomRoute = AuthenticatedJoinRoomRouteImport.update({
-  id: '/join-room',
-  path: '/join-room',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedGameRoute = AuthenticatedGameRouteImport.update({
-  id: '/game',
-  path: '/game',
+const AuthenticatedPairRoute = AuthenticatedPairRouteImport.update({
+  id: '/pair',
+  path: '/pair',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDeleteAccountRoute =
@@ -96,11 +76,6 @@ const AuthenticatedDeleteAccountRoute =
     path: '/delete-account',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedCreateRoomRoute = AuthenticatedCreateRoomRouteImport.update({
-  id: '/create-room',
-  path: '/create-room',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -110,13 +85,9 @@ export interface FileRoutesByFullPath {
   '/solo': typeof SoloRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/create-room': typeof AuthenticatedCreateRoomRoute
   '/delete-account': typeof AuthenticatedDeleteAccountRoute
-  '/game': typeof AuthenticatedGameRoute
-  '/join-room': typeof AuthenticatedJoinRoomRoute
-  '/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/pair': typeof AuthenticatedPairRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/quick-match': typeof AuthenticatedQuickMatchRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -125,13 +96,9 @@ export interface FileRoutesByTo {
   '/solo': typeof SoloRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/create-room': typeof AuthenticatedCreateRoomRoute
   '/delete-account': typeof AuthenticatedDeleteAccountRoute
-  '/game': typeof AuthenticatedGameRoute
-  '/join-room': typeof AuthenticatedJoinRoomRoute
-  '/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/pair': typeof AuthenticatedPairRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/quick-match': typeof AuthenticatedQuickMatchRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
@@ -143,13 +110,9 @@ export interface FileRoutesById {
   '/solo': typeof SoloRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
-  '/_authenticated/create-room': typeof AuthenticatedCreateRoomRoute
   '/_authenticated/delete-account': typeof AuthenticatedDeleteAccountRoute
-  '/_authenticated/game': typeof AuthenticatedGameRoute
-  '/_authenticated/join-room': typeof AuthenticatedJoinRoomRoute
-  '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
+  '/_authenticated/pair': typeof AuthenticatedPairRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_authenticated/quick-match': typeof AuthenticatedQuickMatchRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
@@ -162,13 +125,9 @@ export interface FileRouteTypes {
     | '/solo'
     | '/support'
     | '/terms'
-    | '/create-room'
     | '/delete-account'
-    | '/game'
-    | '/join-room'
-    | '/leaderboard'
+    | '/pair'
     | '/profile'
-    | '/quick-match'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -177,13 +136,9 @@ export interface FileRouteTypes {
     | '/solo'
     | '/support'
     | '/terms'
-    | '/create-room'
     | '/delete-account'
-    | '/game'
-    | '/join-room'
-    | '/leaderboard'
+    | '/pair'
     | '/profile'
-    | '/quick-match'
     | '/'
   id:
     | '__root__'
@@ -194,13 +149,9 @@ export interface FileRouteTypes {
     | '/solo'
     | '/support'
     | '/terms'
-    | '/_authenticated/create-room'
     | '/_authenticated/delete-account'
-    | '/_authenticated/game'
-    | '/_authenticated/join-room'
-    | '/_authenticated/leaderboard'
+    | '/_authenticated/pair'
     | '/_authenticated/profile'
-    | '/_authenticated/quick-match'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -272,13 +223,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/quick-match': {
-      id: '/_authenticated/quick-match'
-      path: '/quick-match'
-      fullPath: '/quick-match'
-      preLoaderRoute: typeof AuthenticatedQuickMatchRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -286,25 +230,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/leaderboard': {
-      id: '/_authenticated/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/join-room': {
-      id: '/_authenticated/join-room'
-      path: '/join-room'
-      fullPath: '/join-room'
-      preLoaderRoute: typeof AuthenticatedJoinRoomRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/game': {
-      id: '/_authenticated/game'
-      path: '/game'
-      fullPath: '/game'
-      preLoaderRoute: typeof AuthenticatedGameRouteImport
+    '/_authenticated/pair': {
+      id: '/_authenticated/pair'
+      path: '/pair'
+      fullPath: '/pair'
+      preLoaderRoute: typeof AuthenticatedPairRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/delete-account': {
@@ -314,35 +244,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDeleteAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/create-room': {
-      id: '/_authenticated/create-room'
-      path: '/create-room'
-      fullPath: '/create-room'
-      preLoaderRoute: typeof AuthenticatedCreateRoomRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedCreateRoomRoute: typeof AuthenticatedCreateRoomRoute
   AuthenticatedDeleteAccountRoute: typeof AuthenticatedDeleteAccountRoute
-  AuthenticatedGameRoute: typeof AuthenticatedGameRoute
-  AuthenticatedJoinRoomRoute: typeof AuthenticatedJoinRoomRoute
-  AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
+  AuthenticatedPairRoute: typeof AuthenticatedPairRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedQuickMatchRoute: typeof AuthenticatedQuickMatchRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedCreateRoomRoute: AuthenticatedCreateRoomRoute,
   AuthenticatedDeleteAccountRoute: AuthenticatedDeleteAccountRoute,
-  AuthenticatedGameRoute: AuthenticatedGameRoute,
-  AuthenticatedJoinRoomRoute: AuthenticatedJoinRoomRoute,
-  AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
+  AuthenticatedPairRoute: AuthenticatedPairRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedQuickMatchRoute: AuthenticatedQuickMatchRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
