@@ -39,9 +39,9 @@ function DeleteAccountPage() {
           <div className="mx-auto w-16 h-16 rounded-full bg-error/10 text-error flex items-center justify-center">
             <Icon name="schedule" className="text-3xl" filled />
           </div>
-          <h1 className="text-2xl font-black text-center text-on-surface">Deletion scheduled</h1>
-          <p className="text-sm text-on-surface-variant text-center leading-relaxed">
-            Your account <span className="font-bold text-on-surface">@{p?.username}</span> is queued for permanent deletion in{" "}
+          <h1 className="text-2xl font-black text-center text-ink">Deletion scheduled</h1>
+          <p className="text-sm text-ink/50 text-center leading-relaxed">
+            Your account <span className="font-bold text-ink">@{p?.username}</span> is queued for permanent deletion in{" "}
             <span className="font-bold text-error">{daysLeft} day{daysLeft === 1 ? "" : "s"}</span>.
             Sign back in any time before then to restore it.
           </p>
@@ -64,7 +64,7 @@ function DeleteAccountPage() {
       <div className="max-w-md mx-auto space-y-6 pt-6 px-4 pb-8">
         <button
           onClick={() => navigate({ to: "/profile" })}
-          className="flex items-center gap-1 text-sm font-bold text-on-surface-variant active:scale-95 transition"
+          className="flex items-center gap-1 text-sm font-bold text-ink/50 active:scale-95 transition"
         >
           <Icon name="arrow_back" className="text-[18px]" />
           Back to profile
@@ -75,18 +75,18 @@ function DeleteAccountPage() {
         </div>
 
         <div className="text-center">
-          <h1 className="text-2xl font-black text-on-surface">Delete account</h1>
-          <p className="text-sm text-on-surface-variant mt-2 leading-relaxed">
-            Permanently remove <span className="font-bold text-on-surface">@{p?.username ?? "your account"}</span> from PairPlay.
+          <h1 className="text-2xl font-black text-ink">Delete account</h1>
+          <p className="text-sm text-ink/50 mt-2 leading-relaxed">
+            Permanently remove <span className="font-bold text-ink">@{p?.username ?? "your account"}</span> from PairPlay.
           </p>
         </div>
 
-        <section className="bg-surface-container-low ring-1 ring-outline-variant/60 rounded-2xl p-4 space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">What happens</h3>
-          <ul className="space-y-2 text-sm text-on-surface-variant">
+        <section className="bg-night-2 ring-1 ring-outline-variant/60 rounded-2xl p-4 space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-ink/50">What happens</h3>
+          <ul className="space-y-2 text-sm text-ink/50">
             <li className="flex items-start gap-2">
               <Icon name="check" className="text-primary text-[18px] shrink-0 mt-0.5" filled />
-              <span>Profile, stats, coins, and private chats are removed after <span className="font-bold text-on-surface">{graceDays} days</span></span>
+              <span>Profile, stats, coins, and private chats are removed after <span className="font-bold text-ink">{graceDays} days</span></span>
             </li>
             <li className="flex items-start gap-2">
               <Icon name="check" className="text-primary text-[18px] shrink-0 mt-0.5" filled />
@@ -99,7 +99,7 @@ function DeleteAccountPage() {
           </ul>
         </section>
 
-        <label className="block text-xs font-bold text-on-surface-variant mt-6 mb-1.5">
+        <label className="block text-xs font-bold text-ink/50 mt-6 mb-1.5">
           Type <span className="text-error">DELETE</span> to confirm
         </label>
         <input
@@ -109,7 +109,7 @@ function DeleteAccountPage() {
           autoCapitalize="characters"
           autoCorrect="off"
           spellCheck={false}
-          className="w-full h-12 px-3.5 rounded-2xl bg-surface-container ring-1 ring-outline-variant focus:ring-error outline-none font-bold tracking-widest text-center"
+          className="w-full h-12 px-3.5 rounded-2xl bg-night-3 ring-1 ring-outline-variant focus:ring-error outline-none font-bold tracking-widest text-center"
         />
         {deleteErr && <p className="text-xs text-error font-semibold mt-2 text-center">{deleteErr}</p>}
 
@@ -117,7 +117,7 @@ function DeleteAccountPage() {
           <button
             onClick={() => navigate({ to: "/profile" })}
             disabled={deleting}
-            className="flex-1 py-3 rounded-2xl bg-surface-container-highest text-on-surface font-bold text-sm active:scale-[0.98] disabled:opacity-60"
+            className="flex-1 py-3 rounded-2xl bg-night-2 text-ink font-bold text-sm active:scale-[0.98] disabled:opacity-60"
           >
             Cancel
           </button>
