@@ -1,8 +1,8 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { RoomProvider, useRoom } from "@/components/room/RoomProvider";
 import { RoomHeader } from "@/components/room/RoomHeader";
-import { ReactionBar, ReactionLayer } from "@/components/room/ReactionLayer";
-import { CommentStrip } from "@/components/room/CommentStrip";
+import { ReactionLayer } from "@/components/room/ReactionLayer";
+import { RoomDock } from "@/components/room/RoomDock";
 import { PlayProvider, displayName, type PlayValue, type Profile } from "@/games/play-context";
 import { GAMES, gameByKey } from "@/games/registry";
 import type { GameKey } from "@/games/logic";
@@ -33,6 +33,7 @@ function RoomBody({
   const room = useRoom();
   const { session, me, partner, partnerOnline, respond, propose, busy, knockReceived } = room;
   const [knockToast, setKnockToast] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
 
   useEffect(() => {
     if (!knockReceived) return;
@@ -46,6 +47,7 @@ function RoomBody({
   const proposedByThem = session?.status === "proposed" && session.proposed_by !== me.id;
   const proposedByMe = session?.status === "proposed" && session.proposed_by === me.id;
   const partnerName = displayName(partner);
+  const playing = session?.status === "active" && Boolean(Stage);
 
   const playValue = useMemo<PlayValue>(() => ({
     me,
@@ -65,37 +67,38 @@ function RoomBody({
   }), [me, partner, session, room, partnerOnline, busy]);
 
   return (
-    <div className="min-h-screen bg-night flex flex-col">
-      <RoomHeader />
+    <div className="flex min-h-[100dvh] flex-col bg-night text-ink">
+      <RoomHeader
+        onLeave={onLeaveRoom ? () => setConfirmLeave(true) : undefined}
+        leaveLabel={leaveLabel ?? "Leave room"}
+      />
 
       {banner && (
-        <p className="mx-5 mb-2 text-center text-xs uppercase tracking-widest text-ink/35">{banner}</p>
+        <p className="px-5 pt-3 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-ink/30">{banner}</p>
       )}
 
       {knockToast && (
-        <div className="mx-5 mb-2 flex items-center gap-2 rounded-2xl bg-them/15 px-4 py-3 text-sm text-them font-semibold">
+        <div className="mx-4 mt-3 flex items-center gap-2 rounded-2xl bg-pop/12 px-4 py-3 text-sm font-semibold text-pop">
           <Glyph name="knock" size={17} />
           {partnerName} knocked
         </div>
       )}
 
-      <main className="flex-1 pb-4">
-        {!partnerOnline && (
-          <div className="mx-4 mb-4 rounded-3xl bg-night-2 px-5 py-4 text-sm text-ink/50">
-            {partnerName} isn't in the room yet. Knock, or leave a note below — they'll see it.
+      <main className="flex-1 pb-32 pt-4">
+        {!partnerOnline && !playing && (
+          <div className="mx-4 mb-4 rounded-3xl border border-white/8 bg-night-2 px-5 py-4 text-sm text-ink/50">
+            {partnerName} isn't here yet. Knock, or leave a message — they'll see it.
           </div>
         )}
 
         {proposedByThem && session && (
-          <div className="mx-4 mb-4 rounded-3xl bg-night-3 p-5">
-            <p className="text-ink font-semibold">
+          <div className="mx-4 mb-4 rounded-[26px] border border-white/8 bg-night-3 p-5">
+            <p className="font-display text-lg">
               {partnerName} wants to play {gameByKey(session.game_key)?.name}
             </p>
             <div className="mt-4 flex gap-2">
-              <button disabled={busy} onClick={() => respond(true)} className="flex-1 h-12 rounded-2xl bg-me text-night font-bold active:scale-95">
-                Play
-              </button>
-              <button disabled={busy} onClick={() => respond(false)} className="h-12 px-5 rounded-2xl bg-night-2 text-ink/60 font-semibold active:scale-95">
+              <button disabled={busy} onClick={() => respond(true)} className="btn-pop h-12 flex-1">Play</button>
+              <button disabled={busy} onClick={() => respond(false)} className="h-12 rounded-full bg-white/6 px-5 font-semibold text-ink/60 press">
                 Not now
               </button>
             </div>
@@ -103,61 +106,68 @@ function RoomBody({
         )}
 
         {proposedByMe && session && (
-          <div className="mx-4 mb-4 rounded-3xl bg-night-2 p-5 text-center">
-            <p className="text-sm text-ink/60">
-              waiting for {partnerName} to accept {gameByKey(session.game_key)?.name}…
-            </p>
+          <div className="mx-4 mb-4 rounded-[26px] border border-white/8 bg-night-2 p-5 text-center text-sm text-ink/50">
+            Waiting for {partnerName} to accept {gameByKey(session.game_key)?.name}…
           </div>
         )}
 
-        {session?.status === "active" && Stage ? (
+        {playing && Stage ? (
           <PlayProvider value={playValue}>
-            <Suspense fallback={<div className="px-4 text-ink/40 text-sm">loading game…</div>}>
+            <Suspense fallback={<div className="px-4 text-sm text-ink/40">loading game…</div>}>
               <Stage />
             </Suspense>
           </PlayProvider>
         ) : (
           !proposedByThem && !proposedByMe && (
             <div className="px-4">
-              <p className="text-xs uppercase tracking-widest text-ink/35 mb-3">the shelf</p>
-              <div className="grid gap-3">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.3em] text-ink/30">The shelf</p>
+              <div className="grid gap-3 sm:grid-cols-2">
                 {GAMES.map((g) => (
                   <button
                     key={g.key}
                     disabled={!partnerOnline || busy}
                     onClick={() => propose(g.key as GameKey)}
-                    className="w-full text-left rounded-3xl bg-night-3/70 p-5 active:scale-[0.98] transition-transform disabled:opacity-40"
+                    className="tile relative flex items-center gap-3 overflow-hidden p-4 text-left disabled:opacity-40"
+                    style={{ background: g.wash }}
                   >
-                    <div className="flex items-center gap-4">
-                      <span className="w-10 h-10 rounded-full bg-night-2 grid place-items-center text-them shrink-0">
-                        <Glyph name={g.icon} size={19} />
-                      </span>
-                      <span>
-                        <span className="block text-lg font-bold text-ink">{g.name}</span>
-                        <span className="block text-sm text-ink/45">{g.tagline}</span>
-                      </span>
-                    </div>
+                    <img
+                      src={g.character}
+                      alt=""
+                      width={768}
+                      height={768}
+                      loading="lazy"
+                      className="h-16 w-16 shrink-0 object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.5)]"
+                    />
+                    <span className="min-w-0">
+                      <span className="block font-display text-lg leading-tight">{g.name}</span>
+                      <span className="mt-0.5 block text-xs text-white/55">{g.tagline}</span>
+                    </span>
                   </button>
                 ))}
               </div>
-
-              {onLeaveRoom && (
-                <button
-                  onClick={onLeaveRoom}
-                  className="mt-5 w-full h-12 rounded-2xl bg-night-2 text-ink/50 font-semibold active:scale-95"
-                >
-                  {leaveLabel ?? "Leave room"}
-                </button>
-              )}
             </div>
           )
         )}
       </main>
 
-      <div className="sticky bottom-0 pb-5 pt-3 bg-gradient-to-t from-night via-night to-transparent space-y-3">
-        <ReactionBar />
-        <CommentStrip />
-      </div>
+      <RoomDock />
+
+      {confirmLeave && onLeaveRoom && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-night/85 px-8 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-[28px] border border-white/10 bg-night-2 p-6 text-center">
+            <p className="font-display text-xl">{leaveLabel ?? "Leave room"}?</p>
+            <p className="mt-1.5 text-sm text-ink/45">The game in progress will end.</p>
+            <div className="mt-6 flex gap-2">
+              <button onClick={() => setConfirmLeave(false)} className="h-12 flex-1 rounded-full bg-white/6 font-semibold text-ink/70 press">
+                Stay
+              </button>
+              <button onClick={onLeaveRoom} className="h-12 flex-1 rounded-full bg-knowus font-bold text-night press">
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
