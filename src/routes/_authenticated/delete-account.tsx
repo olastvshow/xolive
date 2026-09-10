@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Shell } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
-import { getMyProfile, deleteMyAccount, checkAccountStatus } from "@/lib/xo.functions";
+import { getMyProfile, deleteMyAccount, checkAccountStatus } from "@/lib/pairplay.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/delete-account")({
