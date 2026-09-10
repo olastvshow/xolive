@@ -7,14 +7,14 @@ import { createInvite, getPairState, redeemInvite, unpair } from "@/lib/pairplay
 export const Route = createFileRoute("/_authenticated/pair")({
   head: () => ({
     meta: [
-      { title: "PairPlay — pair with your person" },
-      { name: "description", content: "Share a 6-character code to open a private PairPlay room with one person." },
-      { property: "og:title", content: "PairPlay — pair with your person" },
-      { property: "og:description", content: "Share a 6-character code to open a private PairPlay room with one person." },
+      { title: "Duet — pair with your person" },
+      { name: "description", content: "Share a 6-character code to open a private Duet room with one person." },
+      { property: "og:title", content: "Duet — pair with your person" },
+      { property: "og:description", content: "Share a 6-character code to open a private Duet room with one person." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "PairPlay — pair with your person" },
-      { name: "twitter:description", content: "Share a 6-character code to open a private PairPlay room with one person." },
+      { name: "twitter:title", content: "Duet — pair with your person" },
+      { name: "twitter:description", content: "Share a 6-character code to open a private Duet room with one person." },
     ],
   }),
   component: PairPage,
@@ -77,7 +77,7 @@ function PairPage() {
       <header>
         <h1 className="text-3xl font-black text-ink">Pair up</h1>
         <p className="mt-2 text-sm text-ink/50">
-          PairPlay is just for the two of you. One person shares a code, the other enters it.
+          Duet is just for the two of you. One person shares a code, the other enters it.
         </p>
       </header>
 

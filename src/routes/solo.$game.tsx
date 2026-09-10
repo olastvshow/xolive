@@ -5,6 +5,7 @@ import { gameByKey } from "@/games/registry";
 import { DIFFICULTIES, type Difficulty } from "@/games/difficulty";
 import type { GameKey } from "@/games/logic";
 import { cn } from "@/lib/utils";
+import { Glyph } from "@/components/Glyph";
 
 export const Route = createFileRoute("/solo/$game")({
   head: ({ params }) => {
@@ -51,10 +52,15 @@ function SoloGame() {
     <div className="min-h-screen bg-night text-ink">
       <div className="max-w-md mx-auto px-1 pt-8 pb-16">
         <div className="flex items-center gap-3 px-4">
-          <Link to="/solo" className="w-10 h-10 rounded-2xl bg-night-3 grid place-items-center shrink-0" aria-label="Back">‹</Link>
-          <div className="min-w-0">
-            <h1 className="text-xl font-black truncate">{entry.emoji} {entry.name}</h1>
-            <p className="text-xs text-ink/40 truncate">vs Computer{difficulty ? ` · ${difficulty}` : ""}</p>
+          <Link to="/solo" className="w-10 h-10 rounded-full bg-night-2 hairline grid place-items-center text-ink/60 press shrink-0" aria-label="Back">
+            <Glyph name="left" size={18} />
+          </Link>
+          <div className="min-w-0 flex items-center gap-2.5">
+            <span className="text-them shrink-0"><Glyph name={entry.icon} size={20} /></span>
+            <div className="min-w-0">
+              <h1 className="font-display text-xl font-semibold truncate">{entry.name}</h1>
+              <p className="text-xs text-ink/40 truncate">vs Computer{difficulty ? ` · ${difficulty}` : ""}</p>
+            </div>
           </div>
         </div>
 

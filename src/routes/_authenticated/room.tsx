@@ -8,13 +8,13 @@ import type { Profile } from "@/games/play-context";
 export const Route = createFileRoute("/_authenticated/room")({
   head: () => ({
     meta: [
-      { title: "Your room — PairPlay" },
+      { title: "Your room — Duet" },
       { name: "description", content: "A private room for two: voice always on, reactions, and small games you play together." },
-      { property: "og:title", content: "Your room — PairPlay" },
+      { property: "og:title", content: "Your room — Duet" },
       { property: "og:description", content: "A private room for two: voice always on, reactions, and small games you play together." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Your room — PairPlay" },
+      { name: "twitter:title", content: "Your room — Duet" },
       { name: "twitter:description", content: "A private room for two: voice always on, reactions, and games." },
     ],
   }),

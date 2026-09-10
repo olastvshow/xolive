@@ -12,13 +12,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/play")({
   head: () => ({
     meta: [
-      { title: "Play online — PairPlay" },
+      { title: "Play online — Duet" },
       { name: "description", content: "Find someone online, send an invite, or open a room with a six-character code." },
-      { property: "og:title", content: "Play online — PairPlay" },
+      { property: "og:title", content: "Play online — Duet" },
       { property: "og:description", content: "Find someone online, send an invite, or open a room with a six-character code." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Play online — PairPlay" },
+      { name: "twitter:title", content: "Play online — Duet" },
       { name: "twitter:description", content: "Find someone online, send an invite, or open a room with a code." },
     ],
   }),

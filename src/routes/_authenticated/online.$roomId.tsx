@@ -9,14 +9,14 @@ import type { Profile } from "@/games/play-context";
 export const Route = createFileRoute("/_authenticated/online/$roomId")({
   head: () => ({
     meta: [
-      { title: "Online match — PairPlay" },
-      { name: "description", content: "A live PairPlay match room with voice, reactions and five games." },
-      { property: "og:title", content: "Online match — PairPlay" },
-      { property: "og:description", content: "A live PairPlay match room with voice, reactions and five games." },
+      { title: "Online match — Duet" },
+      { name: "description", content: "A live Duet match room with voice, reactions and five games." },
+      { property: "og:title", content: "Online match — Duet" },
+      { property: "og:description", content: "A live Duet match room with voice, reactions and five games." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Online match — PairPlay" },
-      { name: "twitter:description", content: "A live PairPlay match room with voice, reactions and five games." },
+      { name: "twitter:title", content: "Online match — Duet" },
+      { name: "twitter:description", content: "A live Duet match room with voice, reactions and five games." },
     ],
   }),
   component: OnlineRoom,
