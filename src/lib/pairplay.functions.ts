@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
-  applyAction, gmInit, xoInit, sudokuInit, makeSudoku, rushInit, makeRushRounds, hockeyInit,
+  applyAction, gmInit, xoInit, glassInit, hockeyInit,
   GAME_KEYS, type GmQuestion, type Meta,
 } from "@/games/logic";
 
@@ -270,11 +270,7 @@ async function buildInitialState(admin: Admin, gameKey: string, players: string[
     }));
     return gmInit(questions);
   }
-  if (gameKey === "sudoku") {
-    const { given, solution } = makeSudoku(46);
-    return sudokuInit(given, solution);
-  }
-  if (gameKey === "bottle-rush") return rushInit(makeRushRounds(7), players);
+  if (gameKey === "fill-glass") return glassInit(players, subjectFirst);
   if (gameKey === "air-hockey") return hockeyInit(players, 7);
   throw new Error("Unknown game");
 }
