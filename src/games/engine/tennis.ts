@@ -13,7 +13,7 @@ export function strike(s:TennisSim,who:Side,edge=0){
  if(s.point!==null)return;const pad=s.pads[who],dir=who===0?-1:1;
  if(!s.toss){if(s.hitter===who)return;if((s.serve&&s.bounce!==2)||(!s.serve&&s.bounce!==1)){award(s,opposite(who),'volley');return;}}
  const serving=s.toss;const power=clamp(Math.hypot(pad.vx,pad.vy),0,4),sweet=1-clamp(edge,0,1)*.3;
- s.v={x:pad.vx*1.5+(edge*.25),y:serving?-3.5:3.9+power*.25,z:dir*(serving?6.8:7.8+power*1.35)*sweet};
+ s.v={x:pad.vx*1.5+(edge*.25),y:serving?-3.5:3.9+power*.25,z:dir*(serving?5.7:7.8+power*1.35)*sweet};
  s.spin={x:-dir*pad.vy*24,y:pad.vx*22,z:0};s.hitter=who;s.bounce=0;s.serve=serving;s.toss=false;s.active=true;s.net=false;s.hits++;s.impact=2;
 }
 export function stepTennis(s:TennisSim,dt:number){
