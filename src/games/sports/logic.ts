@@ -88,10 +88,13 @@ export function sportsReduce(s: SportsState, a: GameAction, m: Meta & { now?: nu
   const server = m.players[(deuce ? total : Math.floor(total / 2)) % 2];
   return { ...s, scores, done, winner: done ? scorer : null, server, turn: server, launchedAt: 0, rally: 0, seq: s.seq + 1, last: { by: scorer, x: 0, z: 0, hit: null, point: true } };
 }
-export function sportsBot(s: SportsState, bot: string): GameAction | null {
+export function sportsBot(s: SportsState, bot: string, now = Date.now()): GameAction | null {
   if (s.done) return null;
   if (s.phase === 'setup') return s.ready.length ? { type: 'ready' } : null;
-  if (s.turn !== bot) return null;
+  if (s.turn !== bot) {
+    if (s.kind === 'table-tennis' && s.launchedAt && now - s.launchedAt > 2700) return { type: 'timeout', seq: s.seq };
+    return null;
+  }
   if (s.kind === 'cup-pong') {
     const opponent = Object.keys(s.cups).find(p => p !== bot) ?? '';
     const options = rack(s.target).filter(c => s.cups[opponent]?.includes(c.id));
