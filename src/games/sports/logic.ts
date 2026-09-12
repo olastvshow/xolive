@@ -1,4 +1,4 @@
-import { Body, Plane, Sphere, Vec3, World } from 'cannon-es';
+import { cupTrajectory, type Frame } from './motion';
 import type { GameAction, Meta } from '../logic';
 
 export type SportsKind = 'cup-pong' | 'table-tennis';
@@ -7,14 +7,14 @@ export type SportsState = {
   target: number; scores: Record<string, number>; turn: string; server: string;
   cups: Record<string, number[]>; winner: string | null; done: boolean;
   seq: number; rally: number; landing: number; launchedAt: number;
-  last: { by: string; x: number; z: number; hit: number | null; point: boolean } | null;
+  last: { by: string; x: number; z: number; hit: number | null; point: boolean; frames?: Frame[]; duration?: number; origin?: number; power?: number } | null;
 };
 export function rack(count: number) {
   const rows = count === 10 ? 4 : 3;
   return Array.from({ length: count }, (_, id) => {
     let row = 0, first = 0;
     while (id >= first + row + 1) { first += row + 1; row++; }
-    return { x: (id - first - row / 2) * .68, z: -1.8 - row * .6, id };
+    return { x: (id - first - row / 2) * .91, z: -1.25 - row * .82, id };
   });
 }
 export function sportsInit(players: string[], kind: SportsKind, format: 'quick' | 'full' = 'quick'): SportsState {
@@ -22,21 +22,8 @@ export function sportsInit(players: string[], kind: SportsKind, format: 'quick' 
   return { kind, format, phase: 'setup', ready: [], target, scores: Object.fromEntries(players.map(p => [p, 0])), turn: players[0], server: players[0], cups: Object.fromEntries(players.map(p => [p, Array.from({ length: target }, (_, i) => i)])), winner: null, done: false, seq: 0, rally: 0, landing: 0, launchedAt: 0, last: null };
 }
 export function cupLanding(aim: number, power: number) {
-  // Fixed-step ballistic simulation, shared with the server. Clients never submit a hit or score.
-  const world = new World({ gravity: new Vec3(0, -9.82, 0) });
-  const ball = new Body({ mass: .0027, shape: new Sphere(.075), position: new Vec3(0, 1.6, 3) });
-  ball.linearDamping = 0;
-  ball.velocity.set(aim * 2.8, 5.6, -(4.7 + power * 2.8));
-  world.addBody(ball);
-  let old = ball.position.clone();
-  for (let i = 0; i < 240; i++) {
-    old.copy(ball.position); world.step(1 / 120);
-    if (ball.position.y < .62 && ball.velocity.y < 0) {
-      const t = (old.y - .62) / (old.y - ball.position.y);
-      return { x: old.x + (ball.position.x - old.x) * t, z: old.z + (ball.position.z - old.z) * t };
-    }
-  }
-  return { x: ball.position.x, z: ball.position.z };
+  const { landing } = cupTrajectory(aim, power);
+  return { x: landing.x, z: landing.z };
 }
 function number(v: unknown, min: number, max: number) { if (typeof v !== 'number' || !Number.isFinite(v) || v < min || v > max) throw new Error('Invalid shot'); return v; }
 export function sportsReduce(s: SportsState, a: GameAction, m: Meta & { now?: number }): SportsState {
@@ -58,12 +45,13 @@ export function sportsReduce(s: SportsState, a: GameAction, m: Meta & { now?: nu
   const other = m.players.find(p => p !== s.turn) ?? m.players[0];
   if (s.kind === 'cup-pong') {
     if (a.type !== 'throw' || m.userId !== s.turn) throw new Error('Wait for your turn');
-    const land = cupLanding(number(a.aim, -1, 1), number(a.power, 0, 1));
-    const hit = rack(s.target).find(c => s.cups[other].includes(c.id) && Math.hypot(c.x - land.x, c.z - land.z) < .235)?.id ?? null;
+    if (s.launchedAt && now < s.launchedAt + (s.last?.duration ?? 1.8) * 1000) throw new Error('Ball still moving');
+    const shot = cupTrajectory(number(a.aim, -1, 1), number(a.power, 0, 1), rack(s.target).filter(c => s.cups[other].includes(c.id)), a.origin === undefined ? 0 : number(a.origin, -1.2, 1.2));
+    const land = shot.landing; const hit = shot.hit;
     const cups = { ...s.cups, [other]: s.cups[other].filter(id => id !== hit) };
     const scores = { ...s.scores, [m.userId]: s.scores[m.userId] + (hit === null ? 0 : 1) };
     const done = cups[other].length === 0;
-    return { ...s, cups, scores, done, winner: done ? m.userId : null, turn: other, seq: s.seq + 1, last: { by: m.userId, ...land, hit, point: hit !== null } };
+    return { ...s, cups, scores, done, winner: done ? m.userId : null, turn: other, launchedAt: now, seq: s.seq + 1, last: { by: m.userId, x:land.x, z:land.z, hit, point: hit !== null, frames:shot.frames, duration:shot.duration } };
   }
   let scorer: string | null = null;
   if (a.type === 'timeout') {
