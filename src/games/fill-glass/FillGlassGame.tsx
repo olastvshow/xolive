@@ -3,91 +3,19 @@ import { usePlay, displayName } from "@/games/play-context";
 import { GLASS_MAX, type GlassState } from "@/games/logic";
 import { cn } from "@/lib/utils";
 
-/** 2D glass: liquid body, moving surface waves, rim and a spilling lip. */
-function Glass({ level, pouring, splashed, mine }: { level: number; pouring: boolean; splashed: boolean; mine: boolean }) {
-  const pct = Math.min(level / GLASS_MAX, 1.12);
-  const liquidTop = 100 - pct * 88; // in % of the glass interior
-
-  return (
-    <div className="relative mx-auto w-[190px] select-none">
-      {/* faucet */}
-      <div className="relative h-[92px]">
-        <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[150px] h-[13px] rounded-full bg-gradient-to-b from-ink/25 to-ink/10 hairline" />
-        <div className="absolute left-1/2 -translate-x-1/2 top-[11px] w-[18px] h-[30px] rounded-b-[8px] bg-gradient-to-b from-ink/22 to-ink/8" />
-        <div className="absolute left-1/2 -translate-x-1/2 top-[39px] w-[22px] h-[9px] rounded-b-[10px] bg-them/70" />
-        {/* stream */}
-        <div
-          className={cn(
-            "absolute left-1/2 -translate-x-1/2 top-[47px] w-[5px] rounded-full transition-opacity duration-150",
-            pouring ? "opacity-100 pp-stream" : "opacity-0",
-          )}
-          style={{ height: "45px", background: "linear-gradient(180deg, rgba(150,215,245,0.35), rgba(120,190,225,0.95))" }}
-        />
-      </div>
-
-      {/* glass */}
-      <div className="relative h-[230px]">
-        <div
-          className={cn("absolute inset-0", splashed && "pp-shake")}
-          style={{ clipPath: "polygon(3% 0, 97% 0, 88% 96%, 12% 96%)" }}
-        >
-          <div
-            className="absolute inset-0 overflow-hidden"
-            style={{
-              clipPath: "polygon(3% 0, 97% 0, 88% 96%, 12% 96%)",
-              background: "linear-gradient(100deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.06))",
-            }}
-          >
-            {/* liquid */}
-            <div
-              className="absolute inset-x-0 bottom-0 transition-[top] duration-500 ease-out"
-              style={{ top: `${liquidTop}%` }}
-            >
-              <div className="absolute -top-[10px] left-0 right-0 h-[20px] pp-wave"
-                style={{ background: "radial-gradient(60% 100% at 20% 100%, rgba(150,215,245,.95), transparent 70%), radial-gradient(60% 100% at 70% 100%, rgba(120,190,230,.95), transparent 70%)" }}
-              />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: splashed
-                    ? "linear-gradient(180deg, rgba(220,120,90,.92), rgba(150,60,50,.95))"
-                    : "linear-gradient(180deg, rgba(140,205,240,.92), rgba(58,120,170,.95))",
-                }}
-              />
-              {/* bubbles */}
-              <span className="absolute left-[26%] bottom-3 w-1.5 h-1.5 rounded-full bg-white/40 pp-bubble" />
-              <span className="absolute left-[58%] bottom-6 w-1 h-1 rounded-full bg-white/30 pp-bubble" style={{ animationDelay: "0.8s" }} />
-              <span className="absolute left-[74%] bottom-2 w-1.5 h-1.5 rounded-full bg-white/25 pp-bubble" style={{ animationDelay: "1.6s" }} />
-            </div>
-
-            {/* glass shine */}
-            <div className="absolute left-[16px] top-[10px] bottom-[26px] w-[9px] rounded-full bg-white/12" />
-            <div className="absolute right-[22px] top-[24px] bottom-[46px] w-[4px] rounded-full bg-white/6" />
-          </div>
-          {/* wall outlines */}
-          <div className="absolute inset-y-0 left-[3%] w-px bg-ink/20 origin-top" style={{ transform: "rotate(2.4deg)" }} />
-          <div className="absolute inset-y-0 right-[3%] w-px bg-ink/20 origin-top" style={{ transform: "rotate(-2.4deg)" }} />
-        </div>
-
-        {/* rim */}
-        <div className="absolute -top-[4px] left-[2px] right-[2px] h-[9px] rounded-[50%] border-[1.5px] border-ink/25 bg-night-2/70" />
-        {/* base */}
-        <div className="absolute bottom-[4px] left-[11%] right-[11%] h-[7px] rounded-[50%] border-[1.5px] border-t-0 border-ink/20 bg-night-2/50" />
-
-
-        {splashed && (
-          <>
-            <span className="absolute -top-2 left-2 w-3 h-3 rounded-full bg-[#d97a5c] pp-splash" />
-            <span className="absolute -top-4 right-6 w-2 h-2 rounded-full bg-[#d97a5c] pp-splash" style={{ animationDelay: ".1s" }} />
-            <span className="absolute -top-1 right-1 w-2.5 h-2.5 rounded-full bg-[#d97a5c] pp-splash" style={{ animationDelay: ".2s" }} />
-          </>
-        )}
-      </div>
-
-      {/* coaster */}
-      <div className={cn("mx-auto mt-2 h-[10px] w-[150px] rounded-full blur-[6px]", mine ? "bg-me/20" : "bg-them/20")} />
+/** Lightweight dimensional glass: transparent walls, elliptical water and overflow. */
+function Glass({ level, pouring, splashed }: { level: number; pouring: boolean; splashed: boolean; mine: boolean }) {
+  const fill = Math.min(level / GLASS_MAX, 1);
+  return <div className="glass-scene" role="img" aria-label={`Glass ${Math.round(fill * 100)} percent full${splashed ? ', water spilling over the rim' : ''}`}>
+    <div className="glass-spout" />
+    {pouring && <div className="glass-stream" />}
+    <div className={cn("glass-vessel", splashed && "pp-shake")}>
+      <div className="glass-interior"><div className="glass-water" style={{ height: `${fill * 100}%` }}><div className="water-surface" /><i /><i /><i /></div></div>
+      <div className="glass-rim" /><div className="glass-reflection" /><div className="glass-base" />
+      {splashed && <div className="glass-overflow"><i /><i /><i /><i /></div>}
     </div>
-  );
+    <div className={cn("glass-puddle", splashed && "is-spilled")} />
+  </div>;
 }
 
 export function FillGlassGame() {
@@ -125,12 +53,12 @@ export function FillGlassGame() {
       </div>
 
       <div className="card-noir pt-6 pb-7">
-        <Glass level={s.level} pouring={pouring && !over} splashed={s.splashed} mine={myTurn} />
+        <Glass level={s.level} pouring={pouring} splashed={s.splashed} mine={myTurn} />
 
         <div className="mt-6 px-6">
           <div className="h-[3px] rounded-full bg-ink/10 overflow-hidden">
             <div
-              className={cn("h-full rounded-full transition-all duration-500", pct > 85 ? "bg-[#d97a5c]" : "bg-them")}
+              className={cn("h-full rounded-full transition-all duration-500", pct > 85 ? "bg-knowus" : "bg-glass")}
               style={{ width: `${pct}%` }}
             />
           </div>

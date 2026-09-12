@@ -472,3 +472,46 @@
   to { stroke-dasharray: 202; stroke-dashoffset: 0; }
 }
 .pp-draw-o { animation: pp-draw-circle 0.36s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+
+/* Arcade feedback and crystal-water materials */
+:root {
+  --glass-wall: linear-gradient(100deg, color-mix(in srgb, var(--color-ink) 28%, transparent), transparent 18%, transparent 68%, color-mix(in srgb, var(--color-ink) 19%, transparent));
+  --water-body: linear-gradient(100deg, var(--color-glass), var(--color-xo) 65%, var(--color-glass));
+  --podium-face: linear-gradient(110deg, var(--color-night-3), var(--color-night-2) 70%);
+  --podium-top: linear-gradient(180deg, color-mix(in srgb, var(--color-ink) 42%, var(--color-night-3)), var(--color-night-3));
+}
+.rank-podium { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:end; max-width:540px; margin:44px auto 0; gap:6px; }
+.podium-player { text-align:center; min-width:0; }
+.podium-avatar { width:56px; height:56px; margin:auto; overflow:hidden; border-radius:50%; border:2px solid var(--color-hair); }
+.podium-place-1 .podium-avatar { width:68px; height:68px; border-color:var(--color-pop); }
+.podium-block { height:125px; position:relative; background:var(--podium-face); display:grid; place-items:center; border-top:1px solid color-mix(in srgb,var(--color-ink) 40%,transparent); }
+.podium-block::before { content:''; position:absolute; left:0; right:0; top:-18px; height:18px; background:var(--podium-top); clip-path:polygon(12% 0,88% 0,100% 100%,0 100%); }
+.podium-block span { font-size:46px; font-weight:800; color:color-mix(in srgb,var(--color-ink) 45%,transparent); }
+.podium-place-1 .podium-block { height:174px; }
+.podium-place-1 .podium-block span { color:var(--color-pop); }
+.podium-place-3 .podium-block { height:95px; }
+.match-notice { position:fixed; z-index:70; top:max(85px,env(safe-area-inset-top)); left:50%; width:max-content; max-width:calc(100% - 32px); transform:translateX(-50%); display:flex; align-items:center; gap:12px; padding:16px 22px; border-radius:18px; background:var(--color-night-3); border:1px solid var(--color-hair); box-shadow:0 12px 50px color-mix(in srgb,var(--color-night) 65%,transparent); pointer-events:none; animation:match-arrive .4s cubic-bezier(.18,.85,.25,1.2); }
+.match-notice strong { overflow-wrap:anywhere; }
+.match-notice-icon { color:var(--color-pop); animation:result-pop .6s both; }
+@keyframes match-arrive { from { opacity:0; transform:translate(-50%,-40px) scale(.85); } to { opacity:1; transform:translate(-50%,0) scale(1); } }
+.glass-scene { height:340px; width:240px; position:relative; margin:0 auto; }
+.glass-spout { position:absolute; top:0; left:110px; width:20px; height:38px; background:var(--glass-wall); border:1px solid var(--color-hair); border-radius:0 0 8px 8px; }
+.glass-stream { position:absolute; top:38px; left:117px; width:6px; height:240px; background:var(--water-body); opacity:.7; animation:pp-stream-flow .25s; }
+.glass-vessel { position:absolute; top:90px; left:30px; width:180px; height:222px; background:var(--glass-wall); border:1px solid color-mix(in srgb,var(--color-ink) 28%,transparent); border-radius:8px 8px 38px 38px / 8px 8px 18px 18px; }
+.glass-interior { position:absolute; inset:7px 6px 10px; overflow:hidden; border-radius:4px 4px 32px 32px / 4px 4px 14px 14px; }
+.glass-water { position:absolute; bottom:0; left:0; right:0; background:var(--water-body); opacity:.82; transition:height .65s cubic-bezier(.2,.7,.3,1); min-height:0; }
+.water-surface { position:absolute; top:-7px; left:0; right:0; height:15px; border-radius:50%; background:color-mix(in srgb,var(--color-glass) 55%,var(--color-ink)); box-shadow:0 2px 5px var(--color-xo); animation:water-sway 2.4s ease-in-out infinite; }
+.glass-water i { position:absolute; bottom:8px; left:25%; width:4px; height:4px; border:1px solid var(--color-ink); border-radius:50%; animation:pp-bubble-rise 2s infinite; }
+.glass-water i:nth-of-type(2) { left:60%; animation-delay:.7s; }
+.glass-water i:nth-of-type(3) { left:75%; animation-delay:1.2s; }
+.glass-rim { position:absolute; top:-7px; left:-1px; right:-1px; height:15px; border:2px solid color-mix(in srgb,var(--color-ink) 55%,transparent); border-radius:50%; background:var(--glass-wall); }
+.glass-reflection { position:absolute; left:12px; top:15px; bottom:24px; width:8px; border-radius:50%; background:color-mix(in srgb,var(--color-ink) 32%,transparent); }
+.glass-base { position:absolute; bottom:2px; left:14px; right:14px; height:12px; border-radius:50%; border-bottom:3px solid color-mix(in srgb,var(--color-ink) 40%,transparent); }
+.glass-puddle { position:absolute; bottom:9px; left:30px; width:180px; height:14px; background:var(--color-glass); opacity:.1; border-radius:50%; transition:transform .8s,opacity .8s; }
+.glass-puddle.is-spilled { transform:scaleX(1.3); opacity:.55; }
+.glass-overflow i { position:absolute; top:0; width:8px; height:110px; background:var(--water-body); border-radius:50%; left:-5px; animation:overflow-drip 1s ease-in infinite; }
+.glass-overflow i:nth-child(2) { left:auto; right:-5px; animation-delay:.15s; }
+.glass-overflow i:nth-child(3) { left:20px; width:5px; animation-delay:.35s; }
+.glass-overflow i:nth-child(4) { left:auto; right:15px; width:4px; animation-delay:.5s; }
+@keyframes overflow-drip { from { transform:scaleY(.1); opacity:.8; transform-origin:top; } to { transform:translateY(110px) scaleY(.8); opacity:0; } }
+@keyframes water-sway { 50% { transform:scaleY(.6) rotate(1deg); } }
