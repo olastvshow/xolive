@@ -14,7 +14,7 @@ export function strike(s:TennisSim,who:Side,edge=0){
  if(!s.toss){if(s.hitter===who)return;if((s.serve&&s.bounce!==2)||(!s.serve&&s.bounce!==1)){award(s,opposite(who),'volley');return;}}
  const serving=s.toss;const power=clamp(Math.hypot(pad.vx,pad.vy),0,4),sweet=1-clamp(edge,0,1)*.3;
  s.v={x:pad.vx*1.5+(edge*.25),y:serving?-1.2:3.9+power*.25,z:dir*(serving?6.8:7.8+power*1.35)*sweet};
- s.spin={x:dir*pad.vy*24,y:pad.vx*22,z:0};s.hitter=who;s.bounce=0;s.serve=serving;s.toss=false;s.active=true;s.net=false;s.hits++;s.impact=2;
+ s.spin={x:-dir*pad.vy*24,y:pad.vx*22,z:0};s.hitter=who;s.bounce=0;s.serve=serving;s.toss=false;s.active=true;s.net=false;s.hits++;s.impact=2;
 }
 export function stepTennis(s:TennisSim,dt:number){
  s.time+=dt;s.impact=0;s.previous={...s.p};if(s.point!==null||(!s.active&&!s.toss))return;
@@ -28,7 +28,7 @@ export function stepTennis(s:TennisSim,dt:number){
  if(Math.abs(x)<=WIDTH&&Math.abs(z)<=LENGTH){const half=side(z),expected=s.serve&&s.bounce===0?s.hitter:opposite(s.hitter);
  if(half!==expected){award(s,opposite(s.hitter),'wrong half');return;}s.bounce++;if(s.bounce>(s.serve?2:1)){award(s,s.hitter,'double bounce');return;}
  if(s.serve&&s.bounce===2&&s.net){Object.assign(s,tennisInit(s.server));return;}
- p.y=R;v.y=Math.abs(v.y)*.85;v.z+=clamp(-w.x*R*.12,-1.8,1.8);v.x+=clamp(w.z*R*.12,-1.8,1.8);w.x*=.8;w.y*=.85;s.impact=1;
+ p.y=R;v.y=Math.abs(v.y)*.85;v.z+=clamp(w.x*R*.12,-1.8,1.8);v.x+=clamp(w.z*R*.12,-1.8,1.8);w.x*=.8;w.y*=.85;s.impact=1;
  }}
  for(const who of [0,1] as Side[]){if(who===s.hitter)continue;const pad=s.pads[who];const approaching=who===0?v.z>0:v.z<0;if(!approaching)continue;
  const plane=pad.z+(who===0?-R:R);if((old.z-plane)*(p.z-plane)<=0){const t=clamp((plane-old.z)/(p.z-old.z),0,1),dx=old.x+(p.x-old.x)*t-pad.x,dy=old.y+(p.y-old.y)*t-pad.y;const d=Math.hypot(dx,dy);if(d<.62){p.z=plane;strike(s,who,d/.62);break;}}
