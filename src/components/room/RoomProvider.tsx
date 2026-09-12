@@ -141,7 +141,7 @@ export function RoomProvider({
             if (row.status === "ended" || row.status === "declined") {
               return prev && prev.id === row.id ? row : prev;
             }
-            if (prev && prev.id === row.id && row.move_count < prev.move_count) return prev;
+            if (prev && prev.id === row.id && row.move_count < prev.move_count && !(row.status === "active" && row.move_count === 0)) return prev;
             return row;
           });
         })
@@ -227,8 +227,11 @@ export function RoomProvider({
 
   const restart = useCallback(async () => {
     if (!session) return;
-    const row = await restartFn({ data: { sessionId: session.id } });
-    setSession(row as Session);
+    setBusy(true);
+    try {
+      const row = await restartFn({ data: { sessionId: session.id } });
+      setSession(row as Session);
+    } finally { setBusy(false); }
   }, [restartFn, session]);
 
   const leaveGame = useCallback(async () => {

@@ -38,7 +38,9 @@ export const usePlay = () => {
 };
 
 export function PlayProvider({ value, children }: { value: PlayValue; children: ReactNode }) {
-  return <PlayCtx.Provider value={value}><GameFeedback value={value} />{children}</PlayCtx.Provider>;
+  const state = value.state as { winner?: string; loser?: string; draw?: boolean; done?: boolean } | null;
+  const finished = Boolean(state?.winner || state?.loser || state?.draw || state?.done);
+  return <PlayCtx.Provider value={value}><GameFeedback value={value} />{!finished && children}</PlayCtx.Provider>;
 }
 
 export const displayName = (p: Profile) => p.display_name ?? p.username;

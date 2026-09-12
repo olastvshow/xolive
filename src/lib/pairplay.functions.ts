@@ -442,6 +442,8 @@ export const restartSession = createServerFn({ method: "POST" })
     if (!session) throw new Error("Game not found");
     await requireRoom(supabaseAdmin, context.userId, session.room_id);
 
+    if (session.status === "active") return session;
+    if (session.status !== "ended") throw new Error("Finish the current game before playing again");
     let state: unknown;
     if (session.game_key === "xo") {
       const prev = session.state as { marks: Record<string, string>; scores: Record<string, number> };
@@ -453,9 +455,12 @@ export const restartSession = createServerFn({ method: "POST" })
     const { data: row, error } = await supabaseAdmin.from("game_sessions").update({
       state: state as never, move_count: 0, status: "active",
       winner_id: null, ended_at: null, updated_at: new Date().toISOString(),
-    }).eq("id", session.id).select("*").single();
+    }).eq("id", session.id).eq("status", "ended").select("*").maybeSingle();
     if (error) throw new Error(error.message);
-    return row;
+    if (row) return row;
+    const { data: current, error: currentError } = await supabaseAdmin.from("game_sessions").select("*").eq("id", session.id).single();
+    if (currentError) throw new Error(currentError.message);
+    return current;
   });
 
 // ===================== account deletion =====================
