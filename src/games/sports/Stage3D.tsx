@@ -10,8 +10,8 @@ export function Stage3D({ children, camera, background }: { children: ReactNode;
   if (failed) return <div className="grid aspect-[4/5] w-full place-items-center rounded-[28px] bg-night-2 px-6 text-center text-sm text-ink/50">This device cannot show the 3D table. The scores and controls below still work.</div>;
   if (!mounted) return <div className="aspect-[4/5] w-full animate-pulse rounded-[28px] bg-night-2" aria-hidden />;
   return (
-    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[28px] sm:aspect-[16/10]">
-      <Canvas shadows dpr={[1, 2]} camera={{ position: camera, fov: 46 }} onCreated={({ gl }) => { gl.domElement.addEventListener('webglcontextlost', () => setFailed(true)); }}>
+    <div className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-[16/10]">
+      <Canvas shadows dpr={[1, 2]} camera={{ position: camera, fov: 39 }} onCreated={({ gl }) => { gl.domElement.addEventListener('webglcontextlost', () => setFailed(true)); }}>
         <color attach="background" args={[background]} />
         <fog attach="fog" args={[background, 12, 30]} />
         <ambientLight intensity={0.55} />
