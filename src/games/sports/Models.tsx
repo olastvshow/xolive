@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
+import { CUP_SCALE } from './motion';
 import { CanvasTexture, RepeatWrapping, Vector2, DoubleSide } from 'three';
 
 // Original lathed cup with a real inner wall, lip, base and molded rings.
 export function Cup({ x, z, blue = false }: { x: number; z: number; blue?: boolean }) {
   const profile = useMemo(() => [.0,.02,.08,.4,.55,.58].map((y,i) => new Vector2([.18,.19,.20,.255,.28,.28][i],y)).concat([new Vector2(.255,.58),new Vector2(.175,.045),new Vector2(0,.045)]), []);
-  return <group position={[x,.07,z]}>
+  return <group position={[x,.07,z]} scale={CUP_SCALE}>
     <mesh castShadow><latheGeometry args={[profile,32]} /><meshPhysicalMaterial color={blue ? '#2b9bd8' : '#ed3446'} roughness={.3} clearcoat={.6} side={DoubleSide}/></mesh>
     <mesh position={[0,.58,0]} rotation-x={Math.PI/2}><torusGeometry args={[.267,.023,8,32]}/><meshStandardMaterial color="#faf7f4" roughness={.28}/></mesh>
     <mesh position={[0,.055,0]} rotation-x={-Math.PI/2}><circleGeometry args={[.177,24]}/><meshStandardMaterial color="#eee9e5"/></mesh>
@@ -12,7 +13,7 @@ export function Cup({ x, z, blue = false }: { x: number; z: number; blue?: boole
   </group>;
 }
 export function Paddle({ x, z, blue=false }: { x:number; z:number; blue?:boolean }) {
- return <group position={[x,.6,z]} rotation={[.2,0,-.14]}>
+ return <group position={[x,.6,z]} rotation={[.7,0,-.14]} scale={1.45}>
   <mesh castShadow scale={[.8,1,1]}><cylinderGeometry args={[.38,.38,.075,40]}/><meshStandardMaterial color="#cfac73" roughness={.6}/></mesh>
   <mesh position={[0,.046,0]} scale={[.8,1,1]}><cylinderGeometry args={[.365,.365,.022,40]}/><meshStandardMaterial color={blue?'#242a30':'#ec4050'} roughness={.85}/></mesh>
   <mesh position={[0,0,.43]} castShadow><boxGeometry args={[.13,.09,.4]}/><meshStandardMaterial color="#bd8c55" roughness={.65}/></mesh>
