@@ -12,8 +12,8 @@ export function Cup({ x, z, blue = false }: { x: number; z: number; blue?: boole
     {[.12,.17,.22].map(y=><mesh key={y} position={[0,y,0]} rotation-x={Math.PI/2}><torusGeometry args={[.19+y*.13,.005,4,32]}/><meshStandardMaterial color={blue?'#69bedf':'#ff6470'}/></mesh>)}
   </group>;
 }
-export function Paddle({ x, z, blue=false }: { x:number; z:number; blue?:boolean }) {
- return <group position={[x,.6,z]} rotation={[.7,0,-.14]} scale={1.45}>
+export function Paddle({ x, z, blue=false, scale=1.05 }: { x:number; z:number; blue?:boolean; scale?:number }) {
+ return <group position={[x,.6,z]} rotation={[.7,0,-.14]} scale={scale}>
   <mesh castShadow scale={[.8,1,1]}><cylinderGeometry args={[.38,.38,.075,40]}/><meshStandardMaterial color="#cfac73" roughness={.6}/></mesh>
   <mesh position={[0,.046,0]} scale={[.8,1,1]}><cylinderGeometry args={[.365,.365,.022,40]}/><meshStandardMaterial color={blue?'#242a30':'#ec4050'} roughness={.85}/></mesh>
   <mesh position={[0,0,.43]} castShadow><boxGeometry args={[.13,.09,.4]}/><meshStandardMaterial color="#bd8c55" roughness={.65}/></mesh>

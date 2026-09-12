@@ -8,13 +8,20 @@ export const STEP = FIXED_STEP;
 export type Sample = { x: number; y: number; t: number };
 export type Frame = { x: number; y: number; z: number };
 export const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
+/** Minimum upward flick speed (screen heights per second) that counts as a throw. */
+export const FLICK_MIN = .35;
+/** Shared gesture -> shot mapping so the preview arc and the real throw always agree. */
+export function shotFromFlick(vx: number, vy: number) {
+ const flick = -vy;
+ return { valid: flick >= FLICK_MIN, aim: clamp(vx * .3, -1, 1), power: clamp((flick - FLICK_MIN) / 1.35, 0, 1) };
+}
 export function gesture(samples: Sample[]) {
- const v=velocity(samples); return {aim:clamp(v.x*.42,-1,1),power:clamp(-v.y*.42,0,1)};
+ const v=velocity(samples); const s=shotFromFlick(v.x,v.y); return {aim:s.aim,power:s.power};
 }
 export function cupTrajectory(aim: number, power: number, cups: {x:number;z:number;id:number}[] = [], origin = 0) {
  const world = new World({ gravity: new Vec3(0,-9.82,0) });
  const ball = new Body({mass:.0027, shape:new Sphere(BALL_RADIUS), position:new Vec3(origin,1.6,3)});
- ball.linearDamping=0; ball.velocity.set(aim*2.8,5.6,-(4.1+power*3.8)); world.addBody(ball);
+ ball.linearDamping=0; ball.velocity.set(aim*2.2,5.6,-(3.35+power*2.25)); world.addBody(ball);
  const frames: Frame[] = [{x:origin,y:1.6,z:3}]; let hit: number|null=null; let landing: Frame|undefined; let captured=false; let rim=false;
  for(let i=0;i<450;i++) {
   const prev=ball.position.clone(); world.step(STEP); const pos=ball.position;
