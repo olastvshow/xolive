@@ -1,5 +1,5 @@
-# Match feedback and replay
-- [x] Keep finished multiplayer games on the result screen.
-- [x] Add shared start, score and finish animations and replay controls.
-- [x] Verify solo result and replay transitions in the browser without page errors.
-- [ ] Verify two-device multiplayer replay; requires two connected players.
+# Cup Pong and Table Tennis
+- [x] Add selectable match lengths, validated reducers, normal bots and game catalogue integration.
+- [x] Build original 3D scenes, touch/keyboard controls, sound and shared result/replay flow.
+- [x] Verify scoring rules and solo matches at mobile and desktop sizes.
+- [ ] Verify two-device multiplayer and real-device performance; requires connected players/devices.

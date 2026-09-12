@@ -49,7 +49,7 @@ function SoloGame() {
         className="pointer-events-none absolute inset-x-0 top-0 h-56 opacity-40"
         style={{ background: entry.wash }}
       />
-      <div className="relative mx-auto w-full max-w-md px-1 pb-16 pt-7">
+      <div className="relative mx-auto w-full max-w-3xl px-1 pb-16 pt-7">
         <div className="flex items-center gap-3 px-4">
           <Link
             to="/games/$game"

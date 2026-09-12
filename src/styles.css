@@ -527,3 +527,5 @@
 @keyframes result-ring { from { opacity:1; transform:scale(.6); } to { opacity:0; transform:scale(1.7); } }
 @keyframes match-line { from { transform:scaleX(0); } to { transform:scaleX(1); } }
 @keyframes match-intro-reveal { 0% { opacity:0; transform:scale(1.06); } 18%,75% { opacity:1; transform:scale(1); } 100% { opacity:0; transform:scale(1.02); } }
+
+:root { --sports-cup-wash: linear-gradient(150deg, #184c43, #102b2d); --sports-tennis-wash: linear-gradient(150deg, #164675, #12263a); }

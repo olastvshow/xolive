@@ -1,3 +1,4 @@
+import { sportsReduce, type SportsState } from './sports/logic';
 // Pure game reducers — shared by client (optimistic) and server (authoritative).
 
 export type Mark = "X" | "O";
@@ -234,9 +235,10 @@ export function applyAction(
   if (gameKey === "guess-me") return gmReduce(state as GmState, action, meta);
   if (gameKey === "fill-glass") return glassReduce(state as GlassState, action, meta);
   if (gameKey === "air-hockey") return hockeyReduce(state as HockeyState, action, meta);
+  if (gameKey === "cup-pong" || gameKey === "table-tennis") return sportsReduce(state as SportsState, action, meta);
   throw new Error("Unknown game");
 }
 
-export const GAME_KEYS = ["xo", "guess-me", "fill-glass", "air-hockey"] as const;
+export const GAME_KEYS = ["xo", "guess-me", "fill-glass", "air-hockey", "cup-pong", "table-tennis"] as const;
 export type GameKey = (typeof GAME_KEYS)[number];
 

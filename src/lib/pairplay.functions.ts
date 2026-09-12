@@ -1,3 +1,4 @@
+import { sportsInit, type SportsState } from '@/games/sports/logic';
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -257,6 +258,7 @@ export const getSession = createServerFn({ method: "GET" })
   });
 
 async function buildInitialState(admin: Admin, gameKey: string, players: string[], subjectFirst: string) {
+  if (gameKey === "cup-pong" || gameKey === "table-tennis") return sportsInit(players, gameKey);
   if (gameKey === "xo") return xoInit(players);
   if (gameKey === "guess-me") {
     const { data: bank } = await admin.from("guess_me_questions").select("*").eq("active", true);
@@ -387,7 +389,7 @@ function isFinished(gameKey: string, state: unknown): { ended: boolean; winnerId
     const s = state as { loser: string | null; winner: string | null };
     return { ended: false, winnerId: s.winner };
   }
-  if (gameKey === "air-hockey") {
+  if (gameKey === "air-hockey" || gameKey === "cup-pong" || gameKey === "table-tennis") {
     const s = state as { done: boolean; winner: string | null };
     return { ended: s.done, winnerId: s.winner };
   }
@@ -444,6 +446,12 @@ export const restartSession = createServerFn({ method: "POST" })
 
     if (session.status === "active") return session;
     if (session.status !== "ended") throw new Error("Finish the current game before playing again");
+    if (session.game_key === 'cup-pong' || session.game_key === 'table-tennis') {
+      const state = sportsInit(session.players, session.game_key, (session.state as unknown as SportsState).format);
+      const { data: replay, error } = await supabaseAdmin.from('game_sessions').update({ state: state as never, move_count: 0, status: 'proposed', proposed_by: context.userId, winner_id: null, ended_at: null, updated_at: new Date().toISOString() }).eq('id', session.id).eq('status', 'ended').select('*').maybeSingle();
+      if (error) throw new Error(error.message);
+      return replay ?? session;
+    }
     let state: unknown;
     if (session.game_key === "xo") {
       const prev = session.state as { marks: Record<string, string>; scores: Record<string, number> };

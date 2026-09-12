@@ -1,3 +1,4 @@
+import { sportsInit, sportsBot, type SportsState } from './sports/logic';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   applyAction, gmInit, xoInit, glassInit, hockeyInit,
@@ -16,6 +17,7 @@ export const BOT: Profile = { id: "bot", username: "computer", display_name: "Co
 const PLAYERS = [ME.id, BOT.id];
 
 function initialState(gameKey: GameKey, _difficulty: Difficulty): unknown {
+  if (gameKey === "cup-pong" || gameKey === "table-tennis") return sportsInit(PLAYERS, gameKey);
   if (gameKey === "xo") return xoInit(PLAYERS);
   if (gameKey === "guess-me") {
     const pool = [...SOLO_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10);
@@ -74,6 +76,13 @@ export function SoloPlay({
       if (action) act(action, glassBotDelay(difficulty));
     }
 
+    if (gameKey === 'cup-pong' || gameKey === 'table-tennis') {
+      const s = stateRef.current as SportsState;
+      timer = window.setTimeout(() => {
+        const move = sportsBot(s, BOT.id);
+        if (move) dispatch(move, BOT.id);
+      }, s.phase === 'setup' ? 450 : s.turn === BOT.id ? 1800 : 2900);
+    }
     return () => { if (timer) clearTimeout(timer); };
   }, [state, gameKey, difficulty, dispatch]);
 
