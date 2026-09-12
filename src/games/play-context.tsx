@@ -1,4 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
+import { GameFeedback } from "./GameFeedback";
 import type { GameAction } from "@/games/logic";
 
 export type Profile = {
@@ -37,7 +38,7 @@ export const usePlay = () => {
 };
 
 export function PlayProvider({ value, children }: { value: PlayValue; children: ReactNode }) {
-  return <PlayCtx.Provider value={value}>{children}</PlayCtx.Provider>;
+  return <PlayCtx.Provider value={value}><GameFeedback value={value} />{children}</PlayCtx.Provider>;
 }
 
 export const displayName = (p: Profile) => p.display_name ?? p.username;
