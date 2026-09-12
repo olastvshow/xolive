@@ -20,9 +20,9 @@ export function cupTrajectory(aim: number, power: number, cups: {x:number;z:numb
  for(let i=0;i<450;i++) {
   const prev=ball.position.clone(); world.step(STEP); const pos=ball.position;
   if(!landing && prev.y>=CUP_TOP && pos.y<CUP_TOP && ball.velocity.y<0) {
-   const t=(prev.y-CUP_TOP)/(prev.y-pos.y); landing={x:prev.x+(pos.x-prev.x)*t,y:CUP_TOP,z:prev.z+(pos.z-prev.z)*t};
-   const cup=cups.find(c=>Math.hypot(c.x-landing.x,c.z-landing.z)<.267*CUP_SCALE+BALL_RADIUS);
-   if(cup){const d=Math.hypot(cup.x-landing.x,cup.z-landing.z);
+   const t=(prev.y-CUP_TOP)/(prev.y-pos.y); const crossing={x:prev.x+(pos.x-prev.x)*t,y:CUP_TOP,z:prev.z+(pos.z-prev.z)*t}; landing=crossing;
+   const cup=cups.find(c=>Math.hypot(c.x-crossing.x,c.z-crossing.z)<.267*CUP_SCALE+BALL_RADIUS);
+   if(cup){const d=Math.hypot(cup.x-crossing.x,cup.z-crossing.z);
     if(d<.255*CUP_SCALE-BALL_RADIUS){hit=cup.id;captured=true;ball.velocity.x*=.12;ball.velocity.z*=.12;}
     else {rim=true;pos.y=CUP_TOP+BALL_RADIUS;ball.velocity.y=Math.abs(ball.velocity.y)*.48;ball.velocity.x+=(pos.x-cup.x)*6;ball.velocity.z+=(pos.z-cup.z)*6;}
    }
