@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CircleGeometry, InstancedMesh, LatheGeometry, Mesh, Object3D, TorusGeometry, Vector2 } from 'three';
 import { rack, type SportsState } from './logic';
-import { BALL_RADIUS, CUP_SCALE, cupTrajectory, frameAt } from './motion';
+import { BALL_RADIUS, CUP_SCALE, cupTrajectory, frameAt, shotFromFlick } from './motion';
 import { GestureInput, clamp } from '../engine/input';
 import { FixedLoop } from '../engine/loop';
 import { ImpactFeedback, burst } from '../engine/juice';
@@ -29,7 +29,7 @@ export function CupScene({value,input,elapsed,juice}:{value:RefObject<PlayValue>
    d.position.y=.07+.4*scale-progress*.65;d.rotation.x=-Math.PI/2;d.updateMatrix();liquid.current?.setMatrixAt(n,d.matrix);n++;
   }
   for(const mesh of [bodies.current,rims.current,liquid.current])if(mesh){mesh.count=n;mesh.instanceMatrix.needsUpdate=true;}
-  if(input.down&&s.turn===p.me.id&&time>duration+.7){previewTime.current+=dt;if(previewTime.current>.05){previewTime.current=0;preview.current=cupTrajectory(clamp(input.vx*.42,-1,1),clamp(-input.vy*.42,0,1),cups,(input.x-.5)*2.4).frames;}}
+  if(input.down&&s.turn===p.me.id&&time>duration+.7){previewTime.current+=dt;if(previewTime.current>.05){previewTime.current=0;const g=shotFromFlick(input.vx,input.vy);preview.current=cupTrajectory(g.aim,g.power,cups,(input.x-.5)*2.4).frames;}}
   if(arc.current){arc.current.visible=input.down&&s.turn===p.me.id&&(!shot||time>duration+.7);for(let i=0;i<32;i++){const f=preview.current[Math.min(preview.current.length-1,i*3)];d.position.set(f.x,f.y,f.z);d.rotation.set(0,0,0);d.scale.setScalar(.025);d.updateMatrix();arc.current.setMatrixAt(i,d.matrix);}arc.current.instanceMatrix.needsUpdate=true;}
   if(trail.current){trail.current.visible=flight;for(let i=0;i<12;i++){const f=shot?.frames?.length?frameAt(shot.frames,Math.max(0,time-i*.025)):pos;d.position.set(f.x*dir,f.y,f.z*dir);d.scale.setScalar(.07*(1-i/12));d.updateMatrix();trail.current.setMatrixAt(i,d.matrix);}trail.current.instanceMatrix.needsUpdate=true;}
   const entry=shot?.hit!==null&&shot?.hit!==undefined&&time>duration-.25&&time<duration+.65;
