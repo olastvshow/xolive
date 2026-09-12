@@ -14,7 +14,7 @@ export function gesture(samples: Sample[]) {
 export function cupTrajectory(aim: number, power: number, cups: {x:number;z:number;id:number}[] = [], origin = 0) {
  const world = new World({ gravity: new Vec3(0,-9.82,0) });
  const ball = new Body({mass:.0027, shape:new Sphere(BALL_RADIUS), position:new Vec3(origin,1.6,3)});
- ball.linearDamping=0; ball.velocity.set(aim*2.8,5.6,-(4.1+power*3.8)); world.addBody(ball);
+ ball.linearDamping=0; ball.velocity.set(aim*2.2,5.6,-(3.35+power*2.25)); world.addBody(ball);
  const frames: Frame[] = [{x:origin,y:1.6,z:3}]; let hit: number|null=null; let landing: Frame|undefined; let captured=false; let rim=false;
  for(let i=0;i<450;i++) {
   const prev=ball.position.clone(); world.step(STEP); const pos=ball.position;
