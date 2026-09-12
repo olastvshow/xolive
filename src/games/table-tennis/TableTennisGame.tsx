@@ -1,1 +1,1 @@
-export { default } from '../sports/SportsGame';
+export { default } from './TennisGame';

@@ -1,9 +1,9 @@
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { Suspense, useEffect, useState, type ReactNode } from 'react';
 
 /** Shared lit canvas for the 3D sports games. Client-only: never rendered during SSR. */
-export function Stage3D({ children, camera, background }: { children: ReactNode; camera: [number, number, number]; background: string }) {
+export function Stage3D({ children, camera, background, fov = 39 }: { fov?: number; children: ReactNode; camera: [number, number, number]; background: string }) {
   const [mounted, setMounted] = useState(false);
   const [failed, setFailed] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -11,7 +11,8 @@ export function Stage3D({ children, camera, background }: { children: ReactNode;
   if (!mounted) return <div className="aspect-[4/5] w-full animate-pulse rounded-[28px] bg-night-2" aria-hidden />;
   return (
     <div className="relative h-full w-full overflow-hidden">
-      <Canvas shadows dpr={[1, 2]} camera={{ position: camera, fov: 39 }} onCreated={({ gl }) => { gl.domElement.addEventListener('webglcontextlost', () => setFailed(true)); }}>
+      <Canvas shadows dpr={[1, 2]} camera={{ position: camera, fov }} onCreated={({ gl }) => { gl.domElement.addEventListener('webglcontextlost', () => setFailed(true)); }}>
+        <PerformanceFloor />
         <color attach="background" args={[background]} />
         <fog attach="fog" args={[background, 12, 30]} />
         <ambientLight intensity={0.55} />
@@ -27,4 +28,9 @@ export function Stage3D({ children, camera, background }: { children: ReactNode;
       </Canvas>
     </div>
   );
+}
+
+function PerformanceFloor(){
+ const [probe]=useState(()=>({time:0,frames:0,done:false}));
+ useFrame(({gl,setDpr},delta)=>{if(probe.done)return;probe.time+=delta;probe.frames++;if(probe.time>5){probe.done=true;if(probe.frames/probe.time<45){gl.shadowMap.enabled=false;setDpr(1);}}});return null;
 }
