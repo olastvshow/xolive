@@ -41,7 +41,9 @@ function Scene({ value,input,juice }: {value:RefObject<PlayValue>;input:GestureI
   const now=performance.now();if(p.live&&connected&&now-lastSend.current>40){lastSend.current=now;p.sendStream(host?{type:'tennis-frame',seq:s.seq,n:++counter.current,frame:sim.current}:{type:'tennis-input',seq:s.seq,pad});}
   const frame=sim.current,position=host?{x:frame.previous.x+(frame.p.x-frame.previous.x)*alpha,y:frame.previous.y+(frame.p.y-frame.previous.y)*alpha,z:frame.previous.z+(frame.p.z-frame.previous.z)*alpha}:frame.p;
   ball.current?.position.set(position.x*sign,position.y,position.z*sign);
-  near.current?.position.set(pad.x*sign,pad.y-.6,pad.z*sign-3.2);
+   if(near.current){near.current.position.set(pad.x*sign,pad.y-.6,pad.z*sign-3.2);
+    // The bat tilts with the swipe so the stroke direction is visible.
+    near.current.rotation.z=clamp(-swing.vx*.22,-.7,.7);near.current.rotation.x=clamp(-swing.vy*.18,-.6,.6);}
   const other=frame.pads[host?1:0];far.current?.position.set(other.x*sign,other.y-.6,other.z*sign+3.2);
   if(glow.current){glow.current.position.set(pad.x*sign,pad.y,pad.z*sign);const d=Math.hypot(frame.p.x-pad.x,frame.p.y-pad.y,frame.p.z-pad.z);(glow.current.material as MeshStandardMaterial).opacity=clamp(1-d/1.7,0,.65);}
   const shake=juice.step(delta);camera.position.x=position.x*sign*.08+Math.sin(now*.08)*shake;camera.lookAt(0,.15,-.7);
