@@ -81,7 +81,7 @@ export function SoloPlay({
       timer = window.setTimeout(() => {
         const move = sportsBot(s, BOT.id);
         if (move) dispatch(move, BOT.id);
-      }, s.phase === 'setup' ? 450 : s.turn === BOT.id ? 1800 : 2900);
+      }, s.phase === 'setup' ? 450 : gameKey === 'cup-pong' ? (s.last?.duration ?? 1.8) * 1000 + 1000 : 1800);
     }
     return () => { if (timer) clearTimeout(timer); };
   }, [state, gameKey, difficulty, dispatch]);

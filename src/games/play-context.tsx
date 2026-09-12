@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { GameFeedback } from "./GameFeedback";
 import type { GameAction } from "@/games/logic";
 
@@ -38,9 +38,16 @@ export const usePlay = () => {
 };
 
 export function PlayProvider({ value, children }: { value: PlayValue; children: ReactNode }) {
-  const state = value.state as { winner?: string; loser?: string; draw?: boolean; done?: boolean } | null;
+  const [presented,setPresented]=useState(value.state);
+  useEffect(()=>{const s=value.state as {kind?:string;seq?:number;last?:{duration?:number}};
+    if(s?.kind!=='cup-pong'||!s.seq){setPresented(value.state);return;}
+    const timer=setTimeout(()=>setPresented(value.state),((s.last?.duration??0)+.9)*1000);
+    return ()=>clearTimeout(timer);
+  },[value.state]);
+  const display=value.gameKey==='cup-pong'?presented:value.state;
+  const state = display as { winner?: string; loser?: string; draw?: boolean; done?: boolean } | null;
   const finished = Boolean(state?.winner || state?.loser || state?.draw || state?.done);
-  return <PlayCtx.Provider value={value}><GameFeedback value={value} />{!finished && children}</PlayCtx.Provider>;
+  return <PlayCtx.Provider value={value}><GameFeedback value={{...value,state:display}} />{!finished && children}</PlayCtx.Provider>;
 }
 
 export const displayName = (p: Profile) => p.display_name ?? p.username;
