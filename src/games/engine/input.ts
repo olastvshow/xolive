@@ -8,8 +8,10 @@ export function velocity(samples:Sample[]) {
  return den>1e-8?{x:clamp(x/den,-8,8),y:clamp(y/den,-8,8)}:{x:0,y:0};
 }
 export class GestureInput {
- samples:Sample[]=[];id:number|null=null; x=.5;y=.8;vx=0;vy=0;down=false;stroke=0;
+ samples:Sample[]=[];id:number|null=null; x=.5;y=.8;vx=0;vy=0;down=false;stroke=0;releasedAt=0;
  private rect:DOMRect|null=null;
+ /** Swing energy: full while the finger moves, fading over ~250ms after release so a lifted finger stops swinging. */
+ swing(){const fade=this.down?1:clamp(1-(performance.now()-this.releasedAt)/250,0,1);return {vx:this.vx*fade,vy:this.vy*fade};}
  bind(element:HTMLElement,onRelease?:()=>void,onStart?:()=>void){
   const measure=()=>{this.rect=element.getBoundingClientRect();};measure();
   const sample=(e:PointerEvent)=>{const r=this.rect;if(!r)return;this.x=clamp((e.clientX-r.left)/r.width,0,1);this.y=clamp((e.clientY-r.top)/r.height,0,1);this.samples.push({x:this.x,y:this.y,t:e.timeStamp});if(this.samples.length>32)this.samples.shift();const v=velocity(this.samples);this.vx=v.x;this.vy=v.y;};
