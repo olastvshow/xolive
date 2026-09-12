@@ -30,13 +30,13 @@ export function stepTennis(s:TennisSim,dt:number){
  if(s.serve&&s.bounce===2&&s.net){Object.assign(s,tennisInit(s.server));return;}
  p.y=R;v.y=Math.abs(v.y)*.85;v.z+=clamp(w.x*R*.12,-1.8,1.8);v.x+=clamp(w.z*R*.12,-1.8,1.8);w.x*=.8;w.y*=.85;s.impact=1;
  }}
- for(const who of [0,1] as Side[]){if(who===s.hitter)continue;const pad=s.pads[who];const approaching=who===0?v.z>0:v.z<0;if(!approaching)continue;
+ for(const who of [0,1] as Side[]){if(who===s.hitter)continue;if(s.bounce<(s.serve?2:1))continue;const pad=s.pads[who];const approaching=who===0?v.z>0:v.z<0;if(!approaching)continue;
  const plane=pad.z+(who===0?-R:R);if((old.z-plane)*(p.z-plane)<=0){const t=clamp((plane-old.z)/(p.z-old.z),0,1),dx=old.x+(p.x-old.x)*t-pad.x,dy=old.y+(p.y-old.y)*t-pad.y;const d=Math.hypot(dx,dy);if(d<.62){p.z=plane;strike(s,who,d/.62);break;}}
  }
  if(p.y< -1||Math.abs(p.z)>6||Math.abs(p.x)>3.5){const legal=s.bounce===(s.serve?2:1);award(s,legal?s.hitter:opposite(s.hitter),legal?'missed return':'out');}
 }
 export function botStep(s:TennisSim,dt:number,skill='medium'){
  const pad=s.pads[1],rate=skill==='hard'?4:skill==='easy'?1.6:2.6;
- const target=s.p.z<0?s.p.x+Math.sin(Math.floor(s.time*4)*2.7)*.17:0;pad.x+=clamp(target-pad.x,-rate*dt,rate*dt);pad.z=-3;pad.y=.85;pad.held=true;pad.vy=-.55;pad.vx=Math.sin(s.time*.8)*.3;
+ const target=s.p.z<0?s.p.x+Math.sin(Math.floor(s.time*4)*2.7)*.17:0;pad.x+=clamp(target-pad.x,-rate*dt,rate*dt);pad.z=-3.8;pad.y=.85;pad.held=true;pad.vy=-.55;pad.vx=Math.sin(s.time*.8)*.3;
  if(s.server===1&&!s.active&&!s.toss&&s.time>.8)toss(s,1);
 }
