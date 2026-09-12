@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 function Scene({ value,input,juice }: {value:RefObject<PlayValue>;input:GestureInput;juice:ImpactFeedback}){
  const ball=useRef<Mesh>(null),near=useRef<Group>(null),far=useRef<Group>(null),glow=useRef<Mesh>(null);
  const loop=useRef(new FixedLoop()),sim=useRef(tennisInit(0)),seq=useRef(-1),sent=useRef(false),lastSend=useRef(0),counter=useRef(0),lastPacket=useRef(-1),held=useRef(false);
- const buffer=useRef<{time:number;frame:TennisSim}[]>([]);
+ const buffer=useRef<{time:number;frame:TennisSim}[]>([]),smooth=useRef({x:0,z:2.8}),stalled=useRef(0);
  useEffect(()=>loop.current.visibility(),[]);
  useEffect(()=>value.current.onStream(raw=>{
   const m=raw as {type?:string;seq?:number;n?:number;frame?:TennisSim;pad?:Pad};const p=value.current,s=p.state as SportsState;
