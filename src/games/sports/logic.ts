@@ -53,21 +53,10 @@ export function sportsReduce(s: SportsState, a: GameAction, m: Meta & { now?: nu
     const done = cups[other].length === 0;
     return { ...s, cups, scores, done, winner: done ? m.userId : null, turn: other, launchedAt: now, seq: s.seq + 1, last: { by: m.userId, x:land.x, z:land.z, hit, point: hit !== null, frames:shot.frames, duration:shot.duration } };
   }
-  let scorer: string | null = null;
-  if (a.type === 'timeout') {
-    if (!s.launchedAt || now - s.launchedAt < 2600 || m.userId !== other) throw new Error('Rally is still in play');
-    scorer = other;
-  } else {
-    if (m.userId !== s.turn || (a.type !== 'serve' && a.type !== 'return')) throw new Error('Wait for the ball');
-    const x = number(a.x, -1.4, 1.4);
-    const aim = number(a.aim, -1.2, 1.2);
-    if (s.launchedAt) {
-      const elapsed = now - s.launchedAt;
-      if (elapsed < 1100) throw new Error('Ball has not reached you');
-      if (elapsed > 2500 || Math.abs(x - s.landing) > .42) scorer = other;
-    } else if (a.type !== 'serve') throw new Error('Serve first');
-    if (!scorer) return { ...s, turn: other, rally: s.rally + 1, landing: aim, launchedAt: now, seq: s.seq + 1, last: { by: m.userId, x: aim, z: -3, hit: null, point: false } };
-  }
+  if(a.type !== 'physics-point' || m.userId !== m.players[0]) throw new Error('Only the host can resolve a rally');
+  if(typeof a.scorer !== 'string' || !m.players.includes(a.scorer)) throw new Error('Invalid scorer');
+  if(!['net','volley','wrong half','double bounce','missed return','out'].includes(String(a.reason))) throw new Error('Invalid point');
+  const scorer = a.scorer;
   const scores = { ...s.scores, [scorer]: s.scores[scorer] + 1 };
   const loser = m.players.find(p => p !== scorer) ?? s.turn;
   const done = scores[scorer] >= s.target && scores[scorer] - scores[loser] >= 2;
@@ -79,10 +68,8 @@ export function sportsReduce(s: SportsState, a: GameAction, m: Meta & { now?: nu
 export function sportsBot(s: SportsState, bot: string, now = Date.now()): GameAction | null {
   if (s.done) return null;
   if (s.phase === 'setup') return s.ready.length ? { type: 'ready' } : null;
-  if (s.turn !== bot) {
-    if (s.kind === 'table-tennis' && s.launchedAt && now - s.launchedAt > 2700) return { type: 'timeout', seq: s.seq };
-    return null;
-  }
+  if(s.kind==='table-tennis'||s.turn!==bot)return null;
+  if(s.launchedAt && now < s.launchedAt+(s.last?.duration??1.8)*1000+900)return null;
   if (s.kind === 'cup-pong') {
     const opponent = Object.keys(s.cups).find(p => p !== bot) ?? '';
     const options = rack(s.target).filter(c => s.cups[opponent]?.includes(c.id));
@@ -96,5 +83,5 @@ export function sportsBot(s: SportsState, bot: string, now = Date.now()): GameAc
     }
     return { type: 'throw', seq: s.seq, aim: Math.max(-1, Math.min(1, best.aim + (Math.random() - .5) * .13)), power: Math.max(0, Math.min(1, best.power + (Math.random() - .5) * .14)) };
   }
-  return { type: s.launchedAt ? 'return' : 'serve', seq: s.seq, x: Math.max(-1.4, Math.min(1.4, s.landing + (Math.random() < .17 ? .7 : (Math.random() - .5) * .3))), aim: (Math.random() - .5) * 2.3 };
+  return null;
 }
