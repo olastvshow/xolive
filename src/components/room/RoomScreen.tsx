@@ -47,7 +47,7 @@ function RoomBody({
   const proposedByThem = session?.status === "proposed" && session.proposed_by !== me.id;
   const proposedByMe = session?.status === "proposed" && session.proposed_by === me.id;
   const partnerName = displayName(partner);
-  const playing = session?.status === "active" && Boolean(Stage);
+  const playing = (session?.status === "active" || session?.status === "ended") && Boolean(Stage);
 
   const playValue = useMemo<PlayValue>(() => ({
     me,
