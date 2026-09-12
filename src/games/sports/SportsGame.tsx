@@ -11,7 +11,11 @@ export default function SportsGame(){
  const p=usePlay(),s=p.state as SportsState,value=useRef(p);value.current=p;
  const stage=useRef<HTMLDivElement>(null),input=useRef(new GestureInput()),elapsed=useRef(0),juice=useRef(new ImpactFeedback());
  useEffect(()=>{const el=stage.current;if(!el)return;
-  const shoot=()=>{const v=value.current,state=v.state as SportsState;if(v.busy||state.done||state.turn!==v.me.id||(v.live&&!v.partnerOnline)||(state.last&&elapsed.current<(state.last.duration??0)+.9))return;const i=input.current;v.play({type:'throw',seq:state.seq,aim:clamp(i.vx*.42,-1,1),power:clamp(-i.vy*.42,0,1),origin:clamp((i.x-.5)*2.4,-1.2,1.2)});};
+   const shoot=()=>{const v=value.current,state=v.state as SportsState;if(v.busy||state.done||state.turn!==v.me.id||(v.live&&!v.partnerOnline)||(state.last&&elapsed.current<(state.last.duration??0)+.9))return;const i=input.current;
+    const flick=-i.vy; // upward screen swipe
+    if(flick<.35)return; // a tap or a stray touch is not a throw
+    const power=clamp((flick-.35)/1.35,0,1);
+    v.play({type:'throw',seq:state.seq,aim:clamp(i.vx*.3,-1,1),power,origin:clamp((i.x-.5)*2.4,-1.2,1.2)});};
   const clean=input.current.bind(el,shoot,()=>juice.current.unlock());const key=(e:KeyboardEvent)=>{if((e.target as HTMLElement).tagName==='INPUT')return;if(e.key==='ArrowLeft')input.current.vx-=.1;if(e.key==='ArrowRight')input.current.vx+=.1;if(e.key==='ArrowUp')input.current.vy-=.15;if(e.key==='ArrowDown')input.current.vy+=.15;if(e.code==='Space'){e.preventDefault();shoot();}};window.addEventListener('keydown',key);return()=>{clean();window.removeEventListener('keydown',key);};
  },[s.phase]);
  useEffect(()=>()=>juice.current.dispose(),[]);

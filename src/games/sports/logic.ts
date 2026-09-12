@@ -77,7 +77,7 @@ export function sportsBot(s: SportsState, bot: string, now = Date.now()): GameAc
     if (!c) return null;
     let best = { aim: 0, power: 0, distance: Infinity };
     for (let power = 0; power <= 1; power += .025) {
-      const base = cupLanding(0, power); const aim = c.x / 3.64;
+      const base = cupLanding(0, power); const aim = c.x / 2.86;
       const d = Math.abs(base.z - c.z);
       if (d < best.distance) best = { aim, power, distance: d };
     }
