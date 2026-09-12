@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import type { SportsState } from './logic';
 
 const LABELS = {
@@ -17,22 +18,22 @@ export function MatchSetup({ state, canChoose, iAmReady, waiting, onFormat, onRe
         {LABELS[state.kind].map(option => {
           const active = state.format === option.id;
           return (
-            <button key={option.id} type="button" disabled={!canChoose} aria-pressed={active}
+            <Button key={option.id} type="button" disabled={!canChoose} aria-pressed={active}
               onClick={() => onFormat(option.id)}
-              className={`tile flex items-center justify-between p-5 text-left transition ${active ? 'ring-2 ring-pop' : ''} ${canChoose ? 'press' : 'opacity-70'}`}>
+              className={`tile h-auto whitespace-normal flex items-center justify-between p-5 text-left transition ${active ? 'ring-2 ring-pop' : ''} ${canChoose ? 'press' : 'opacity-70'}`}>
               <span>
                 <span className="block font-display text-xl">{option.title}</span>
                 <span className="mt-1 block text-sm text-ink/55">{option.blurb}</span>
               </span>
               {active && <span className="text-sm font-bold text-pop">Chosen</span>}
-            </button>
+            </Button>
           );
         })}
       </div>
       {!canChoose && <p className="mt-3 text-sm text-ink/50">Your opponent picks the match length.</p>}
-      <button type="button" className="btn-pop mt-7 h-13 w-full py-4" disabled={iAmReady} onClick={onReady}>
+      <Button type="button" className="btn-pop mt-7 h-13 w-full py-4" disabled={iAmReady} onClick={onReady}>
         {iAmReady ? (waiting ? 'Waiting for your opponent…' : 'Starting…') : "I'm ready"}
-      </button>
+      </Button>
     </section>
   );
 }

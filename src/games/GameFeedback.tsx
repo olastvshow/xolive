@@ -14,14 +14,14 @@ export function GameFeedback({ value }: { value: PlayValue }) {
   const previous = useRef('');
   const priorScores = useRef<Record<string, number>>({});
   const priorOver = useRef(false);
-  const s = (value.state ?? {}) as { winner?: string; loser?: string; draw?: boolean; done?: boolean; score?: number; questions?: unknown[]; scores?: Record<string, number>; board?: unknown[]; level?: number; idx?: number; revealed?: boolean };
+  const s = (value.state ?? {}) as { phase?: string; seq?: number; winner?: string; loser?: string; draw?: boolean; done?: boolean; score?: number; questions?: unknown[]; scores?: Record<string, number>; board?: unknown[]; level?: number; idx?: number; revealed?: boolean };
   const over = Boolean(s.winner || s.loser || s.draw || s.done);
   useEffect(() => {
-    if (over) { setIntro(false); return; }
+    if (over || s.phase === "setup") { setIntro(false); return; }
     setIntro(true);
     const timer = setTimeout(() => setIntro(false), 1300);
     return () => clearTimeout(timer);
-  }, [over]);
+  }, [over, s.phase]);
   const act = async (action: () => void | Promise<void>) => {
     setPending(true); setError('');
     try { await action(); } catch { setError('Could not connect. Please try again.'); }
@@ -42,7 +42,7 @@ export function GameFeedback({ value }: { value: PlayValue }) {
     return () => clearTimeout(timer);
   }, [notice]);
   useEffect(() => {
-    const signature = JSON.stringify([s.board, s.level, s.idx, s.revealed, s.scores, s.score, over]);
+    const signature = JSON.stringify([s.seq, s.board, s.level, s.idx, s.revealed, s.scores, s.score, over]);
     if (signature === previous.current) return;
     const initial = previous.current === '';
     previous.current = signature;
