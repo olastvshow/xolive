@@ -529,3 +529,11 @@
 @keyframes match-intro-reveal { 0% { opacity:0; transform:scale(1.06); } 18%,75% { opacity:1; transform:scale(1); } 100% { opacity:0; transform:scale(1.02); } }
 
 :root { --sports-cup-wash: linear-gradient(150deg, #184c43, #102b2d); --sports-tennis-wash: linear-gradient(150deg, #164675, #12263a); }
+
+.sports-fullscreen { position:fixed; inset:0; z-index:60; background:var(--color-night); overflow:hidden; }
+.sports-touch-stage { position:absolute; inset:0; touch-action:none; user-select:none; }
+.sports-fullscreen > div:first-child { position:absolute; z-index:2; top:max(24px,env(safe-area-inset-top)); left:0; right:0; width:100%; pointer-events:none; }
+.sports-exit { position:absolute; bottom:max(20px,env(safe-area-inset-bottom)); left:20px; }
+body:has(.sports-fullscreen) .game-sound-control { position:fixed; z-index:72; right:12px; top:100px; }
+.start-banner { padding:22px; color:var(--color-night); background:var(--color-pop); border-radius:8px; transform:rotate(-3deg); animation:banner-slam .6s cubic-bezier(.16,1,.3,1) both; }
+@keyframes banner-slam { from { opacity:0; transform:scale(1.8) rotate(-9deg); } to { opacity:1; transform:scale(1) rotate(-3deg); } }
