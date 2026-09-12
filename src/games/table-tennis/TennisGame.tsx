@@ -25,8 +25,15 @@ function Scene({ value,input,juice }: {value:RefObject<PlayValue>;input:GestureI
  useFrame(({camera},delta)=>{
   const p=value.current,s=p.state as SportsState;const host=p.isHost,own=host?0:1,sign=host?1:-1;
   if(seq.current!==s.seq){seq.current=s.seq;sim.current=tennisInit(s.server===p.players[0]?0:1);sent.current=false;buffer.current=[];lastPacket.current=-1;loop.current.accumulator=0;}
-  const f=sim.current;const pad:Pad={x:(input.x-.5)*3.2*sign,y:.85,z:clamp(1+(input.y-.45)/.55*2.8,1,3.8)*sign,vx:input.vx*sign,vy:input.vy,held:input.down};f.pads[own]=pad;
-  if(input.down&&!held.current)toss(f,own);held.current=input.down;
+   const f=sim.current;const swing=input.swing();
+   // Target follows the finger directly; a short exponential chase removes jitter without adding lag.
+   const targetX=(input.x-.5)*3.4,targetZ=clamp(2.5+(input.y-.5)*2.4,1.4,3.8);
+   const chase=1-Math.exp(-26*Math.min(delta,.05));
+   smooth.current.x+=(targetX-smooth.current.x)*chase;smooth.current.z+=(targetZ-smooth.current.z)*chase;
+   const pad:Pad={x:smooth.current.x*sign,y:.85,z:smooth.current.z*sign,vx:swing.vx*sign,vy:swing.vy,held:input.down};f.pads[own]=pad;
+   if(input.down&&!held.current)toss(f,own);held.current=input.down;
+   // Never leave the table frozen: if a point is not confirmed quickly, restart the rally locally.
+   if(f.point!==null){if(!stalled.current)stalled.current=performance.now();else if(performance.now()-stalled.current>1600){stalled.current=0;sim.current=tennisInit(s.server===p.players[0]?0:1);}}else stalled.current=0;
   const connected=!p.live||p.partnerOnline;
   let alpha=0;
   if(host&&connected&&!s.done){alpha=loop.current.advance(delta,dt=>{if(!p.live)botStep(f,dt);stepTennis(f,dt);if(f.impact)juice.impact(loop.current,f.impact>1);});if(f.point!==null&&!sent.current&&!p.busy){sent.current=true;p.play({type:'physics-point',seq:s.seq,scorer:p.players[f.point],reason:f.reason});}}
