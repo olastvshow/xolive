@@ -1,16 +1,15 @@
+import { velocity } from '../engine/input';
+import { FIXED_STEP } from '../engine/loop';
 import { Body, Sphere, Vec3, World } from 'cannon-es';
 export const BALL_RADIUS = .16;
 export const CUP_SCALE = 1.4;
 export const CUP_TOP = .07 + .58 * CUP_SCALE;
-export const STEP = 1 / 180;
+export const STEP = FIXED_STEP;
 export type Sample = { x: number; y: number; t: number };
 export type Frame = { x: number; y: number; z: number };
 export const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 export function gesture(samples: Sample[]) {
- const end = samples.at(-1); if (!end) return { aim: 0, power: 0 };
- const start = samples.find(s => end.t - s.t <= 100 && end.t - s.t >= 12) ?? samples[0];
- const dt = Math.max(.016, (end.t - start.t) / 1000);
- return { aim: clamp((end.x - start.x) / dt * .42, -1, 1), power: clamp((start.y - end.y) / dt * .42, 0, 1) };
+ const v=velocity(samples); return {aim:clamp(v.x*.42,-1,1),power:clamp(-v.y*.42,0,1)};
 }
 export function cupTrajectory(aim: number, power: number, cups: {x:number;z:number;id:number}[] = [], origin = 0) {
  const world = new World({ gravity: new Vec3(0,-9.82,0) });
