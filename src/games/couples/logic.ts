@@ -69,7 +69,6 @@ export type FsState = {
 
 export function fsReduce(s: FsState, a: GameAction, m: Meta): FsState {
   if (s.done) throw new Error("Round is over");
-  const other = m.players.find((p) => p !== m.userId) ?? m.userId;
   const writing = s.entries.length === s.idx;
   if (a.type === "write") {
     if (!writing || m.userId !== s.writer) throw new Error("Not your turn to write");
@@ -84,7 +83,7 @@ export function fsReduce(s: FsState, a: GameAction, m: Meta): FsState {
     const entries = s.entries.slice();
     entries[s.idx] = { ...entries[s.idx], reaction: r };
     const idx = s.idx + 1;
-    return { ...s, entries, idx, writer: m.userId === other ? s.writer : m.userId, done: idx >= s.prompts.length };
+    return { ...s, entries, idx, writer: m.userId, done: idx >= s.prompts.length };
   }
   return s;
 }
