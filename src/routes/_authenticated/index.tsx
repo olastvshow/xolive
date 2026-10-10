@@ -94,7 +94,7 @@ function HomeHub() {
             </Link>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5">
+          <div className="mt-4 grid grid-cols-1 gap-3 min-[340px]:grid-cols-2 md:grid-cols-3 md:gap-4 xl:grid-cols-6 lg:gap-5">
             {GAMES.map((g) => (
               <Link
                 key={g.key}

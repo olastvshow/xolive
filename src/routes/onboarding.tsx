@@ -50,9 +50,9 @@ function OnboardingPage() {
       <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-6 pb-8 pt-10 lg:max-w-lg">
         <p className="text-center text-[11px] font-bold uppercase tracking-[0.4em] text-pop">Duet</p>
 
-        <h1 className="mt-5 text-center font-display text-[44px] leading-[0.9] sm:text-[56px]">
+        <h1 className="mt-5 text-center font-display text-[34px] leading-[0.9] min-[340px]:text-[44px] sm:text-[56px]">
           Play
-          <span className="block text-[58px] sm:text-[74px]">Together</span>
+          <span className="block text-[44px] min-[340px]:text-[58px] sm:text-[74px]">Together</span>
         </h1>
         <p className="mx-auto mt-4 max-w-[300px] text-center text-[15px] leading-relaxed text-ink/55">
           Four bright little games. Beat the computer, meet someone online, or keep a private room for two.
