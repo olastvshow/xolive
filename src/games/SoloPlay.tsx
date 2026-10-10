@@ -36,7 +36,8 @@ function initialState(gameKey: GameKey, _difficulty: Difficulty): unknown {
 export function SoloPlay({
   gameKey, difficulty, onExit,
 }: { gameKey: GameKey; difficulty: Difficulty; onExit: () => void }) {
-  const [state, setState] = useState<unknown>(() => initialState(gameKey, difficulty));
+  // Built after hydration: the deck is random, so the server must not render it.
+  const [state, setState] = useState<unknown>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -46,12 +47,12 @@ export function SoloPlay({
   useEffect(() => {
     try {
       const raw = localStorage.getItem(saveKey);
-      if (raw) setState(JSON.parse(raw));
-    } catch {}
+      setState(raw ? JSON.parse(raw) : initialState(gameKey, difficulty));
+    } catch { setState(initialState(gameKey, difficulty)); }
     restored.current = true;
-  }, [saveKey]);
+  }, [saveKey, gameKey, difficulty]);
   useEffect(() => {
-    if (!restored.current) return;
+    if (!restored.current || state === null) return;
     try { localStorage.setItem(saveKey, JSON.stringify(state)); } catch {}
   }, [saveKey, state]);
 
@@ -78,6 +79,7 @@ export function SoloPlay({
   // ---- the computer ----
   useEffect(() => {
     let timer: number | undefined;
+    if (stateRef.current === null) return;
     const act = (action: GameAction, delay: number) => {
       timer = window.setTimeout(() => dispatch(action, BOT.id), delay);
     };
@@ -143,6 +145,8 @@ export function SoloPlay({
     sendStream: () => {},
     onStream: () => () => {},
   }), [gameKey, state, play, restart, exit]);
+
+  if (state === null) return <div className="px-4 text-sm text-ink/40">loading game…</div>;
 
   return (
     <PlayProvider value={value}>
