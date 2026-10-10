@@ -108,11 +108,26 @@ export function RoomProvider({
       config: { broadcast: { self: false }, presence: { key: me.id } },
     });
     channelRef.current = channel;
+    let offlineTimer: ReturnType<typeof setTimeout> | undefined;
+
+    // Coming back to the app: re-announce presence and catch up on the game.
+    const resume = () => {
+      if (document.visibilityState !== "visible") return;
+      channel.track({ userId: me.id, at: Date.now() }).catch(() => {});
+      refreshSession().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("online", resume);
+    window.addEventListener("focus", resume);
 
     channel
       .on("presence", { event: "sync" }, () => {
         const st = channel.presenceState();
-        setPartnerOnline(Object.keys(st).some((k) => k !== me.id));
+        const here = Object.keys(st).some((k) => k !== me.id);
+        // A short grace period so minimising or refreshing doesn't count as leaving.
+        if (offlineTimer) { clearTimeout(offlineTimer); offlineTimer = undefined; }
+        if (here) setPartnerOnline(true);
+        else offlineTimer = setTimeout(() => setPartnerOnline(false), 12000);
       })
       .on("broadcast", { event: "voice" }, ({ payload }) => bus.handler?.(payload as VoicePayload))
       .on("broadcast", { event: "reaction" }, ({ payload }) => {
@@ -156,10 +171,14 @@ export function RoomProvider({
       });
 
     return () => {
+      if (offlineTimer) clearTimeout(offlineTimer);
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("online", resume);
+      window.removeEventListener("focus", resume);
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
-  }, [bus, me.id, roomId]);
+  }, [bus, me.id, roomId, refreshSession]);
 
   const react = useCallback((emoji: string) => {
     const id = ++burstId;
