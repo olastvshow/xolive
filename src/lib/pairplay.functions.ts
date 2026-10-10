@@ -1,3 +1,4 @@
+import { buildCouplesState, isCouplesKey } from "@/games/couples/logic";
 import { sportsInit, type SportsState } from '@/games/sports/logic';
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -257,20 +258,18 @@ export const getSession = createServerFn({ method: "GET" })
     return rows?.[0] ?? null;
   });
 
-async function buildInitialState(admin: Admin, gameKey: string, players: string[], subjectFirst: string) {
+async function buildInitialState(admin: Admin, gameKey: string, players: string[], subjectFirst: string, roomId: string) {
   if (gameKey === "cup-pong" || gameKey === "table-tennis") return sportsInit(players, gameKey);
   if (gameKey === "xo") return xoInit(players);
-  if (gameKey === "guess-me") {
-    const { data: bank } = await admin.from("guess_me_questions").select("*").eq("active", true);
-    const pool = [...(bank ?? [])].sort(() => Math.random() - 0.5).slice(0, 10);
-    const other = players.find((p) => p !== subjectFirst) ?? players[0];
-    const questions: GmQuestion[] = pool.map((q, i) => ({
-      category: q.category,
-      prompt: q.prompt,
-      options: q.options,
-      subject: i % 2 === 0 ? subjectFirst : other,
-    }));
-    return gmInit(questions);
+  if (isCouplesKey(gameKey)) {
+    // Never repeat prompts for the same couple until the whole bank is used.
+    const { data: room } = await admin.from("rooms").select("pair_id").eq("id", roomId).maybeSingle();
+    const scope = room?.pair_id ?? roomId;
+    const { data: rows } = await admin.from("seen_prompts").select("prompt").eq("scope_id", scope).eq("game_key", gameKey);
+    const { state, used, reset } = buildCouplesState(gameKey, players, subjectFirst, new Set((rows ?? []).map((r) => r.prompt)));
+    if (reset) await admin.from("seen_prompts").delete().eq("scope_id", scope).eq("game_key", gameKey);
+    await admin.from("seen_prompts").upsert(used.map((prompt) => ({ scope_id: scope, game_key: gameKey, prompt })), { onConflict: "scope_id,game_key,prompt", ignoreDuplicates: true });
+    return state;
   }
   if (gameKey === "fill-glass") return glassInit(players, subjectFirst);
   if (gameKey === "air-hockey") return hockeyInit(players, 7);
@@ -292,7 +291,7 @@ export const proposeGame = createServerFn({ method: "POST" })
       .update({ status: "declined", ended_at: new Date().toISOString() })
       .eq("room_id", data.roomId).in("status", ["proposed", "active"]);
 
-    const state = await buildInitialState(supabaseAdmin, data.gameKey, players, context.userId);
+    const state = await buildInitialState(supabaseAdmin, data.gameKey, players, context.userId, data.roomId);
     const { data: row, error } = await supabaseAdmin.from("game_sessions").insert({
       room_id: data.roomId,
       game_key: data.gameKey,
@@ -381,7 +380,7 @@ function isFinished(gameKey: string, state: unknown): { ended: boolean; winnerId
     const s = state as { winner: string | null; draw: boolean };
     return { ended: false, winnerId: s.winner };
   }
-  if (gameKey === "guess-me") {
+  if (isCouplesKey(gameKey)) {
     const s = state as { done: boolean };
     return { ended: s.done, winnerId: null };
   }
@@ -458,7 +457,7 @@ export const restartSession = createServerFn({ method: "POST" })
       const prevSecond = Object.keys(prev.marks ?? {}).find((k) => prev.marks[k] === "O");
       state = xoInit(session.players, prevSecond, prev.scores);
     } else {
-      state = await buildInitialState(supabaseAdmin, session.game_key, session.players, context.userId);
+      state = await buildInitialState(supabaseAdmin, session.game_key, session.players, context.userId, session.room_id);
     }
     const { data: row, error } = await supabaseAdmin.from("game_sessions").update({
       state: state as never, move_count: 0, status: "active",
