@@ -1,4 +1,5 @@
 import { sportsReduce, type SportsState } from './sports/logic';
+import { ludoReduce, type LudoState } from './ludo/logic';
 import { tdReduce, fsReduce, type TdState, type FsState } from './couples/logic';
 // Pure game reducers — shared by client (optimistic) and server (authoritative).
 
@@ -234,15 +235,16 @@ export function applyAction(
   meta: Meta,
 ): unknown {
   if (gameKey === "xo") return xoReduce(state as XoState, action, meta);
-  if (gameKey === "guess-me" || gameKey === "this-or-that" || gameKey === "likely") return gmReduce(state as GmState, action, meta);
+  if (gameKey === "guess-me" || gameKey === "this-or-that" || gameKey === "likely" || gameKey === "memory") return gmReduce(state as GmState, action, meta);
   if (gameKey === "truth-dare") return tdReduce(state as TdState, action, meta);
   if (gameKey === "finish") return fsReduce(state as FsState, action, meta);
+  if (gameKey === "ludo") return ludoReduce(state as LudoState, action, meta);
   if (gameKey === "fill-glass") return glassReduce(state as GlassState, action, meta);
   if (gameKey === "air-hockey") return hockeyReduce(state as HockeyState, action, meta);
   if (gameKey === "cup-pong" || gameKey === "table-tennis") return sportsReduce(state as SportsState, action, meta);
   throw new Error("Unknown game");
 }
 
-export const GAME_KEYS = ["xo", "guess-me", "fill-glass", "air-hockey", "cup-pong", "table-tennis", "this-or-that", "likely", "truth-dare", "finish"] as const;
+export const GAME_KEYS = ["xo", "guess-me", "fill-glass", "air-hockey", "cup-pong", "table-tennis", "this-or-that", "likely", "truth-dare", "finish", "memory", "ludo"] as const;
 export type GameKey = (typeof GAME_KEYS)[number];
 

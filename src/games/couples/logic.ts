@@ -1,7 +1,8 @@
 import type { GameAction, GmQuestion, GmState, Meta } from "../logic";
-import { KNOW_US, THIS_OR_THAT, LIKELY, TRUTHS, DARES, SENTENCES, pickFresh } from "./banks";
+import { KNOW_US, THIS_OR_THAT, LIKELY, TRUTHS, DARES, SENTENCES, FAVOURITES, pickFresh } from "./banks";
+import { ludoInit } from "../ludo/logic";
 
-export const COUPLES_KEYS = ["guess-me", "this-or-that", "likely", "truth-dare", "finish"] as const;
+export const COUPLES_KEYS = ["guess-me", "this-or-that", "likely", "truth-dare", "finish", "memory", "ludo"] as const;
 export const isCouplesKey = (k: string) => (COUPLES_KEYS as readonly string[]).includes(k);
 
 // ---------- Truth or Dare ----------
@@ -106,6 +107,15 @@ export function buildCouplesState(gameKey: string, players: string[], subjectFir
     const { items, reset } = pickFresh(LIKELY, (p) => p, seen, 12);
     const questions: GmQuestion[] = items.map((p) => ({ category: "Who's more likely", prompt: `Who's more likely to ${p}?`, options: ["{s}", "{o}"], subject: a }));
     return { state: { kind: "likely", ...gmBase(questions) } as GmState, used: items, reset };
+  }
+  if (gameKey === "memory") {
+    const { items, reset } = pickFresh(FAVOURITES, (q) => q.prompt, seen, 10);
+    const questions: GmQuestion[] = items.map((q, i) => ({ ...q, subject: i % 2 === 0 ? subjectFirst : other }));
+    return { state: { kind: "memory", ...gmBase(questions) } as GmState, used: items.map((q) => q.prompt), reset };
+  }
+  if (gameKey === "ludo") {
+    const { items, reset } = pickFresh(KNOW_US, (q) => `gate:${q.prompt}`, seen, 8);
+    return { state: ludoInit(players, subjectFirst, items), used: items.map((q) => `gate:${q.prompt}`), reset };
   }
   if (gameKey === "truth-dare") {
     const t = pickFresh(TRUTHS, (x) => `t:${x}`, seen, 12);

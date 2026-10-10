@@ -380,6 +380,10 @@ function isFinished(gameKey: string, state: unknown): { ended: boolean; winnerId
     const s = state as { winner: string | null; draw: boolean };
     return { ended: false, winnerId: s.winner };
   }
+  if (gameKey === "ludo") {
+    const s = state as { winner: string | null };
+    return { ended: !!s.winner, winnerId: s.winner };
+  }
   if (isCouplesKey(gameKey)) {
     const s = state as { done: boolean };
     return { ended: s.done, winnerId: null };

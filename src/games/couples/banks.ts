@@ -205,3 +205,31 @@ export function pickFresh<T>(bank: T[], keyOf: (t: T) => string, seen: Set<strin
   if (pool.length < n) { pool = bank; reset = true; }
   return { items: shuffle(pool).slice(0, n), reset };
 }
+
+/** Memory Test — partner picks their real favourite, the other guesses. */
+export const FAVOURITES: KnowUsItem[] = K("Favourites", [
+  "Favourite food right now?|Jollof rice;Pizza;Suya;Pasta",
+  "Favourite colour?|Black;Blue;Red;Green",
+  "Perfect weekend?|Sleep in;Party;Church and family;Road trip",
+  "Song mood tonight?|Afrobeats;Slow love songs;Gospel;Hip hop",
+  "Dream trip?|Paris;Dubai;Zanzibar;New York",
+  "Favourite drink?|Zobo;Coffee;Soda;Fresh juice",
+  "Best movie type?|Romance;Action;Comedy;Horror",
+  "Favourite season?|Rainy;Dry;Harmattan;Festive December",
+  "Comfort snack?|Chin chin;Plantain chips;Chocolate;Puff puff",
+  "Ideal date night?|Fancy dinner;Movie at home;Beach walk;Game night",
+  "Favourite time of day?|Early morning;Afternoon;Evening;Late night",
+  "Love language?|Words;Gifts;Touch;Quality time",
+  "Pet choice?|Dog;Cat;Fish;No pets please",
+  "Favourite dessert?|Ice cream;Cake;Fruit;Doughnut",
+  "Dream car?|SUV;Sports car;Electric;Classic",
+  "Morning routine?|Coffee first;Phone first;Pray first;Snooze button",
+  "Favourite outfit?|Native wear;Jeans and tee;Suit or gown;Pyjamas",
+  "Social battery?|Big crowds;Small circle;Just us two;Alone time",
+  "Favourite sport to watch?|Football;Basketball;Athletics;None",
+  "Favourite holiday?|Christmas;Valentine's;Birthday;New Year",
+  "Best gift to receive?|Flowers;Gadgets;Clothes;Handwritten letter",
+  "Favourite cuisine?|Nigerian;Chinese;Italian;Indian",
+  "How to relax?|Music;Netflix;Sleep;Long talk",
+  "Favourite flower?|Rose;Sunflower;Lily;Tulip",
+]);
