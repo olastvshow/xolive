@@ -27,7 +27,7 @@ function GamesIndex() {
       <div className="mx-auto w-full max-w-6xl px-5 pb-32 pt-7 lg:px-8 lg:pt-10 lg:pb-16">
         <PageHeader title="Games" subtitle="Pick a game, then pick how you play it" back="/" />
 
-        <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-2 lg:gap-5">
+        <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 lg:gap-5">
           {GAMES.map((g) => (
             <Link
               key={g.key}
