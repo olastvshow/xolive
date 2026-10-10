@@ -67,7 +67,6 @@ export function LudoGame() {
   const colour = (uid: string) => (uid === me.id ? ME : THEM);
   const homeCount = (uid: string) => (s.pieces[uid] ?? []).filter((p) => p === HOME).length;
 
-  const meStart = s.starts[me.id];
   const quad = (far: boolean) => (far ? [9, 9] : [0, 0]);
 
   if (s.winner) {
@@ -103,7 +102,6 @@ export function LudoGame() {
       <div className="relative">
         <svg viewBox={`0 0 ${15 * C} ${15 * C}`} className="w-full rounded-[28px] bg-night-2 ring-1 ring-white/10">
           {/* bases */}
-          {s.players_placeholder}
           {[false, true].map((far) => {
             const [qx, qy] = quad(far);
             const owner = Object.keys(s.starts).find((k) => (s.starts[k] !== 0) === far)!;
@@ -169,7 +167,6 @@ export function LudoGame() {
             }),
           )}
         </svg>
-        {meStart === undefined && null}
 
         {/* Quiz Gate */}
         {g && (
@@ -197,7 +194,7 @@ export function LudoGame() {
       </div>
 
       <div className="mt-4 flex items-center gap-4 rounded-[24px] border border-white/10 bg-night-2 p-3">
-        <Dice n={s.dice ?? s.last?.to === undefined ? s.dice : null} rolling={s.rollId} />
+        <Dice n={s.dice} rolling={s.rollId} />
         <div className="min-w-0 flex-1">
           <p className="font-display text-lg leading-tight">
             {s.note ?? (s.lastGate ? (s.lastGate.matched ? "Gate matched" : "Gate missed") : myTurn ? (s.dice === null ? "Tap to roll" : "Tap a glowing piece") : `Waiting for ${partnerName}`)}

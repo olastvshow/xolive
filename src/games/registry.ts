@@ -11,6 +11,8 @@ import charTot from "@/assets/char-this-or-that.png";
 import charLikely from "@/assets/char-likely.png";
 import charTd from "@/assets/char-truth-dare.png";
 import charFinish from "@/assets/char-finish.png";
+import charLudo from "@/assets/char-ludo.png";
+import charMemory from "@/assets/char-memory.png";
 
 export type GameModuleProps = { sessionId?: string; difficulty?: "easy" | "medium" | "hard" };
 
@@ -103,6 +105,18 @@ export const ALL_GAMES: GameEntry[] = [
     character: charFinish, accent: "#c49bff", wash: "linear-gradient(160deg, #2e1d4d, #160f26)",
     soloBlurb: "Write it, react, keep it",
     component: lazy(() => import("./couples/FinishGame").then((m) => ({ default: m.FinishGame }))),
+  },
+  {
+    key: "ludo", name: "Ludo for Two", tagline: "Roll, race, and cut your partner.", icon: "people",
+    character: charLudo, accent: "#ffd426", wash: "linear-gradient(160deg, #4a3a0f, #1f1808)",
+    soloBlurb: "Four pieces home. Quiz Gate inside",
+    component: lazy(() => import("./ludo/LudoGame").then((m) => ({ default: m.LudoGame }))),
+  },
+  {
+    key: "memory", name: "Memory Test", tagline: "Do you know their favourites?", icon: "heart",
+    character: charMemory, accent: "#ff8fb8", wash: "linear-gradient(160deg, #4d1a33, #22101a)",
+    soloBlurb: "Guess the computer's favourites",
+    component: lazy(() => import("./guess-me/GuessMeGame").then((m) => ({ default: m.GuessMeGame }))),
   },
 ];
 
