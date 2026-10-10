@@ -564,6 +564,27 @@ export type Database = {
           },
         ]
       }
+      seen_prompts: {
+        Row: {
+          created_at: string
+          game_key: string
+          prompt: string
+          scope_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_key: string
+          prompt: string
+          scope_id: string
+        }
+        Update: {
+          created_at?: string
+          game_key?: string
+          prompt?: string
+          scope_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

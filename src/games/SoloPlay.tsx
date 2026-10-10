@@ -1,12 +1,13 @@
 import { sportsInit, sportsBot, type SportsState } from './sports/logic';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  applyAction, gmInit, xoInit, glassInit, hockeyInit,
-  type GameAction, type GameKey, type GlassState, type GmQuestion, type GmState, type XoState,
+  applyAction, xoInit, glassInit, hockeyInit,
+  type GameAction, type GameKey, type GlassState, type GmState, type XoState,
 } from "@/games/logic";
 import { PlayProvider, type PlayValue, type Profile } from "@/games/play-context";
 import { GAMES, gameByKey } from "@/games/registry";
-import { SOLO_QUESTIONS } from "@/games/guess-me/bank";
+import { buildCouplesState, isCouplesKey, type TdState, type FsState } from "@/games/couples/logic";
+import { BOT_LINES } from "@/games/couples/banks";
 import { xoBotMove } from "@/games/xo/bot";
 import { gmBotAction } from "@/games/guess-me/bot";
 import { glassBotAction, glassBotDelay } from "@/games/fill-glass/bot";
@@ -19,10 +20,14 @@ const PLAYERS = [ME.id, BOT.id];
 function initialState(gameKey: GameKey, _difficulty: Difficulty): unknown {
   if (gameKey === "cup-pong" || gameKey === "table-tennis") return sportsInit(PLAYERS, gameKey);
   if (gameKey === "xo") return xoInit(PLAYERS);
-  if (gameKey === "guess-me") {
-    const pool = [...SOLO_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10);
-    const questions: GmQuestion[] = pool.map((q, i) => ({ ...q, subject: i % 2 === 0 ? ME.id : BOT.id }));
-    return gmInit(questions);
+  if (isCouplesKey(gameKey)) {
+    // Remember what this device has already seen so questions don't repeat.
+    const key = `duet-seen-${gameKey}`;
+    let seen: string[] = [];
+    try { seen = typeof window === "undefined" ? [] : JSON.parse(localStorage.getItem(key) ?? "[]"); } catch {}
+    const { state, used, reset } = buildCouplesState(gameKey, PLAYERS, ME.id, new Set(seen));
+    try { if (typeof window !== "undefined") localStorage.setItem(key, JSON.stringify(reset ? used : [...seen, ...used])); } catch {}
+    return state;
   }
   if (gameKey === "fill-glass") return glassInit(PLAYERS);
   return hockeyInit(PLAYERS, 7);
@@ -31,7 +36,8 @@ function initialState(gameKey: GameKey, _difficulty: Difficulty): unknown {
 export function SoloPlay({
   gameKey, difficulty, onExit,
 }: { gameKey: GameKey; difficulty: Difficulty; onExit: () => void }) {
-  const [state, setState] = useState<unknown>(() => initialState(gameKey, difficulty));
+  // Built after hydration: the deck is random, so the server must not render it.
+  const [state, setState] = useState<unknown>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -41,12 +47,12 @@ export function SoloPlay({
   useEffect(() => {
     try {
       const raw = localStorage.getItem(saveKey);
-      if (raw) setState(JSON.parse(raw));
-    } catch {}
+      setState(raw ? JSON.parse(raw) : initialState(gameKey, difficulty));
+    } catch { setState(initialState(gameKey, difficulty)); }
     restored.current = true;
-  }, [saveKey]);
+  }, [saveKey, gameKey, difficulty]);
   useEffect(() => {
-    if (!restored.current) return;
+    if (!restored.current || state === null) return;
     try { localStorage.setItem(saveKey, JSON.stringify(state)); } catch {}
   }, [saveKey, state]);
 
@@ -73,6 +79,7 @@ export function SoloPlay({
   // ---- the computer ----
   useEffect(() => {
     let timer: number | undefined;
+    if (stateRef.current === null) return;
     const act = (action: GameAction, delay: number) => {
       timer = window.setTimeout(() => dispatch(action, BOT.id), delay);
     };
@@ -83,7 +90,24 @@ export function SoloPlay({
       if (move) act(move, botDelay(difficulty, 450));
     }
 
-    if (gameKey === "guess-me") {
+    if (gameKey === "truth-dare") {
+      const s = stateRef.current as TdState;
+      if (!s.done && s.turn === BOT.id) {
+        if (!s.current) act({ type: "spin", kind: Math.random() < 0.5 ? "truth" : "dare" }, 1200);
+        else act({ type: "complete" }, 3500);
+      }
+    }
+
+    if (gameKey === "finish") {
+      const s = stateRef.current as FsState;
+      if (!s.done) {
+        const writing = s.entries.length === s.idx;
+        if (writing && s.writer === BOT.id) act({ type: "write", text: BOT_LINES[s.idx % BOT_LINES.length] }, 2200);
+        if (!writing && s.writer === ME.id) act({ type: "react", reaction: "heart" }, 1500);
+      }
+    }
+
+    if (gameKey === "guess-me" || gameKey === "this-or-that" || gameKey === "likely") {
       const s = stateRef.current as GmState;
       const action = gmBotAction(s, BOT.id, difficulty);
       if (action && action.type === "answer") act(action, botDelay(difficulty, 1100));
@@ -121,6 +145,8 @@ export function SoloPlay({
     sendStream: () => {},
     onStream: () => () => {},
   }), [gameKey, state, play, restart, exit]);
+
+  if (state === null) return <div className="px-4 text-sm text-ink/40">loading game…</div>;
 
   return (
     <PlayProvider value={value}>
