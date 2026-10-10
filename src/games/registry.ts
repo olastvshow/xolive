@@ -27,8 +27,8 @@ export type GameEntry = {
 };
 
 export const GAMES: GameEntry[] = [
-  { key: 'cup-pong', name: 'Cup Pong', tagline: 'The perfect arc. The final cup.', icon: 'glass', character: charCup, accent: 'var(--pop)', wash: 'var(--sports-cup-wash)', soloBlurb: 'Six cups or ten. Make every throw count.', component: lazy(() => import('./cup-pong/CupPongGame')) },
-  { key: 'table-tennis', name: 'Table Tennis', tagline: 'Find your rhythm. Win the rally.', icon: 'air-hockey', character: charTennis, accent: 'var(--xo)', wash: 'var(--sports-tennis-wash)', soloBlurb: 'Serve, return, and win by two.', component: lazy(() => import('./table-tennis/TableTennisGame')) },
+  { key: 'cup-pong', name: 'Cup Pong', tagline: 'The perfect arc. The final cup.', icon: 'glass', character: charCup, accent: 'var(--color-pop)', wash: 'var(--sports-cup-wash)', soloBlurb: 'Six cups or ten. Make every throw count.', component: lazy(() => import('./cup-pong/CupPongGame')) },
+  { key: 'table-tennis', name: 'Table Tennis', tagline: 'Find your rhythm. Win the rally.', icon: 'air-hockey', character: charTennis, accent: 'var(--color-xo)', wash: 'var(--sports-tennis-wash)', soloBlurb: 'Serve, return, and win by two.', component: lazy(() => import('./table-tennis/TableTennisGame')) },
   {
     key: "xo",
     name: "XO Arena",

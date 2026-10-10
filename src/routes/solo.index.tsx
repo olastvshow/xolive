@@ -25,7 +25,7 @@ function SoloIndex() {
       <div className="mx-auto w-full max-w-6xl px-5 pb-24 pt-7 lg:px-8 lg:pt-10">
         <PageHeader title="vs Computer" subtitle="Starts instantly. Nothing to sign up for." back="/games" />
 
-        <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5">
+        <div className="mt-7 grid grid-cols-1 gap-3 min-[340px]:grid-cols-2 md:grid-cols-3 md:gap-4 xl:grid-cols-6 lg:gap-5">
           {GAMES.map((g) => (
             <Link
               key={g.key}
@@ -34,7 +34,7 @@ function SoloIndex() {
               className="tile relative overflow-hidden p-4 pt-5"
               style={{ background: g.wash }}
             >
-              <div className="grid h-[104px] place-items-center overflow-hidden lg:h-[150px]">
+              <div className="grid h-[104px] place-items-center md:h-[140px] lg:h-[150px]">
                 <img
                   src={g.character}
                   alt=""
