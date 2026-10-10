@@ -1,4 +1,5 @@
 import { sportsInit, sportsBot, type SportsState } from './sports/logic';
+import { ludoBot, type LudoState } from './ludo/logic';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   applyAction, xoInit, glassInit, hockeyInit,
@@ -107,10 +108,16 @@ export function SoloPlay({
       }
     }
 
-    if (gameKey === "guess-me" || gameKey === "this-or-that" || gameKey === "likely") {
+    if (gameKey === "guess-me" || gameKey === "this-or-that" || gameKey === "likely" || gameKey === "memory") {
       const s = stateRef.current as GmState;
       const action = gmBotAction(s, BOT.id, difficulty);
       if (action && action.type === "answer") act(action, botDelay(difficulty, 1100));
+    }
+
+    if (gameKey === "ludo") {
+      const s = stateRef.current as LudoState;
+      const move = ludoBot(s, BOT.id);
+      if (move) act(move, move.type === "answer" ? 1400 : move.type === "roll" ? 900 : 650);
     }
 
     if (gameKey === "fill-glass") {

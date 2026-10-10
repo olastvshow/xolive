@@ -28,13 +28,15 @@ export function GuessMeGame() {
     const pct = s.score / Math.max(1, total);
     const verdict = gameKey === "this-or-that"
       ? pct >= 0.7 ? "Same brain, two bodies." : pct >= 0.4 ? "Opposites, nicely balanced." : "You keep life interesting."
+      : gameKey === "memory"
+        ? pct >= 0.7 ? "You've been paying attention." : pct >= 0.4 ? "Good memory, a few gaps." : "Time to take notes, darling."
       : gameKey === "likely"
         ? pct >= 0.7 ? "You see each other clearly." : pct >= 0.4 ? "Mostly on the same page." : "Time for a friendly debate."
         : pct >= 0.7 ? "You two are frightening." : pct >= 0.4 ? "Solid. Still plenty to learn." : "Time to ask more questions.";
     return (
       <div className="px-4">
         <div className="card-noir p-7 text-center">
-          <p className="text-xs uppercase tracking-widest text-ink/40">{gameKey === "guess-me" ? "how well you know each other" : "in sync"}</p>
+          <p className="text-xs uppercase tracking-widest text-ink/40">{gameKey === "guess-me" || gameKey === "memory" ? "how well you know each other" : "in sync"}</p>
           <p className="mt-2 font-display text-6xl tabular-nums" style={{ color: accent }}>
             {s.score}<span className="text-2xl text-ink/30">/{total}</span>
           </p>
