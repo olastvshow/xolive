@@ -134,7 +134,7 @@ export function RoomProvider({
         const p = payload as { emoji: string; from: string };
         const id = ++burstId;
         setBursts((b) => [...b, { id, emoji: p.emoji, from: p.from }]);
-        setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 1600);
+        setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), p.emoji.startsWith("b:") ? 2600 : 1600);
         if (navigator.vibrate) navigator.vibrate(12);
       })
       .on("broadcast", { event: "typing" }, ({ payload }) => {
@@ -180,7 +180,12 @@ export function RoomProvider({
     };
   }, [bus, me.id, roomId, refreshSession]);
 
+  const lastBubble = useRef(0);
   const react = useCallback((emoji: string) => {
+    if (emoji.startsWith("b:")) {
+      if (Date.now() - lastBubble.current < 1500) return;
+      lastBubble.current = Date.now();
+    }
     const id = ++burstId;
     setBursts((b) => [...b, { id, emoji, from: me.id }]);
     setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 1600);

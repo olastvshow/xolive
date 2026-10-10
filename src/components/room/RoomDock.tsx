@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRoom } from "./RoomProvider";
-import { REACTIONS } from "./ReactionLayer";
+import { REACTIONS, BUBBLES } from "./ReactionLayer";
 import { Glyph } from "@/components/Glyph";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +43,17 @@ export function RoomDock() {
       {/* reaction tray */}
       {reactionsOpen && (
         <div className="fixed inset-x-0 bottom-[86px] z-40 px-4 animate-slide-in-up">
+          <div className="mx-auto mb-2 flex max-w-md flex-wrap justify-center gap-1.5">
+            {BUBBLES.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => { react(b.id); setReactionsOpen(false); }}
+                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-night-2/95 px-3 py-2 text-xs font-bold text-ink/80 backdrop-blur press hover:text-pop"
+              >
+                <Glyph name={b.icon} size={14} /> {b.text}
+              </button>
+            ))}
+          </div>
           <div className="mx-auto flex max-w-md items-center justify-between gap-1.5 rounded-[24px] border border-white/10 bg-night-2/95 p-2 backdrop-blur">
             {REACTIONS.map((r) => (
               <button
