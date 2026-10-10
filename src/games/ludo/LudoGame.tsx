@@ -176,7 +176,7 @@ export function LudoGame() {
               <p className="mt-1 text-xs text-ink/50">
                 {g.player === me.id ? "Three rolls without a six. Match and you roll again." : `${partnerName} is at the gate. Answer honestly.`}
               </p>
-              <p className="mt-3 font-display text-xl leading-snug">{resolveOption(g.q.prompt, g.q.subject, me.id, "you", partnerName)}</p>
+              <p className="mt-3 font-display text-xl leading-snug">{resolveOption(g.q.subject === me.id ? g.q.prompt.replaceAll("{s}'s", "your").replaceAll("{s} is", "you are") : g.q.prompt.replaceAll("{o}'s", "your"), g.q.subject, me.id, "you", partnerName)}</p>
               <p className="mt-1 text-xs text-ink/45">{g.q.subject === me.id ? "your honest answer" : `what would ${partnerName} say?`}</p>
               <div className="mt-4 grid gap-2">
                 {g.q.options.map((o, k) => (
