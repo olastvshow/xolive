@@ -34,14 +34,14 @@ function SoloIndex() {
               className="tile relative overflow-hidden p-4 pt-5"
               style={{ background: g.wash }}
             >
-              <div className="grid h-[104px] place-items-center overflow-hidden md:h-[140px] lg:h-[150px]">
+              <div className="relative h-[104px] overflow-hidden md:h-[140px] lg:h-[150px]">
                 <img
                   src={g.character}
                   alt=""
                   width={768}
                   height={768}
                   loading="lazy"
-                  className="h-full w-auto max-w-full object-contain drop-shadow-[0_14px_26px_rgba(0,0,0,0.45)]"
+                  className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_14px_26px_rgba(0,0,0,0.45)]"
                 />
               </div>
               <p className="relative z-10 mt-3 font-display text-[17px] leading-tight lg:text-xl">{g.name}</p>
