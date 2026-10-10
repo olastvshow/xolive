@@ -35,6 +35,21 @@ export function SoloPlay({
   const stateRef = useRef(state);
   stateRef.current = state;
 
+  // Keep the game safe across refreshes and app switches.
+  const saveKey = `duet-solo-${gameKey}`;
+  const restored = useRef(false);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(saveKey);
+      if (raw) setState(JSON.parse(raw));
+    } catch {}
+    restored.current = true;
+  }, [saveKey]);
+  useEffect(() => {
+    if (!restored.current) return;
+    try { localStorage.setItem(saveKey, JSON.stringify(state)); } catch {}
+  }, [saveKey, state]);
+
   const entry = gameByKey(gameKey) ?? GAMES[0];
   const Stage = entry.component;
 
@@ -50,6 +65,10 @@ export function SoloPlay({
 
   const play = useCallback((action: GameAction) => dispatch(action, ME.id), [dispatch]);
   const restart = useCallback(() => setState(initialState(gameKey, difficulty)), [gameKey, difficulty]);
+  const exit = useCallback(() => {
+    try { localStorage.removeItem(`duet-solo-${gameKey}`); } catch {}
+    onExit();
+  }, [gameKey, onExit]);
 
   // ---- the computer ----
   useEffect(() => {
@@ -98,10 +117,10 @@ export function SoloPlay({
     busy: false,
     play,
     restart,
-    leaveGame: onExit,
+    leaveGame: exit,
     sendStream: () => {},
     onStream: () => () => {},
-  }), [gameKey, state, play, restart, onExit]);
+  }), [gameKey, state, play, restart, exit]);
 
   return (
     <PlayProvider value={value}>
