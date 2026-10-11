@@ -25,6 +25,20 @@ const ICE: RTCConfiguration = {
   iceCandidatePoolSize: 2,
 };
 
+/** Clearer speech: in-band error correction, mono, 32 kbps Opus. */
+function tuneOpus(sdp: RTCSessionDescriptionInit): RTCSessionDescriptionInit {
+  if (!sdp.sdp) return sdp;
+  const m = sdp.sdp.match(/a=rtpmap:(\d+) opus\/48000/i);
+  if (!m) return sdp;
+  const pt = m[1];
+  const re = new RegExp(`a=fmtp:${pt} ([^\r\n]*)`);
+  const extra = "useinbandfec=1;stereo=0;maxaveragebitrate=32000";
+  const out = re.test(sdp.sdp)
+    ? sdp.sdp.replace(re, (_l, p: string) => `a=fmtp:${pt} ${p.includes("useinbandfec") ? p : `${p};${extra}`}`)
+    : sdp.sdp.replace(m[0], `${m[0]}\r\na=fmtp:${pt} ${extra}`);
+  return { type: sdp.type, sdp: out };
+}
+
 export function useVoice(opts: {
   bus: SignalBus;
   myId: string;
@@ -40,6 +54,9 @@ export function useVoice(opts: {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pendingRef = useRef<RTCIceCandidateInit[]>([]);
   const makingOfferRef = useRef(false);
+  const mutedRef = useRef(false);
+  const recoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recoverRef = useRef<() => void>(() => {});
   const myLevel = useRef(0);
   const theirLevel = useRef(0);
   const ctxRef = useRef<AudioContext | null>(null);
@@ -85,7 +102,7 @@ export function useVoice(opts: {
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1, sampleRate: 48000 },
         video: false,
       });
     } catch {
@@ -93,7 +110,7 @@ export function useVoice(opts: {
       throw new Error("mic blocked");
     }
     localRef.current = stream;
-    stream.getAudioTracks().forEach((t) => (t.enabled = !muted));
+    stream.getAudioTracks().forEach((t) => (t.enabled = !mutedRef.current));
     meter(stream, myLevel);
 
     const pc = new RTCPeerConnection(ICE);
@@ -119,13 +136,18 @@ export function useVoice(opts: {
     };
     pc.onconnectionstatechange = () => {
       const s = pc.connectionState;
+      if (recoverTimer.current) { clearTimeout(recoverTimer.current); recoverTimer.current = null; }
       if (s === "connected") setState("live");
       else if (s === "connecting") setState("connecting");
-      else if (s === "failed") setState("failed");
-      else if (s === "disconnected") setState("connecting");
+      else if (s === "failed") { setState("connecting"); recoverRef.current(); }
+      else if (s === "disconnected") {
+        // Brief network blips heal on their own; otherwise rebuild the path.
+        setState("connecting");
+        recoverTimer.current = setTimeout(() => recoverRef.current(), 3500);
+      }
     };
     return pc;
-  }, [bus, meter, muted, myId]);
+  }, [bus, meter, myId]);
 
   const makeOffer = useCallback(async () => {
     if (!isOfferer || makingOfferRef.current) return;
@@ -133,7 +155,7 @@ export function useVoice(opts: {
     try {
       const pc = await ensurePeer();
       if (pc.signalingState !== "stable") return;
-      const offer = await pc.createOffer();
+      const offer = tuneOpus(await pc.createOffer({ iceRestart: pc.connectionState === "failed" || pc.connectionState === "disconnected" }));
       await pc.setLocalDescription(offer);
       bus.send({ kind: "offer", from: myId, sdp: offer });
     } catch {
@@ -163,7 +185,7 @@ export function useVoice(opts: {
           for (const c of pendingRef.current.splice(0)) {
             await fresh.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
           }
-          const answer = await fresh.createAnswer();
+          const answer = tuneOpus(await fresh.createAnswer());
           await fresh.setLocalDescription(answer);
           bus.send({ kind: "answer", from: myId, sdp: answer });
           return;
@@ -224,6 +246,7 @@ export function useVoice(opts: {
   const toggleMute = useCallback(() => {
     setMuted((m) => {
       const next = !m;
+      mutedRef.current = next;
       localRef.current?.getAudioTracks().forEach((t) => (t.enabled = !next));
       return next;
     });
@@ -240,6 +263,33 @@ export function useVoice(opts: {
       /* blocked */
     }
   }, [bus, ensurePeer, isOfferer, makeOffer, myId, teardown]);
+
+  // Self-healing: up to 4 automatic reconnects, then show TAP TO RETRY.
+  const attempts = useRef(0);
+  useEffect(() => { if (state === "live") attempts.current = 0; }, [state]);
+  recoverRef.current = () => {
+    if (!enabled || !partnerOnline) return;
+    if (attempts.current >= 4) { setState("failed"); return; }
+    attempts.current += 1;
+    const delay = 600 * attempts.current;
+    setTimeout(() => {
+      if (isOfferer && pcRef.current) void makeOffer();
+      else void retry();
+    }, delay);
+  };
+
+  // Network came back or app returned to the foreground: heal quickly.
+  useEffect(() => {
+    if (!enabled) return;
+    const heal = () => {
+      const st = pcRef.current?.connectionState;
+      if (partnerOnline && (!pcRef.current || st === "failed" || st === "disconnected")) recoverRef.current();
+      audioRef.current?.play().catch(() => {});
+    };
+    window.addEventListener("online", heal);
+    document.addEventListener("visibilitychange", heal);
+    return () => { window.removeEventListener("online", heal); document.removeEventListener("visibilitychange", heal); };
+  }, [enabled, partnerOnline]);
 
   return { state, muted, toggleMute, retry, myLevel, theirLevel };
 }
