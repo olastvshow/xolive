@@ -32,6 +32,8 @@ function AuthPage() {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [forgot, setForgot] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -56,9 +58,15 @@ function AuthPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); setError(null);
+    setLoading(true); setError(null); setNotice(null);
     try {
-      if (tab === "signup") {
+      if (forgot) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setNotice("Check your email. We sent you a link to set a new password.");
+      } else if (tab === "signup") {
         const uname = username.trim();
         if (!/^[a-zA-Z0-9_]{3,24}$/.test(uname)) {
           throw new Error("Username must be 3–24 characters: letters, numbers, or underscores.");
@@ -70,13 +78,27 @@ function AuthPage() {
             data: { username: uname },
           },
         });
-        if (error) throw error;
+        if (error) {
+          if (/already registered|already exists/i.test(error.message)) {
+            setTab("signin");
+            setNotice("You already have an account with this email. Sign in below, or tap Forgot password.");
+            return;
+          }
+          throw error;
+        }
+        // No email confirmation: sign straight in.
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+          const { error: e2 } = await supabase.auth.signInWithPassword({ email, password });
+          if (e2) throw e2;
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      const msg = e instanceof Error ? e.message : "Something went wrong";
+      setError(/invalid login/i.test(msg) ? "Wrong email or password. Try again or tap Forgot password." : msg);
     } finally { setLoading(false); }
   };
 
@@ -108,15 +130,15 @@ function AuthPage() {
 
         <div key={tab} className="mt-6 mb-6 text-center animate-slide-in-up">
           <h1 className="font-display text-[34px] leading-tight">
-            {tab === "signin" ? "Welcome back" : "Create account"}
+            {forgot ? "Reset password" : tab === "signin" ? "Welcome back" : "Create account"}
           </h1>
           <p className="mt-1.5 text-[14px] text-ink/50">
-            {tab === "signin" ? "Your games are waiting." : "Takes about ten seconds."}
+            {forgot ? "Enter your email and we'll send you a link." : tab === "signin" ? "Your games are waiting." : "Takes about ten seconds."}
           </p>
         </div>
 
         <form onSubmit={submit} className="space-y-3">
-          {tab === "signup" && (
+          {tab === "signup" && !forgot && (
             <Field
               label="Username"
               icon="person"
@@ -138,7 +160,7 @@ function AuthPage() {
             autoComplete="email"
             required
           />
-          <Field
+          {!forgot && <Field
             label="Password"
             icon="spark"
             type={showPw ? "text" : "password"}
@@ -157,7 +179,19 @@ function AuthPage() {
                 <Glyph name={showPw ? "smile" : "surprise"} size={17} />
               </button>
             }
-          />
+          />}
+
+          {tab === "signin" && (
+            <div className="flex justify-end">
+              <button type="button" onClick={() => { setForgot((v) => !v); setError(null); setNotice(null); }} className="text-[13px] font-semibold text-pop">
+                {forgot ? "Back to sign in" : "Forgot password?"}
+              </button>
+            </div>
+          )}
+
+          {notice && (
+            <div className="rounded-2xl border border-pop/30 bg-pop/10 px-3 py-2.5 text-sm font-medium text-ink animate-slide-in-up">{notice}</div>
+          )}
 
           {error && (
             <div className="flex items-start gap-2 rounded-2xl border border-knowus/30 bg-knowus/10 px-3 py-2.5 text-sm text-ink animate-slide-in-up">
@@ -174,7 +208,7 @@ function AuthPage() {
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-night/30 border-t-night" />
             ) : (
               <>
-                {tab === "signin" ? "Sign in" : "Create account"}
+                {forgot ? "Send reset link" : tab === "signin" ? "Sign in" : "Create account"}
                 <Glyph name="right" size={17} />
               </>
             )}
@@ -184,7 +218,7 @@ function AuthPage() {
         <p className="mt-auto pt-10 text-center text-[13px] text-ink/50">
           {tab === "signin" ? "New to Duet? " : "Already have an account? "}
           <button
-            onClick={() => { setTab(tab === "signin" ? "signup" : "signin"); setError(null); }}
+            onClick={() => { setTab(tab === "signin" ? "signup" : "signin"); setError(null); setNotice(null); setForgot(false); }}
             className="font-bold text-pop"
           >
             {tab === "signin" ? "Sign up" : "Sign in"}

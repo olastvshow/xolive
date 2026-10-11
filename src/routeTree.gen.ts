@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SoloRouteImport } from './routes/solo'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as GamesRouteImport } from './routes/games'
@@ -43,6 +44,11 @@ const SupportRoute = SupportRouteImport.update({
 const SoloRoute = SoloRouteImport.update({
   id: '/solo',
   path: '/solo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/games': typeof GamesRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/solo': typeof SoloRouteWithChildren
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/delete-account': typeof AuthenticatedDeleteAccountRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/games': typeof GamesRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/solo': typeof SoloRouteWithChildren
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/games'
     | '/onboarding'
     | '/privacy'
+    | '/reset-password'
     | '/solo'
     | '/support'
     | '/terms'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/onboarding'
     | '/privacy'
+    | '/reset-password'
     | '/support'
     | '/terms'
     | '/delete-account'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/games'
     | '/onboarding'
     | '/privacy'
+    | '/reset-password'
     | '/solo'
     | '/support'
     | '/terms'
@@ -267,6 +279,7 @@ export interface RootRouteChildren {
   GamesRoute: typeof GamesRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SoloRoute: typeof SoloRouteWithChildren
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/solo'
       fullPath: '/solo'
       preLoaderRoute: typeof SoloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -472,6 +492,7 @@ const rootRouteChildren: RootRouteChildren = {
   GamesRoute: GamesRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SoloRoute: SoloRouteWithChildren,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
