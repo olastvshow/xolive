@@ -233,3 +233,83 @@ export const FAVOURITES: KnowUsItem[] = K("Favourites", [
   "How to relax?|Music;Netflix;Sleep;Long talk",
   "Favourite flower?|Rose;Sunflower;Lily;Tulip",
 ]);
+
+// ---------- extra rounds: more variety, nothing repeats until a bank is used up ----------
+KNOW_US.push(
+  ...K("Deep", [
+    "What does {s} need most after a fight?|Space;A hug;A long talk;Food first",
+    "{s}'s biggest fear for us?|Growing apart;Money stress;Distance;Nothing scares me",
+    "What makes {s} feel truly respected?|Being listened to;Being trusted;Being defended;Being asked first",
+    "When does {s} feel closest to {o}?|Late-night talks;Laughing together;Quiet cuddles;Praying together",
+    "How does {s} show love without words?|Cooking;Fixing things;Small gifts;Always checking in",
+    "What would {s} never forgive?|Lying;Cheating;Disrespect;Embarrassing me in public",
+  ]),
+  ...K("Naija life", [
+    "{s}'s go-to buka order?|Amala and ewedu;Pounded yam and egusi;Rice and stew;Pepper soup",
+    "Who haggles better at the market?|{s};{o};Neither, we pay full price;We send someone",
+    "{s}'s reaction when NEPA takes light?|Sleeps;Complains loudly;Goes outside;Charges everything",
+    "Owambe style for {s}?|Full aso-ebi;Simple and classy;Matching with {o};Stays home",
+    "Who dances first at a party?|{s};{o};Both at once;Nobody, we eat",
+    "{s}'s traffic mood?|Music loud;Phone calls;Angry at everyone;Sleeps in the car",
+  ]),
+  ...K("Sweet", [
+    "Who said 'I love you' first?|{s};{o};Same time;Still not sure",
+    "{s}'s favourite way to be kissed?|Forehead;Cheek;Hand;Surprise kiss",
+    "Pet name {s} secretly loves?|Baby;Sweetheart;My love;Something silly",
+    "What does {s} do when missing {o}?|Texts nonstop;Looks at our photos;Calls;Pretends to be fine",
+    "{s}'s perfect anniversary?|Fancy dinner;Trip away;Quiet day at home;Surprise party",
+  ]),
+);
+
+THIS_OR_THAT.push(
+  ["Suya", "Shawarma"], ["Amala", "Pounded yam"], ["Afrobeats", "Highlife"], ["Lekki beach", "Badagry beach"],
+  ["Owambe", "Small dinner"], ["Voice note", "Long text"], ["Puff puff", "Chin chin"], ["Nollywood", "Hollywood"],
+  ["Surprise trip", "Planned holiday"], ["Morning cuddles", "Night cuddles"], ["Big house", "Fancy car"],
+  ["Cook for me", "Take me out"], ["Matching rings", "Matching chains"], ["Netflix and chill", "Long drive"],
+  ["Forehead kiss", "Back hug"], ["Love note", "Love song"], ["Zobo", "Chapman"], ["Plantain", "Yam"],
+  ["Sleep early", "Gist till 2am"], ["Rainy day in", "Sunny day out"],
+);
+
+LIKELY.push(
+  "haggle too hard at the market", "dance first at an owambe", "complain when NEPA takes light",
+  "cry during an argument", "say sorry with food", "forget to reply a text", "spoil the kids",
+  "plan a surprise trip", "propose in public", "steal food from the other's plate",
+  "fall asleep during a movie", "get lost using Google Maps", "start gist at 2am", "buy matching outfits",
+  "keep a secret birthday gift", "cry at our wedding", "change the playlist mid-song", "overthink a text",
+);
+
+TRUTHS.push(
+  "What's the sweetest thing I've ever said to you?", "What's something about me you'd brag about to friends?",
+  "When did you first know this was serious?", "What do you pray for when you pray for us?",
+  "What's one fear you have about our future?", "What do I do that makes you feel safe?",
+  "What's the funniest fight we've ever had?", "Which of my friends do you like most, honestly?",
+  "What's a small thing I could do every day to make you happier?", "What would you name our first child?",
+  "What's one thing you want me to stop doing, kindly?", "If we could move anywhere tomorrow, where?",
+);
+
+DARES.push(
+  "Call me by my full name in your most loving voice.", "Do the shaku shaku for ten seconds.",
+  "Tell me why you love me, but only in song.", "Send me the most romantic emoji-free text you can.",
+  "Pretend to be my hype man for fifteen seconds.", "Describe me using only three food words.",
+  "Do a sweet slow-motion wave like I'm leaving the airport.", "Recreate our first conversation from memory.",
+  "Give me a two-sentence love speech like an award winner.", "Speak only in pidgin until your next turn.",
+);
+
+SENTENCES.push(
+  "The first thing I noticed about you was...", "When we're old, I hope we still...", "My favourite photo of us is...",
+  "You always know how to...", "The day I missed you most was...", "I want to thank you for...",
+  "If I could cook you one meal forever, it would be...", "The most romantic thing you've done is...",
+);
+
+FAVOURITES.push(
+  ...K("Favourites", [
+    "Favourite swallow?|Amala;Pounded yam;Eba;Fufu",
+    "Favourite Nollywood vibe?|Comedy skit;Romance;Thriller;Old-school classics",
+    "Best way to apologise?|Words;Food;Gift;Hug",
+    "Favourite way to spend money?|Food;Clothes;Travel;Saving",
+    "Favourite app?|WhatsApp;TikTok;Instagram;X",
+    "Favourite night out?|Lounge;Cinema;Concert;Restaurant",
+    "Favourite smell?|Perfume;Rain;Food cooking;Fresh laundry",
+    "Favourite childhood show?|Cartoons;Telenovelas;Nollywood;Sports",
+  ]),
+);
