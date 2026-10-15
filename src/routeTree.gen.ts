@@ -27,6 +27,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedRoomRouteImport } from './routes/_authenticated/room'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as GamesGameRouteImport } from './routes/games.$game'
+import { Route as JoinCodeRouteImport } from './routes/join.$code'
 import { Route as SoloIndexRouteImport } from './routes/solo.index'
 import { Route as SoloGameRouteImport } from './routes/solo.$game'
 import { Route as AuthenticatedOnlineRoomIdRouteImport } from './routes/_authenticated/online.$roomId'
@@ -122,6 +123,11 @@ const GamesGameRoute = GamesGameRouteImport.update({
   path: '/$game',
   getParentRoute: () => GamesRoute,
 } as any)
+const JoinCodeRoute = JoinCodeRouteImport.update({
+  id: '/join/$code',
+  path: '/join/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SoloIndexRoute = SoloIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/room': typeof AuthenticatedRoomRoute
   '/games/$game': typeof GamesGameRoute
+  '/join/$code': typeof JoinCodeRoute
   '/solo/$game': typeof SoloGameRoute
   '/games/': typeof GamesIndexRoute
   '/solo/': typeof SoloIndexRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/room': typeof AuthenticatedRoomRoute
   '/games/$game': typeof GamesGameRoute
+  '/join/$code': typeof JoinCodeRoute
   '/solo/$game': typeof SoloGameRoute
   '/': typeof AuthenticatedIndexRoute
   '/games': typeof GamesIndexRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/room': typeof AuthenticatedRoomRoute
   '/games/$game': typeof GamesGameRoute
+  '/join/$code': typeof JoinCodeRoute
   '/solo/$game': typeof SoloGameRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/games/': typeof GamesIndexRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/room'
     | '/games/$game'
+    | '/join/$code'
     | '/solo/$game'
     | '/games/'
     | '/solo/'
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/room'
     | '/games/$game'
+    | '/join/$code'
     | '/solo/$game'
     | '/'
     | '/games'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/room'
     | '/games/$game'
+    | '/join/$code'
     | '/solo/$game'
     | '/_authenticated/'
     | '/games/'
@@ -283,6 +295,7 @@ export interface RootRouteChildren {
   SoloRoute: typeof SoloRouteWithChildren
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  JoinCodeRoute: typeof JoinCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -413,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesGameRouteImport
       parentRoute: typeof GamesRoute
     }
+    '/join/$code': {
+      id: '/join/$code'
+      path: '/join/$code'
+      fullPath: '/join/$code'
+      preLoaderRoute: typeof JoinCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/solo/': {
       id: '/solo/'
       path: '/'
@@ -496,6 +516,7 @@ const rootRouteChildren: RootRouteChildren = {
   SoloRoute: SoloRouteWithChildren,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  JoinCodeRoute: JoinCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

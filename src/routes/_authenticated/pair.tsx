@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createInvite, getPairState, redeemInvite, unpair } from "@/lib/pairplay.functions";
 
 export const Route = createFileRoute("/_authenticated/pair")({
@@ -56,11 +56,25 @@ function PairPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["pair-state"] }),
   });
 
+  // Auto-join from a WhatsApp / Telegram invite link
+  const autoTried = useRef(false);
+  useEffect(() => {
+    if (autoTried.current || !data) return;
+    const pending = localStorage.getItem("duet-join");
+    if (!pending) return;
+    autoTried.current = true;
+    localStorage.removeItem("duet-join");
+    if (data.partner) { navigate({ to: "/room" }); return; }
+    if (data.invite?.code === pending) return;
+    redeemFn({ data: { code: pending } })
+      .then(async () => { await qc.invalidateQueries({ queryKey: ["pair-state"] }); navigate({ to: "/room" }); })
+      .catch((e: Error) => { setCode(pending); setErr(e.message); });
+  }, [data, navigate, qc, redeemFn]);
+
   const myCode = data?.invite?.code ?? null;
   const partner = data?.partner ?? null;
-  const shareText = myCode
-    ? `Come play with me on Duet — https://xolive.lovable.app, code ${myCode}`
-    : "";
+  const link = myCode ? `https://xolive.lovable.app/join/${myCode}` : "";
+  const shareText = myCode ? `Come play with me on Duet. Tap to join my room: ${link}` : "";
 
   const share = async () => {
     if (!myCode) return;
@@ -71,6 +85,9 @@ function PairPage() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+  const openWhatsApp = () => window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank");
+  const openTelegram = () =>
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Come play with me on Duet. Tap to join my room.")}`, "_blank");
 
   return (
     <div className="min-h-screen bg-night px-6 py-10 flex flex-col gap-8 max-w-md mx-auto">
@@ -104,8 +121,16 @@ function PairPage() {
               <>
                 <p className="mt-4 text-center text-5xl font-black tracking-[0.3em] text-me tabular-nums">{myCode}</p>
                 <p className="mt-2 text-center text-xs text-ink/35">expires in 24 hours</p>
-                <button onClick={share} className="mt-5 w-full h-12 rounded-2xl bg-me text-night font-bold active:scale-95">
-                  {copied ? "Copied" : "Share the code"}
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <button onClick={openWhatsApp} className="h-12 rounded-2xl bg-me text-night font-bold active:scale-95">
+                    WhatsApp
+                  </button>
+                  <button onClick={openTelegram} className="h-12 rounded-2xl bg-them text-night font-bold active:scale-95">
+                    Telegram
+                  </button>
+                </div>
+                <button onClick={share} className="mt-3 w-full h-11 rounded-2xl bg-night-2 text-ink font-semibold active:scale-95">
+                  {copied ? "Link copied" : "Share link another way"}
                 </button>
               </>
             ) : (
