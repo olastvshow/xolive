@@ -139,6 +139,17 @@ function AuthSync() {
   const router = useRouter();
   const qc = useQueryClient();
   useEffect(() => {
+    // Opened as a Telegram Mini App: load Telegram's script and go full height
+    if (!window.location.hash.includes("tgWebApp")) return;
+    const s = document.createElement("script");
+    s.src = "https://telegram.org/js/telegram-web-app.js";
+    s.onload = () => {
+      const tg = (window as unknown as { Telegram?: { WebApp?: { ready: () => void; expand: () => void } } }).Telegram?.WebApp;
+      tg?.ready(); tg?.expand();
+    };
+    document.head.appendChild(s);
+  }, []);
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       // Only refetch on real auth changes — not token refreshes / initial session
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
