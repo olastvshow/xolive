@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { heartbeat } from "@/lib/pairplay.functions";
@@ -17,6 +17,12 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthedLayout() {
   useNativeShell();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (localStorage.getItem("duet-join") && window.location.pathname !== "/pair") {
+      navigate({ to: "/pair", replace: true });
+    }
+  }, [navigate]);
   const beat = useServerFn(heartbeat);
   useEffect(() => {
     let alive = true;
