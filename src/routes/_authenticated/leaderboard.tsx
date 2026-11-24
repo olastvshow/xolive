@@ -51,7 +51,7 @@ function LeaderboardPage() {
 
         {isError && <div className="py-10 text-center"><p className="text-ink/60">Rankings couldn't load.</p><Button variant="ghost" className="mt-3 text-pop" onClick={() => void refetch()}>Try again</Button></div>}
         {data.length > 0 && <>
-          <div className="mt-7 flex items-center justify-between border-b border-ink/10 pb-4"><span className="text-sm font-semibold">All-time standings</span><span className="text-xs text-ink/40">{data.length} players</span></div>
+          <div className="mt-7 flex items-center justify-between border-b border-ink/[0.05] pb-4"><span className="text-sm font-semibold">All-time standings</span><span className="text-xs text-ink/40">{data.length} players</span></div>
           <section className="rank-podium" aria-label="Top three players">
             {[1, 0, 2].map(index => {
               const row = data[index];

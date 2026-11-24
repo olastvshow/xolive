@@ -110,7 +110,7 @@ function AuthPage() {
           <Link
             to="/onboarding"
             aria-label="Back"
-            className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/5 text-ink press"
+            className="grid h-10 w-10 place-items-center rounded-full border border-white/[0.05] bg-white/5 text-ink press"
           >
             <Glyph name="left" size={18} />
           </Link>
@@ -190,11 +190,11 @@ function AuthPage() {
           )}
 
           {notice && (
-            <div className="rounded-2xl border border-pop/30 bg-pop/10 px-3 py-2.5 text-sm font-medium text-ink animate-slide-in-up">{notice}</div>
+            <div className="rounded-2xl border border-pop/15 bg-pop/10 px-3 py-2.5 text-sm font-medium text-ink animate-slide-in-up">{notice}</div>
           )}
 
           {error && (
-            <div className="flex items-start gap-2 rounded-2xl border border-knowus/30 bg-knowus/10 px-3 py-2.5 text-sm text-ink animate-slide-in-up">
+            <div className="flex items-start gap-2 rounded-2xl border border-knowus/15 bg-knowus/10 px-3 py-2.5 text-sm text-ink animate-slide-in-up">
               <span className="font-medium leading-snug">{error}</span>
             </div>
           )}
@@ -250,7 +250,7 @@ function Field({
       <label className="mb-1.5 ml-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-ink/40">
         {label}
       </label>
-      <div className="flex h-14 items-center gap-2.5 rounded-2xl border border-white/10 bg-white/5 px-4 transition-colors focus-within:border-pop/60">
+      <div className="flex h-14 items-center gap-2.5 rounded-2xl border border-white/[0.05] bg-white/5 px-4 transition-colors focus-within:border-pop/60">
         <span className="text-ink/40"><Glyph name={icon} size={17} /></span>
         <input
           {...rest}

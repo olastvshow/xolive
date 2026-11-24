@@ -12,11 +12,11 @@ export const Route = createFileRoute("/_authenticated/")({
       { title: "Duet — party games for two" },
       { name: "description", content: "Play XO Arena, Fill the Glass, Know Us and Air Hockey — against the computer, online with anyone, or in your private room for two." },
       { property: "og:title", content: "Duet — party games for two" },
-      { property: "og:description", content: "Four bright little games. Play the computer, play online, or play in your private room." },
+      { property: "og:description", content: "Games made for two. Play the computer, play online, or play in your private room." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Duet — party games for two" },
-      { name: "twitter:description", content: "Four bright little games. Play the computer, play online, or play in your private room." },
+      { name: "twitter:description", content: "Games made for two. Play the computer, play online, or play in your private room." },
     ],
   }),
   component: HomeHub,
@@ -51,7 +51,7 @@ function HomeHub() {
           <Link
             to="/profile"
             aria-label="Your profile"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 bg-night-2 text-ink/70"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/[0.05] bg-night-2 text-ink/70"
           >
             <Glyph name="person" size={19} />
           </Link>

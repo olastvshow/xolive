@@ -19,7 +19,7 @@ export function PageHeader({
       <Link
         to={back}
         aria-label="Go back"
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 bg-night-2 text-ink/70 press"
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/[0.05] bg-night-2 text-ink/70 press"
       >
         <Glyph name="left" size={18} />
       </Link>

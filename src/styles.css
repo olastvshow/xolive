@@ -21,11 +21,20 @@
   --color-inverse-surface: #303035;
   --color-inverse-on-surface: #f3eff6;
 
-  --color-outline: #767682;
-  --color-outline-variant: #c7c5d2;
+  --color-outline: #3a3833;
+  --color-outline-variant: #24231f;
 
-  --color-primary: #5158a0;
-  --color-on-primary: #ffffff;
+  --color-primary: #ffd426;
+  --color-on-primary: #171308;
+  --color-primary-foreground: #171308;
+  --color-input: #2a2925;
+  --color-card: #15151a;
+  --color-card-foreground: #f7f5f2;
+  --color-muted: #1c1c21;
+  --color-muted-foreground: #9a968e;
+  --color-popover: #18181d;
+  --color-popover-foreground: #f7f5f2;
+  --color-destructive: #ff5a6e;
   --color-primary-container: #a9b0ff;
   --color-on-primary-container: #394087;
   --color-primary-fixed: #e0e0ff;
@@ -60,10 +69,10 @@
   --color-mint-blue: #98f5e1;
   --color-pastel-pink: #ffb7ce;
 
-  --color-background: #fbf8ff;
-  --color-foreground: #1b1b20;
-  --color-border: #c7c5d2;
-  --color-ring: #5158a0;
+  --color-background: #0c0c0f;
+  --color-foreground: #f7f5f2;
+  --color-border: #24231f;
+  --color-ring: #ffd426;
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -78,8 +87,9 @@
     -webkit-tap-highlight-color: transparent;
   }
   * {
-    border-color: var(--color-outline-variant);
+    border-color: color-mix(in oklab, #f7f5f2 6%, transparent);
   }
+  :focus-visible { outline: 2px solid color-mix(in oklab, #ffd426 70%, transparent); outline-offset: 2px; }
 }
 
 @layer utilities {
@@ -337,10 +347,10 @@
   --font-sans: "Manrope", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
   --font-display: "Sora", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
 
-  --color-night: #0b0b0d;
-  --color-night-2: #141417;
-  --color-night-3: #1d1d21;
-  --color-hair: #2a2a2a;
+  --color-night: #0c0c0f;
+  --color-night-2: #15151a;
+  --color-night-3: #1e1e24;
+  --color-hair: #222227;
   --color-ink: #f7f5f2;
   --color-me: #f0ece3;
   --color-them: #ffd426;
@@ -376,31 +386,26 @@
   color: var(--color-pop-ink);
   border-radius: 999px;
   font-weight: 700;
-  box-shadow: 0 10px 26px -12px rgba(255, 212, 38, 0.8);
+  box-shadow: 0 8px 20px -14px rgba(255, 212, 38, 0.6);
   transition: transform 160ms cubic-bezier(0.32, 0.72, 0, 1);
   &:active { transform: scale(0.97); }
 }
 
 @utility tile {
-  border-radius: 26px;
-  border: 1px solid color-mix(in oklab, #ffffff 10%, transparent);
-  box-shadow: 0 18px 40px -26px rgba(0, 0, 0, 0.9);
+  border-radius: 24px;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, #ffffff 7%, transparent), 0 14px 32px -22px rgba(0, 0, 0, 0.85);
   transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
   &:active { transform: scale(0.98); }
 }
 
 
 @utility hairline {
-  border: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-ink) 5%, transparent);
 }
 
 @utility card-noir {
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--color-ink) 5%, transparent),
-    color-mix(in oklab, var(--color-ink) 2%, transparent)
-  );
-  border: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+  background: var(--color-night-2);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--color-ink) 5%, transparent);
   border-radius: 22px;
 }
 
@@ -482,7 +487,7 @@
 }
 .rank-podium { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:end; max-width:540px; margin:44px auto 0; gap:6px; }
 .podium-player { text-align:center; min-width:0; }
-.podium-avatar { width:56px; height:56px; margin:auto; overflow:hidden; border-radius:50%; border:2px solid var(--color-hair); }
+.podium-avatar { width:56px; height:56px; margin:auto; overflow:hidden; border-radius:50%; border:2px solid transparent; }
 .podium-place-1 .podium-avatar { width:68px; height:68px; border-color:var(--color-pop); }
 .podium-block { height:125px; position:relative; background:var(--podium-face); display:grid; place-items:center; border-top:1px solid color-mix(in srgb,var(--color-ink) 40%,transparent); }
 .podium-block::before { content:''; position:absolute; left:0; right:0; top:-18px; height:18px; background:var(--podium-top); clip-path:polygon(12% 0,88% 0,100% 100%,0 100%); }
@@ -490,7 +495,7 @@
 .podium-place-1 .podium-block { height:174px; }
 .podium-place-1 .podium-block span { color:var(--color-pop); }
 .podium-place-3 .podium-block { height:95px; }
-.match-notice { position:fixed; z-index:70; top:max(85px,env(safe-area-inset-top)); left:50%; width:max-content; max-width:calc(100% - 32px); transform:translateX(-50%); display:flex; align-items:center; gap:12px; padding:16px 22px; border-radius:18px; background:var(--color-night-3); border:1px solid var(--color-hair); box-shadow:0 12px 50px color-mix(in srgb,var(--color-night) 65%,transparent); pointer-events:none; animation:match-arrive .4s cubic-bezier(.18,.85,.25,1.2); }
+.match-notice { position:fixed; z-index:70; top:max(85px,env(safe-area-inset-top)); left:50%; width:max-content; max-width:calc(100% - 32px); transform:translateX(-50%); display:flex; align-items:center; gap:12px; padding:16px 22px; border-radius:18px; background:var(--color-night-3); box-shadow:0 12px 50px color-mix(in srgb,var(--color-night) 65%,transparent); pointer-events:none; animation:match-arrive .4s cubic-bezier(.18,.85,.25,1.2); }
 .match-notice strong { overflow-wrap:anywhere; }
 .match-notice-icon { color:var(--color-pop); animation:result-pop .6s both; }
 @keyframes match-arrive { from { opacity:0; transform:translate(-50%,-40px) scale(.85); } to { opacity:1; transform:translate(-50%,0) scale(1); } }

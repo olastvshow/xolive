@@ -11,13 +11,13 @@ export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
       { title: "Duet — party games for two" },
-      { name: "description", content: "Four bright little games for two people: XO Arena, Fill the Glass, Know Us and Air Hockey." },
+      { name: "description", content: "Fun games for couples and friends: XO Arena, Ludo, Know Us, Truth or Dare and more." },
       { property: "og:title", content: "Duet — party games for two" },
       { property: "og:description", content: "Play the computer, play online, or play in a private room for two." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Duet — party games for two" },
-      { name: "twitter:description", content: "Four bright little games for two people." },
+      { name: "twitter:description", content: "Fun games for couples and friends." },
     ],
   }),
   component: OnboardingPage,
@@ -55,7 +55,7 @@ function OnboardingPage() {
           <span className="block text-[44px] min-[340px]:text-[58px] sm:text-[74px]">Together</span>
         </h1>
         <p className="mx-auto mt-4 max-w-[300px] text-center text-[15px] leading-relaxed text-ink/55">
-          Four bright little games. Beat the computer, meet someone online, or keep a private room for two.
+          Games made for two. Play the computer, play online, or keep a private room with your person.
         </p>
 
         <div className="relative my-7 flex flex-1 items-center justify-center">
@@ -81,7 +81,7 @@ function OnboardingPage() {
           </button>
           <button
             onClick={() => navigate({ to: "/auth", search: { mode: "signin" } as never })}
-            className="h-13 w-full rounded-full border border-white/12 bg-white/5 py-3.5 text-[15px] font-semibold text-ink press"
+            className="h-13 w-full rounded-full border border-white/[0.05] bg-white/5 py-3.5 text-[15px] font-semibold text-ink press"
           >
             I already have an account
           </button>

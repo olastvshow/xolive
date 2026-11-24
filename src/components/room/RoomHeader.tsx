@@ -66,11 +66,11 @@ export function RoomHeader({
     : lastSeen(partner.last_seen_at);
 
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/6 bg-night/85 px-4 py-3 backdrop-blur">
+    <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/[0.04] bg-night/85 px-4 py-3 backdrop-blur">
       <Link
         to="/"
         aria-label="Go back"
-        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/10 bg-night-2 text-ink/60 press"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/[0.05] bg-night-2 text-ink/60 press"
       >
         <Glyph name="left" size={18} />
       </Link>

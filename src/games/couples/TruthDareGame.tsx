@@ -42,8 +42,8 @@ export function TruthDareGame() {
           <p className="font-display text-2xl">{myTurn ? "Truth or dare?" : `${partnerName} is choosing…`}</p>
           {myTurn && (
             <div className="mt-5 grid grid-cols-2 gap-3">
-              <button disabled={busy} onClick={() => play({ type: "spin", kind: "truth" })} className="h-28 rounded-3xl bg-xo/15 font-display text-2xl text-xo ring-1 ring-xo/30 press">Truth</button>
-              <button disabled={busy} onClick={() => play({ type: "spin", kind: "dare" })} className="h-28 rounded-3xl bg-knowus/15 font-display text-2xl text-knowus ring-1 ring-knowus/30 press">Dare</button>
+              <button disabled={busy} onClick={() => play({ type: "spin", kind: "truth" })} className="h-28 rounded-3xl bg-xo/15 font-display text-2xl text-xo ring-1 ring-xo/15 press">Truth</button>
+              <button disabled={busy} onClick={() => play({ type: "spin", kind: "dare" })} className="h-28 rounded-3xl bg-knowus/15 font-display text-2xl text-knowus ring-1 ring-knowus/15 press">Dare</button>
             </div>
           )}
         </div>

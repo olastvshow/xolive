@@ -57,10 +57,10 @@ function ResetPassword() {
         ) : (
           <form onSubmit={submit} className="mt-6 space-y-3">
             <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password" autoComplete="new-password"
-              className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-4 outline-none focus:ring-2 focus:ring-pop/50" />
+              className="h-14 w-full rounded-2xl border border-white/[0.05] bg-white/5 px-4 outline-none focus:ring-2 focus:ring-pop/50" />
             <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} placeholder="Repeat new password" autoComplete="new-password"
-              className="h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-4 outline-none focus:ring-2 focus:ring-pop/50" />
-            {error && <p className="rounded-2xl border border-knowus/30 bg-knowus/10 px-3 py-2.5 text-sm">{error}</p>}
+              className="h-14 w-full rounded-2xl border border-white/[0.05] bg-white/5 px-4 outline-none focus:ring-2 focus:ring-pop/50" />
+            {error && <p className="rounded-2xl border border-knowus/15 bg-knowus/10 px-3 py-2.5 text-sm">{error}</p>}
             <button disabled={loading} className="btn-pop h-14 w-full disabled:opacity-60">{loading ? "Saving…" : "Save password"}</button>
           </form>
         )}

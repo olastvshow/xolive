@@ -20,7 +20,7 @@ export function TabBar() {
         aria-label="Main"
         className="lg:hidden fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom))] pt-3 bg-gradient-to-t from-night via-night/92 to-transparent"
       >
-        <ul className="mx-auto flex max-w-md items-center justify-between rounded-[26px] border border-white/10 bg-night-2/95 px-1.5 py-1.5 backdrop-blur">
+        <ul className="mx-auto flex max-w-md items-center justify-between rounded-[26px] border border-white/[0.05] bg-night-2/95 px-1.5 py-1.5 backdrop-blur">
           {TABS.map((t) => (
             <li key={t.label} className="flex-1">
               <Link
@@ -37,7 +37,7 @@ export function TabBar() {
       </nav>
 
       {/* desktop: sticky top bar */}
-      <nav aria-label="Main" className="hidden lg:block sticky top-0 z-50 border-b border-white/8 bg-night/85 backdrop-blur">
+      <nav aria-label="Main" className="hidden lg:block sticky top-0 z-50 border-b border-white/[0.05] bg-night/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-8 px-8 py-4">
           <Link to="/" className="font-display text-xl">
             Duet<span className="text-pop">.</span>

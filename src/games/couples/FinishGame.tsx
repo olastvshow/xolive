@@ -65,7 +65,7 @@ export function FinishGame() {
               maxLength={140}
               onChange={(e) => setText(e.target.value)}
               placeholder="Finish it in your own words"
-              className="mt-4 h-28 w-full resize-none rounded-2xl border border-white/10 bg-night-2 p-4 text-ink outline-none focus:border-pop/50"
+              className="mt-4 h-28 w-full resize-none rounded-2xl border border-white/[0.05] bg-night-2 p-4 text-ink outline-none focus:border-pop/50"
             />
             <div className="mt-2 flex items-center justify-between">
               <span className="text-[11px] text-ink/35">{text.length}/140</span>

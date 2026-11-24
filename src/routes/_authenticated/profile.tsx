@@ -93,7 +93,7 @@ function ProfilePage() {
               maxLength={32}
               onChange={(e) => setName(e.target.value)}
               aria-label="Display name"
-              className="w-full border-b border-white/10 bg-transparent pb-1 font-display text-2xl text-ink outline-none focus:border-pop"
+              className="w-full border-b border-white/[0.05] bg-transparent pb-1 font-display text-2xl text-ink outline-none focus:border-pop"
             />
             <button onClick={() => save.mutate()} className="mt-2 text-xs font-bold uppercase tracking-[0.2em] text-pop press">
               {saved ? "Saved" : "Save name"}

@@ -48,13 +48,13 @@ export function RoomDock() {
               <button
                 key={b.id}
                 onClick={() => { react(b.id); setReactionsOpen(false); }}
-                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-night-2/95 px-3 py-2 text-xs font-bold text-ink/80 backdrop-blur press hover:text-pop"
+                className="flex items-center gap-1.5 rounded-full border border-white/[0.05] bg-night-2/95 px-3 py-2 text-xs font-bold text-ink/80 backdrop-blur press hover:text-pop"
               >
                 <Glyph name={b.icon} size={14} /> {b.text}
               </button>
             ))}
           </div>
-          <div className="mx-auto flex max-w-md items-center justify-between gap-1.5 rounded-[24px] border border-white/10 bg-night-2/95 p-2 backdrop-blur">
+          <div className="mx-auto flex max-w-md items-center justify-between gap-1.5 rounded-[24px] border border-white/[0.05] bg-night-2/95 p-2 backdrop-blur">
             {REACTIONS.map((r) => (
               <button
                 key={r.id}
@@ -71,7 +71,7 @@ export function RoomDock() {
 
       {/* dock */}
       <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.7rem,env(safe-area-inset-bottom))] pt-3 bg-gradient-to-t from-night via-night/92 to-transparent">
-        <div className="mx-auto flex max-w-md items-center gap-2 rounded-[26px] border border-white/10 bg-night-2/95 p-2 backdrop-blur">
+        <div className="mx-auto flex max-w-md items-center gap-2 rounded-[26px] border border-white/[0.05] bg-night-2/95 p-2 backdrop-blur">
           <button
             onClick={voice.toggleMute}
             aria-label={voice.muted ? "Unmute" : "Mute"}
@@ -127,7 +127,7 @@ export function RoomDock() {
             onClick={() => setChatOpen(false)}
             className="absolute inset-0 bg-night/70 backdrop-blur-sm"
           />
-          <div className="relative animate-slide-up rounded-t-[28px] border-t border-white/10 bg-night-2 pb-[max(0.9rem,env(safe-area-inset-bottom))]">
+          <div className="relative animate-slide-up rounded-t-[28px] border-t border-white/[0.05] bg-night-2 pb-[max(0.9rem,env(safe-area-inset-bottom))]">
             <div className="flex items-center justify-between px-5 pt-3">
               <span className="mx-auto h-1 w-10 rounded-full bg-white/15" />
             </div>

@@ -162,7 +162,7 @@ function PlayOnline() {
 
           <div className="mt-3 grid gap-2">
             {players.length === 0 && (
-              <div className="rounded-3xl border border-dashed border-white/10 px-5 py-8 text-center">
+              <div className="rounded-3xl border border-dashed border-white/[0.05] px-5 py-8 text-center">
                 <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-night-3 text-ink/40">
                   <Glyph name="person" size={20} />
                 </span>
@@ -231,7 +231,7 @@ function PlayOnline() {
                 navigate({ to: "/online/$roomId", params: { roomId: res.roomId } });
               } finally { setBusy(false); }
             }}
-            className="press mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-night-3/60 font-semibold text-ink"
+            className="press mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/[0.05] bg-night-3/60 font-semibold text-ink"
           >
             <Glyph name="spark" size={16} /> Open a room and get a code
           </button>
@@ -262,7 +262,7 @@ function PlayOnline() {
 
       {firstInvite && !pending && (
         <div className="fixed inset-0 grid place-items-center bg-night/92 px-8 text-center backdrop-blur-sm">
-          <div className="w-full max-w-sm overflow-hidden rounded-[30px] border border-white/8 bg-night-3">
+          <div className="w-full max-w-sm overflow-hidden rounded-[30px] border border-white/[0.05] bg-night-3">
             <div
               className="px-7 pt-7 pb-6"
               style={{ background: GAMES.find((g) => g.key === firstInvite.game_key)?.wash }}

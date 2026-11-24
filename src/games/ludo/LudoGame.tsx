@@ -100,7 +100,7 @@ export function LudoGame() {
       </div>
 
       <div className="relative">
-        <svg viewBox={`0 0 ${15 * C} ${15 * C}`} className="w-full rounded-[28px] bg-night-2 ring-1 ring-white/10">
+        <svg viewBox={`0 0 ${15 * C} ${15 * C}`} className="w-full rounded-[28px] bg-night-2 ring-1 ring-white/[0.05]">
           {/* bases */}
           {[false, true].map((far) => {
             const [qx, qy] = quad(far);
@@ -171,7 +171,7 @@ export function LudoGame() {
         {/* Quiz Gate */}
         {g && (
           <div className="absolute inset-0 grid place-items-center rounded-[28px] bg-night/75 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-sm animate-in zoom-in-95 fade-in rounded-[24px] border border-white/10 bg-night-2 p-5 text-center duration-300">
+            <div className="w-full max-w-sm animate-in zoom-in-95 fade-in rounded-[24px] border border-white/[0.05] bg-night-2 p-5 text-center duration-300">
               <p className="text-[11px] font-black uppercase tracking-[0.3em] text-knowus">Quiz Gate</p>
               <p className="mt-1 text-xs text-ink/50">
                 {g.player === me.id ? "Three rolls without a six. Match and you roll again." : `${partnerName} is at the gate. Answer honestly.`}
@@ -193,7 +193,7 @@ export function LudoGame() {
         )}
       </div>
 
-      <div className="mt-4 flex items-center gap-4 rounded-[24px] border border-white/10 bg-night-2 p-3">
+      <div className="mt-4 flex items-center gap-4 rounded-[24px] border border-white/[0.05] bg-night-2 p-3">
         <Dice n={s.dice} rolling={s.rollId} />
         <div className="min-w-0 flex-1">
           <p className="font-display text-lg leading-tight">

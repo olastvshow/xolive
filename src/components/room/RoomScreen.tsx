@@ -86,13 +86,13 @@ function RoomBody({
 
       <main className="flex-1 pb-32 pt-4">
         {!partnerOnline && !playing && (
-          <div className="mx-4 mb-4 rounded-3xl border border-white/8 bg-night-2 px-5 py-4 text-sm text-ink/50">
+          <div className="mx-4 mb-4 rounded-3xl border border-white/[0.05] bg-night-2 px-5 py-4 text-sm text-ink/50">
             {partnerName} isn't here yet. Knock, or leave a message — they'll see it.
           </div>
         )}
 
         {proposedByThem && session && (
-          <div className="mx-4 mb-4 rounded-[26px] border border-white/8 bg-night-3 p-5">
+          <div className="mx-4 mb-4 rounded-[26px] border border-white/[0.05] bg-night-3 p-5">
             <p className="font-display text-lg">
               {partnerName} wants to play {gameByKey(session.game_key)?.name}
             </p>
@@ -106,7 +106,7 @@ function RoomBody({
         )}
 
         {proposedByMe && session && (
-          <div className="mx-4 mb-4 rounded-[26px] border border-white/8 bg-night-2 p-5 text-center text-sm text-ink/50">
+          <div className="mx-4 mb-4 rounded-[26px] border border-white/[0.05] bg-night-2 p-5 text-center text-sm text-ink/50">
             Waiting for {partnerName} to accept {gameByKey(session.game_key)?.name}…
           </div>
         )}
@@ -154,7 +154,7 @@ function RoomBody({
 
       {confirmLeave && onLeaveRoom && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-night/85 px-8 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-[28px] border border-white/10 bg-night-2 p-6 text-center">
+          <div className="w-full max-w-sm rounded-[28px] border border-white/[0.05] bg-night-2 p-6 text-center">
             <p className="font-display text-xl">{leaveLabel ?? "Leave room"}?</p>
             <p className="mt-1.5 text-sm text-ink/45">The game in progress will end.</p>
             <div className="mt-6 flex gap-2">

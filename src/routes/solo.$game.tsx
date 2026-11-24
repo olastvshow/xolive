@@ -55,7 +55,7 @@ function SoloGame() {
             to="/games/$game"
             params={{ game: entry.key }}
             aria-label="Go back"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 bg-night-2 text-ink/70 press"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/[0.05] bg-night-2 text-ink/70 press"
           >
             <Glyph name="left" size={18} />
           </Link>
@@ -65,7 +65,7 @@ function SoloGame() {
           </div>
           <button
             onClick={() => setRound((r) => r + 1)}
-            className="h-10 shrink-0 rounded-full border border-white/10 bg-night-2 px-4 text-xs font-bold uppercase tracking-[0.15em] text-ink/60 press"
+            className="h-10 shrink-0 rounded-full border border-white/[0.05] bg-night-2 px-4 text-xs font-bold uppercase tracking-[0.15em] text-ink/60 press"
           >
             New round
           </button>
