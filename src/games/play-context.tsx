@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { GameFeedback } from "./GameFeedback";
 import type { GameAction } from "@/games/logic";
 
@@ -47,7 +47,24 @@ export function PlayProvider({ value, children }: { value: PlayValue; children: 
   const display=value.gameKey==='cup-pong'?presented:value.state;
   const state = display as { winner?: string; loser?: string; draw?: boolean; done?: boolean } | null;
   const finished = Boolean(state?.winner || state?.loser || state?.draw || state?.done);
-  return <PlayCtx.Provider value={value}><GameFeedback value={{...value,state:display}} />{!finished && children}</PlayCtx.Provider>;
+  // XO: replay how the round was won before showing the result card.
+  const xo = value.gameKey === 'xo' ? (value.state as { winner?: string | null; history?: number[] } | null) : null;
+  const hist = xo?.winner ? (xo.history ?? []) : [];
+  const histKey = hist.join(',');
+  const [watching, setWatching] = useState(false);
+  const [run, setRun] = useState(0);
+  const seen = useRef('');
+  useEffect(() => {
+    if (!histKey || seen.current === histKey) return;
+    seen.current = histKey; setWatching(true); setRun((r) => r + 1);
+  }, [histKey]);
+  useEffect(() => {
+    if (!watching) return;
+    const t = setTimeout(() => setWatching(false), 450 + hist.length * 320 + 1800);
+    return () => clearTimeout(t);
+  }, [watching, run, hist.length]);
+  const showBoard = watching && hist.length > 0;
+  return <PlayCtx.Provider value={value}><GameFeedback value={{...value,state:display}} hideResult={showBoard} onReplay={hist.length ? () => { setWatching(true); setRun((r) => r + 1); } : undefined} />{(!finished || showBoard) && <div key={showBoard ? `replay-${run}` : 'live'}>{children}</div>}</PlayCtx.Provider>;
 }
 
 export const displayName = (p: Profile) => p.display_name ?? p.username;

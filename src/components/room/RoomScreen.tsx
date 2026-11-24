@@ -125,7 +125,7 @@ function RoomBody({
                 {GAMES.map((g) => (
                   <button
                     key={g.key}
-                    disabled={!partnerOnline || busy}
+                    disabled={busy}
                     onClick={() => propose(g.key as GameKey)}
                     className="tile relative flex items-center gap-3 overflow-hidden p-4 text-left disabled:opacity-40"
                     style={{ background: g.wash }}

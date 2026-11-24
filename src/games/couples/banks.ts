@@ -110,6 +110,26 @@ export const KNOW_US: KnowUsItem[] = [
     "Who is the bigger baby when sick?|{s};{o};Both;Neither",
     "Who gets hangry first?|{s};{o};Both;Neither",
   ]),
+  ...K("Would you rather", [
+    "{s} would rather lose...|Their phone for a week;Their voice for a day;All their shoes;Wi-Fi forever",
+    "{s} would rather go on a date to...|A rooftop dinner;A beach at night;A tiny buka;A game arcade",
+    "If {s} won a million, first buy?|A house;A trip for two;Something for family;Hide it and stay calm",
+    "{s} would rather have {o}...|Cook for them;Sing for them;Write them a letter;Plan a surprise",
+    "Zombie apocalypse: {s} is...|The leader;The cook;The first to go;Hiding with snacks",
+    "{s} would rather fight...|One giant chicken;Ten tiny goats;A mosquito swarm;Nobody, run",
+    "{s}'s secret superpower?|Reading minds;Finding food;Sleeping anywhere;Making people laugh",
+    "On a desert island, {s} brings...|{o};Food;A phone charger;A comb",
+  ]),
+  ...K("Spicy but sweet", [
+    "What melts {s} fastest?|A long hug;A sweet text;A forehead kiss;Being fed",
+    "Where does {s} love to be kissed?|Forehead;Cheek;Hand;Surprise me",
+    "{s}'s love language?|Words;Touch;Gifts;Quality time",
+    "What makes {s} blush?|Compliments;Staring;Old photos;Being teased",
+    "{s}'s favourite way to make up?|Food;A hug;A long talk;Pretend nothing happened",
+    "What would {s} never forgive?|Lying;Eating their food;Spoilers;Forgetting a birthday",
+    "{s} thinks {o} looks best in...|Black;White;Native wear;Pyjamas",
+    "What does {s} say most often?|I'm hungry;Wait first;I love you;Where are you?",
+  ]),
 ];
 
 export const THIS_OR_THAT: [string, string][] = [
@@ -126,6 +146,11 @@ export const THIS_OR_THAT: [string, string][] = [
   ["Holding hands", "Arm around shoulder"], ["Sweet nicknames", "Real names"], ["Jollof", "Fried rice"],
   ["Love songs", "Party songs"], ["Ocean", "Lake"], ["Rollercoaster", "Ferris wheel"], ["Flowers", "Chocolates"],
   ["Pyjamas all day", "Dress up"], ["Old-school love", "Modern love"], ["Kiss in the rain", "Kiss at sunset"],
+  ["Amala", "Pounded yam"], ["Afrobeats", "Amapiano"], ["Lagos", "Abuja"], ["Suya", "Shawarma"],
+  ["Zobo", "Chapman"], ["Owambe", "Quiet dinner"], ["Long voice notes", "Short texts"], ["Early to the party", "Fashionably late"],
+  ["Share dessert", "Own dessert"], ["Window seat", "Aisle seat"], ["Big spoon", "Little spoon"], ["Movie at home", "Movie at the cinema"],
+  ["Save money", "Spend on experiences"], ["Plantain", "Yam"], ["Meet in a market", "Meet at a wedding"], ["Love at first sight", "Slow burn"],
+  ["Surprise party", "Private dinner"], ["Read my mind", "Tell me straight"], ["Phone calls at night", "Video calls"], ["Twins", "One at a time"],
 ];
 
 export const LIKELY: string[] = [
@@ -140,6 +165,10 @@ export const LIKELY: string[] = [
   "plan the perfect date", "forget what we argued about", "say yes to a crazy adventure", "talk in their sleep",
   "order for the other at a restaurant", "fake being sick to stay in", "post us online", "win at board games",
   "eat dessert first", "start a new hobby and quit", "kiss in public", "remember every little detail",
+  "cry over a voice note", "pretend to know a song", "finish the other's food", "fall asleep on a call",
+  "start a dance-off at a wedding", "forget where they parked", "argue with a GPS", "become best friends with the in-laws",
+  "screenshot the chat to show friends", "laugh during a serious talk", "panic at a cockroach", "say 'one more episode' at 2am",
+  "spend an hour choosing what to eat", "keep a secret gift hidden for months", "win an argument with logic", "give up first in a tickle fight",
 ];
 
 export const TRUTHS: string[] = [
@@ -157,6 +186,10 @@ export const TRUTHS: string[] = [
   "What would your perfect day with me look like?", "What made you fall for me?",
   "What's a moment you felt really proud of me?", "Have you ever been jealous? When?",
   "What's your favourite photo of us and why?", "What do you want us to be like in ten years?",
+  "What's the most romantic thing you've seen in a film you'd want us to do?", "What's one thing about me you'd brag about to strangers?",
+  "What was the hardest moment for us, and what did it teach you?", "If you could read one of my thoughts, which would you pick?",
+  "What's the first thing you'd do if we woke up rich?", "What small thing did I do once that you never forgot?",
+  "Which of my friends do you like most?", "What's one fear you've never said out loud?",
 ];
 
 export const DARES: string[] = [
@@ -172,6 +205,10 @@ export const DARES: string[] = [
   "Do your best runway walk.", "Say 'I love you' in three different ways.",
   "Tell me something you find cute about me, in a whisper.", "Make the funniest face you can for five seconds.",
   "Write my name with your finger in the air.", "Laugh like a villain.",
+  "Read the last message you sent me in a news reporter voice.", "Describe me using only food words.",
+  "Do your best Nollywood crying scene.", "Pretend you're meeting me for the first time and try your best line.",
+  "Talk like a baby for your next turn.", "Give me a 15-second motivational speech.",
+  "Show your most embarrassing dance move.", "Rap one line about us.",
 ];
 
 export const SENTENCES: string[] = [
@@ -182,6 +219,8 @@ export const SENTENCES: string[] = [
   "Something I've never told you is...", "I fall for you again when...", "The thing I'd miss most about you is...",
   "Our love feels like...", "If we had a theme song it would be...", "My favourite way to spend time with you is...",
   "You make ordinary days better by...", "Next year I want us to...",
+  "The first time I saw you I thought...", "If we were a film, the title would be...", "I knew I could trust you when...",
+  "The funniest thing that happened to us was...", "If I could plan our dream date, we would...", "When we're old, I hope we still...",
 ];
 
 export const BOT_LINES: string[] = [

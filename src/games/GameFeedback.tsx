@@ -3,7 +3,7 @@ import { Trophy, Volume2, VolumeX, Flag, Zap, RotateCcw, LayoutGrid } from 'luci
 import { Button } from '@/components/ui/button';
 import type { PlayValue } from './play-context';
 
-export function GameFeedback({ value }: { value: PlayValue }) {
+export function GameFeedback({ value, hideResult, onReplay }: { value: PlayValue; hideResult?: boolean; onReplay?: () => void }) {
   const [muted, setMuted] = useState(false);
   const [notice, setNotice] = useState('');
   const [intro, setIntro] = useState(true);
@@ -74,15 +74,15 @@ export function GameFeedback({ value }: { value: PlayValue }) {
     <div className="game-sound-control flex justify-end px-4 pb-2"><Button variant="ghost" className="h-11 w-11 text-ink/60" aria-label={muted ? 'Enable game sounds' : 'Mute game sounds'} title={muted ? 'Enable game sounds' : 'Mute game sounds'} onClick={() => setMuted(v => { localStorage.setItem('duet-muted', String(!v)); return !v; })}>{muted ? <VolumeX /> : <Volume2 />}</Button></div>
     {intro && !over && <div className="match-intro" role="status"><div className="match-intro-line" /><span className="text-sm font-bold uppercase text-pop">{value.live ? 'Live match' : 'New round'}</span><strong className="start-banner font-display text-5xl">LET’S PLAY</strong><span className="text-sm text-ink/70">You <span className="px-3 text-pop">vs</span> {value.partner.display_name ?? value.partner.username}</span><div className="match-intro-line" /></div>}
     {notice && !over && <div key={eventId} className="match-notice" role="status"><span className="match-notice-icon"><Zap /></span><strong>{notice}</strong>{s.scores && <span className="score-bounce tabular-nums text-pop">{s.scores[value.me.id] ?? 0} — {s.scores[value.partner.id] ?? 0}</span>}</div>}
-    {over && <section className="match-result mx-auto w-full max-w-lg px-6 py-8 text-center" aria-label="Match result">
+    {over && !hideResult && <section className="match-result mx-auto w-full max-w-lg px-6 py-8 text-center" aria-label="Match result">
       <div className="result-emblem mx-auto mb-6 grid h-24 w-24 place-items-center rounded-full bg-pop/10 text-pop">{s.winner && s.winner !== value.me.id ? <Flag size={44} /> : <Trophy size={44} />}</div>
       <p className="mb-2 text-xs font-bold uppercase text-ink/50">Final result</p>
       <h2 className="start-banner font-display text-4xl">{s.draw ? 'Honours even' : s.winner ? s.winner === value.me.id ? 'You win!' : 'Good game' : 'Round complete'}</h2>
       <p className="mt-3 text-sm text-ink/60">{s.winner ? `${s.winner === value.me.id ? 'You' : value.partner.display_name ?? value.partner.username} won this round` : s.done ? 'Another round together?' : 'Time for a rematch?'}</p>
       {s.scores && <div className="my-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4"><div className="min-w-0"><div key={`me-${s.scores[value.me.id]}`} className="score-bounce font-display text-6xl text-pop">{s.scores[value.me.id] ?? 0}</div><p className="mt-2 text-sm">You</p></div><span className="text-ink/30">—</span><div className="min-w-0"><div key={`them-${s.scores[value.partner.id]}`} className="score-bounce font-display text-6xl text-xo">{s.scores[value.partner.id] ?? 0}</div><p className="mt-2 break-words text-sm">{value.partner.display_name ?? value.partner.username}</p></div></div>}
       {typeof s.score === 'number' && <p className="score-bounce my-8 font-display text-5xl text-pop">{s.score} / {s.questions?.length ?? 10}<span className="mt-2 block font-sans text-sm text-ink/60">Answers in sync</span></p>}
-      <div className="mt-8 flex flex-col gap-3"><Button className="btn-pop h-12 w-full" disabled={pending || value.busy || (value.live && !value.partnerOnline)} onClick={() => void act(value.restart)}><RotateCcw size={18} />{pending ? 'Connecting…' : 'Play again'}</Button><Button variant="ghost" className="h-12 text-ink/70" disabled={pending || value.busy} onClick={() => void act(value.leaveGame)}><LayoutGrid size={18} />{value.live ? 'Choose another game' : 'All games'}</Button></div>
-      {value.live && !value.partnerOnline && <p className="mt-3 text-sm text-ink/50">Waiting for your opponent to reconnect</p>}
+      <div className="mt-8 flex flex-col gap-3"><Button className="btn-pop h-12 w-full" disabled={pending || value.busy} onClick={() => void act(value.restart)}><RotateCcw size={18} />{pending ? 'Connecting…' : 'Play again'}</Button>{onReplay && <Button variant="ghost" className="h-12 text-ink/80" onClick={onReplay}>Watch how it was won</Button>}<Button variant="ghost" className="h-12 text-ink/70" disabled={pending || value.busy} onClick={() => void act(value.leaveGame)}><LayoutGrid size={18} />{value.live ? 'Choose another game' : 'All games'}</Button></div>
+      {value.live && !value.partnerOnline && <p className="mt-3 text-sm text-ink/50">Your opponent looks offline. They'll join the rematch when they're back.</p>}
       {error && <p role="alert" className="mt-3 text-sm text-knowus">{error}</p>}
     </section>}
   </>;

@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useServerFn } from "@tanstack/react-start";
@@ -217,8 +218,11 @@ export function RoomProvider({
     try {
       const row = await proposeFn({ data: { roomId, gameKey } });
       setSession(row as Session);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't start that game. Try again.");
+      refreshSession().catch(() => {});
     } finally { setBusy(false); }
-  }, [proposeFn, roomId]);
+  }, [proposeFn, roomId, refreshSession]);
 
   const respond = useCallback(async (accept: boolean) => {
     if (!session) return;
@@ -226,8 +230,11 @@ export function RoomProvider({
     try {
       const row = await respondFn({ data: { sessionId: session.id, accept } });
       setSession(accept ? (row as Session) : null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't join that game. Try again.");
+      refreshSession().catch(() => {});
     } finally { setBusy(false); }
-  }, [respondFn, session]);
+  }, [respondFn, session, refreshSession]);
 
   const play = useCallback((action: GameAction) => {
     setSession((prev) => {
@@ -255,8 +262,11 @@ export function RoomProvider({
     try {
       const row = await restartFn({ data: { sessionId: session.id } });
       setSession(row as Session);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't restart. Try again.");
+      refreshSession().catch(() => {});
     } finally { setBusy(false); }
-  }, [restartFn, session]);
+  }, [restartFn, session, refreshSession]);
 
   const leaveGame = useCallback(async () => {
     if (!session) return;

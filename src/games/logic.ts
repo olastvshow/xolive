@@ -13,6 +13,8 @@ export type XoState = {
   draw: boolean;
   line: number[] | null;
   scores: Record<string, number>;
+  /** Cells in the order they were played — used for the win replay. */
+  history?: number[];
 };
 
 export type GmQuestion = { category: string; prompt: string; options: string[]; subject: string };
@@ -46,6 +48,7 @@ export function xoInit(players: string[], starter?: string, scores?: Record<stri
     winner: null,
     draw: false,
     line: null,
+    history: [],
     scores: scores ?? { [a]: 0, [b]: 0 },
   };
 }
@@ -81,7 +84,8 @@ export function xoReduce(state: XoState, action: GameAction, meta: Meta): XoStat
   const scores = { ...state.scores };
   if (winner) scores[winner] = (scores[winner] ?? 0) + 1;
 
-  return { ...state, board, line, winner, draw, scores, turn: state.turn === "X" ? "O" : "X" };
+  const history = [...(state.history ?? []), cell];
+  return { ...state, board, line, winner, draw, scores, history, turn: state.turn === "X" ? "O" : "X" };
 }
 
 export function gmInit(questions: GmQuestion[]): GmState {

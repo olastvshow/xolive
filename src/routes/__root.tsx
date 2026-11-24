@@ -11,6 +11,7 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
 import faviconAsset from "../assets/favicon.png.asset.json";
 
@@ -131,6 +132,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthSync />
       <Outlet />
+      <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }
