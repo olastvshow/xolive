@@ -251,7 +251,7 @@ export function RoomProvider({
           const r = res as { stale: boolean; session: Session };
           setSession((cur) => (cur && cur.id === r.session.id ? r.session : cur));
         })
-        .catch(() => { refreshSession().catch(() => {}); });
+        .catch(() => { toast.error("That move didn't go through. Try again."); refreshSession().catch(() => {}); });
       return optimistic;
     });
   }, [me.id, refreshSession, submitFn]);
